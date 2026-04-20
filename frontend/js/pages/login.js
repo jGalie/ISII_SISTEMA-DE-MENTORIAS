@@ -48,7 +48,7 @@
       MentoriasAuth.setUser(data);
       const params = new URLSearchParams(window.location.search);
       const next = params.get('next');
-      window.location.href = next || '/pages/dashboard.html';
+      window.location.href = next || MentoriasAuth.getHomePath(data);
     } catch (err) {
       showError(err.message);
     } finally {

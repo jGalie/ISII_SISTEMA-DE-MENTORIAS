@@ -24,6 +24,7 @@
   }
 
   function activeKeyFromPath(pathname) {
+    if (pathname.endsWith('/inicio-estudiante.html')) return 'inicio';
     if (pathname.endsWith('/dashboard.html')) return 'dashboard';
     if (pathname.endsWith('/clases.html')) return 'clases';
     if (pathname.endsWith('/crear-clase.html')) return 'crear';
@@ -34,8 +35,10 @@
   }
 
   function navbarHtml({ user, activeKey }) {
+    const homePath =
+      user && global.MentoriasAuth ? global.MentoriasAuth.getHomePath(user) : '/index.html';
     const brand = `
-      <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="/index.html">
+      <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="${homePath}">
         <span class="mentorix-brand-mark rounded-4 d-inline-flex align-items-center justify-content-center text-white">
           <i class="bi bi-mortarboard-fill"></i>
         </span>
@@ -66,6 +69,39 @@
       user.rol === 'mentor'
         ? `<li class="nav-item"><a class="nav-link ${activeKey === 'crear' ? 'active fw-semibold' : ''}" href="/pages/crear-clase.html">Crear clase</a></li>`
         : '';
+    const roleLabel = user.rol === 'estudiante' ? 'Estudiante' : 'Mentor';
+    const roleIcon = user.rol === 'estudiante' ? 'bi-person-badge' : 'bi-person-workspace';
+    const firstName = esc((user.nombre || '').split(' ')[0] || user.email || 'Usuario');
+
+    if (user.rol === 'estudiante') {
+      return `
+<nav class="mentorix-navbar navbar navbar-expand-lg border-bottom sticky-top">
+  <div class="container py-2">
+    ${brand}
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMain" aria-controls="navMain" aria-expanded="false" aria-label="Abrir navegación">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navMain">
+      <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-3">
+        <li class="nav-item"><a class="nav-link fw-semibold ${activeKey === 'inicio' ? 'active' : ''}" href="${homePath}">Inicio</a></li>
+        <li class="nav-item"><a class="nav-link fw-semibold ${activeKey === 'dashboard' ? 'active' : ''}" href="/pages/dashboard.html">Mis inscripciones</a></li>
+        <li class="nav-item dropdown">
+          <button class="btn btn-brand px-4 py-2 dropdown-toggle d-inline-flex align-items-center gap-2" id="user-menu" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="bi ${roleIcon}"></i>
+            <span>${firstName}</span>
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="user-menu">
+            <li><h6 class="dropdown-header">${esc(user.email || roleLabel)}</h6></li>
+            <li><a class="dropdown-item disabled" href="#" aria-disabled="true"><i class="bi bi-person-gear me-2"></i>Modificar perfil</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><button id="btn-logout" class="dropdown-item" type="button"><i class="bi bi-box-arrow-right me-2"></i>Cerrar sesión</button></li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>`;
+    }
 
     return `
 <nav class="mentorix-navbar navbar navbar-expand-lg border-bottom sticky-top">
@@ -76,11 +112,22 @@
     </button>
     <div class="collapse navbar-collapse" id="navMain">
       <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-2">
-        <li class="nav-item"><a class="nav-link ${activeKey === 'inicio' ? 'active fw-semibold' : ''}" href="/index.html">Inicio</a></li>
+        <li class="nav-item"><a class="nav-link ${activeKey === 'inicio' ? 'active fw-semibold' : ''}" href="${homePath}">Inicio</a></li>
         <li class="nav-item"><a class="nav-link ${activeKey === 'dashboard' ? 'active fw-semibold' : ''}" href="/pages/dashboard.html">Dashboard</a></li>
         ${createLink}
-        <li class="nav-item"><span class="nav-link text-muted">Hola, ${esc((user.nombre || '').split(' ')[0] || user.email || 'Usuario')}</span></li>
-        <li class="nav-item"><button id="btn-logout" class="btn btn-outline-dark rounded-pill px-4" type="button">Cerrar sesión</button></li>
+        <li class="nav-item dropdown">
+          <button class="btn btn-outline-dark rounded-pill px-3 dropdown-toggle d-flex align-items-center gap-2" id="user-menu" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="bi ${roleIcon}"></i>
+            <span>${firstName}</span>
+            <span class="role-pill">${roleLabel}</span>
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="user-menu">
+            <li><h6 class="dropdown-header">${esc(user.email || roleLabel)}</h6></li>
+            <li><a class="dropdown-item disabled" href="#" aria-disabled="true"><i class="bi bi-person-gear me-2"></i>Modificar perfil</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><button id="btn-logout" class="dropdown-item" type="button"><i class="bi bi-box-arrow-right me-2"></i>Cerrar sesión</button></li>
+          </ul>
+        </li>
       </ul>
     </div>
   </div>
@@ -107,7 +154,12 @@
   function renderClasesCards(container, clases, options = {}) {
     if (!container) return;
 
-    const { showMentorActions = false, currentUser = null } = options;
+    const {
+      showMentorActions = false,
+      showStudentEnrollment = false,
+      currentUser = null,
+      enrollmentByClassId = {},
+    } = options;
 
     if (!Array.isArray(clases) || !clases.length) {
       container.innerHTML = '<div class="text-muted">No hay clases disponibles.</div>';
@@ -121,6 +173,24 @@
           currentUser &&
           currentUser.rol === 'mentor' &&
           Number(currentUser.id) === Number(clase.mentorId);
+        const canEnroll =
+          showStudentEnrollment &&
+          currentUser &&
+          currentUser.rol === 'estudiante' &&
+          Number(currentUser.id) !== Number(clase.mentorId);
+        const enrollment = enrollmentByClassId[clase.id];
+        const enrollmentLabels = {
+          pendiente: 'Solicitud pendiente',
+          aceptada: 'Inscripción aceptada',
+          rechazada: 'Solicitud rechazada',
+        };
+        const enrollmentAction = enrollment
+          ? `<button class="btn btn-outline-secondary btn-sm rounded-pill px-3" type="button" disabled>${esc(enrollmentLabels[enrollment.estado] || 'Inscripción registrada')}</button>`
+          : '';
+        const enrollButton =
+          canEnroll && !enrollment
+            ? `<button class="btn btn-dark btn-sm rounded-pill px-3 enroll-clase-btn" data-id="${encodeURIComponent(clase.id)}" type="button">Inscribirse</button>`
+            : enrollmentAction;
 
         return `
 <div class="col">
@@ -136,6 +206,7 @@
       <p class="text-muted flex-grow-1 mb-4">${esc(clase.descripcion || 'Sin descripción.')}</p>
       <div class="d-flex gap-2 flex-wrap mt-auto">
         <a class="btn btn-outline-dark btn-sm rounded-pill px-3" href="/pages/detalle-clase.html?id=${encodeURIComponent(clase.id)}">Ver detalle</a>
+        ${enrollButton}
         ${canManage ? `<a class="btn btn-dark btn-sm rounded-pill px-3" href="/pages/crear-clase.html?id=${encodeURIComponent(clase.id)}">Editar</a>` : ''}
         ${canManage ? `<button class="btn btn-outline-danger btn-sm rounded-pill px-3 delete-clase-btn" data-id="${encodeURIComponent(clase.id)}" type="button">Eliminar</button>` : ''}
       </div>

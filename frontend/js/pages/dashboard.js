@@ -1,5 +1,6 @@
 (async function () {
   if (!MentoriasAuth.requireAuth()) return;
+  await MentoriasUI.mountNavbar();
 
   const user = MentoriasAuth.getUser();
   const welcome = document.getElementById('welcome-text');

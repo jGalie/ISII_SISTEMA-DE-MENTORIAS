@@ -10,7 +10,38 @@
   box-shadow: 0 14px 32px rgba(123, 44, 255, 0.28);
 }
 
+.mentorix-navbar .btn-brand {
+  background: linear-gradient(135deg, #7b2cff, #a62eff);
+  border-color: transparent;
+  border-radius: 999px;
+  color: #fff;
+  font-weight: 700;
+}
+
+.mentorix-navbar .btn-brand:hover,
+.mentorix-navbar .btn-brand:focus {
+  background: linear-gradient(135deg, #6624d6, #9122ff);
+  border-color: transparent;
+  color: #fff;
+}
+
+.mentorix-navbar .nav-link.active {
+  color: #182235;
+  font-weight: 800;
+}
+
 .clase-card-shell {
   border-radius: 1.5rem;
   box-shadow: 0 18px 42px rgba(32, 42, 68, 0.12);
+}
+
+.role-pill {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  background: #eef8f1;
+  color: #17633a;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.15rem 0.5rem;
 }

@@ -9,6 +9,7 @@
   const user = MentoriasAuth.getUser();
 
   let clases = [];
+  let inscripcionesPorClase = {};
 
   if (user && user.rol === 'mentor') {
     createButton.classList.remove('d-none');
@@ -47,12 +48,40 @@
     });
   }
 
+  function attachEnrollmentHandlers() {
+    box.querySelectorAll('.enroll-clase-btn').forEach((button) => {
+      button.addEventListener('click', async function () {
+        const classId = Number(this.getAttribute('data-id'));
+        if (!classId || !user || user.rol !== 'estudiante') return;
+
+        try {
+          this.disabled = true;
+          await MentoriasApi.createInscripcion({
+            id_usuario: user.id,
+            id_clase: classId,
+          });
+          const response = await MentoriasApi.getInscripcionesUsuario(user.id);
+          const items = Array.isArray(response.data) ? response.data : [];
+          inscripcionesPorClase = Object.fromEntries(items.map((item) => [item.claseId, item]));
+          hideError();
+          applyFilter();
+        } catch (error) {
+          showError(error.message);
+          this.disabled = false;
+        }
+      });
+    });
+  }
+
   function render(list) {
     MentoriasUI.renderClasesCards(box, list, {
       showMentorActions: true,
+      showStudentEnrollment: true,
       currentUser: user,
+      enrollmentByClassId: inscripcionesPorClase,
     });
     attachDeleteHandlers();
+    attachEnrollmentHandlers();
     count.textContent = `${list.length} clase(s)`;
   }
 
@@ -71,12 +100,18 @@
   }
 
   try {
-    const response =
+    const [response, inscripcionesResponse] = await Promise.all([
       user && user.rol === 'mentor'
-        ? await MentoriasApi.getClases({ id_mentor: user.id })
-        : await MentoriasApi.getClases();
+        ? MentoriasApi.getClases({ id_mentor: user.id })
+        : MentoriasApi.getClases(),
+      user && user.rol === 'estudiante'
+        ? MentoriasApi.getInscripcionesUsuario(user.id)
+        : Promise.resolve({ data: [] }),
+    ]);
 
     clases = Array.isArray(response.data) ? response.data : [];
+    const inscripciones = Array.isArray(inscripcionesResponse.data) ? inscripcionesResponse.data : [];
+    inscripcionesPorClase = Object.fromEntries(inscripciones.map((item) => [item.claseId, item]));
     hideError();
     render(clases);
   } catch (error) {
