@@ -1,0 +1,25 @@
+.mx-topbar {
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(10px);
+}
+
+.mx-topbar-brand {
+  color: #182544;
+  text-decoration: none;
+}
+
+.mx-topbar-brand:hover {
+  color: #182544;
+}
+
+.mx-brand-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #6f1dff, #a855f7);
+  color: #fff;
+  box-shadow: 0 16px 40px rgba(111, 29, 255, 0.25);
+}
