@@ -12,6 +12,7 @@
   const acceptedList = document.getElementById('accepted-list');
   const rejectedList = document.getElementById('rejected-list');
   const mentorList = document.getElementById('mentor-list');
+  const mentorClassesList = document.getElementById('mentor-classes-list');
 
   const metricPendiente = document.getElementById('metric-pendiente');
   const metricAceptada = document.getElementById('metric-aceptada');
@@ -106,10 +107,53 @@
     `;
   }
 
+  function buildMentorClassCard(clase) {
+    const fecha = new Date(clase.fecha);
+    const fechaTexto = Number.isNaN(fecha.getTime())
+      ? 'Fecha pendiente'
+      : fecha.toLocaleDateString('es-AR', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+        });
+
+    const horaTexto = Number.isNaN(fecha.getTime())
+      ? ''
+      : fecha.toLocaleTimeString('es-AR', {
+          hour: '2-digit',
+          minute: '2-digit',
+        });
+
+    return `
+      <div class="col-12 col-md-6">
+        <article class="item-card p-4 h-100">
+          <div class="d-flex justify-content-between align-items-start gap-3 mb-2 flex-wrap">
+            <h3 class="h6 fw-bold mb-0">${escapeHtml(clase.titulo || 'Clase')}</h3>
+            <span class="status-badge status-pendiente">${escapeHtml(fechaTexto)}</span>
+          </div>
+          <p class="text-muted small mb-2">
+            <i class="bi bi-clock me-1"></i>${escapeHtml(horaTexto || 'Horario pendiente')}
+          </p>
+          <p class="text-muted small mb-0">${escapeHtml(clase.descripcion || 'Sin descripción.')}</p>
+        </article>
+      </div>
+    `;
+  }
+
   function renderEmpty(container, message) {
     container.innerHTML = `
       <div class="item-card p-3 text-muted text-center">
         ${escapeHtml(message)}
+      </div>
+    `;
+  }
+
+  function renderEmptyGrid(container, message) {
+    container.innerHTML = `
+      <div class="col-12">
+        <div class="item-card p-3 text-muted text-center">
+          ${escapeHtml(message)}
+        </div>
       </div>
     `;
   }
@@ -167,6 +211,28 @@
     });
   }
 
+  async function loadMentorClasses() {
+    if (!mentorClassesList) return;
+
+    try {
+      const response = await fetch('/api/clases');
+      const json = await response.json();
+      const clases = Array.isArray(json.data) ? json.data : [];
+
+      const clasesMentor = clases.filter((clase) => Number(clase.id_mentor) === Number(user.id));
+
+      if (!clasesMentor.length) {
+        renderEmptyGrid(mentorClassesList, 'Aún no tienes clases programadas.');
+        return;
+      }
+
+      mentorClassesList.innerHTML = clasesMentor.map(buildMentorClassCard).join('');
+    } catch (error) {
+      console.error('Error cargando clases del mentor:', error);
+      renderEmptyGrid(mentorClassesList, 'No pudimos cargar tu agenda de clases.');
+    }
+  }
+
   async function loadMentorDashboard() {
     mentorDashboard.classList.remove('d-none');
     const response = await MentoriasApi.getInscripcionesMentor(user.id);
@@ -175,11 +241,12 @@
 
     if (!items.length) {
       renderEmpty(mentorList, 'Aún no tienes solicitudes de inscripción.');
-      return;
+    } else {
+      mentorList.innerHTML = items.map(buildMentorCard).join('');
+      attachMentorActions();
     }
 
-    mentorList.innerHTML = items.map(buildMentorCard).join('');
-    attachMentorActions();
+    await loadMentorClasses();
   }
 
   try {
