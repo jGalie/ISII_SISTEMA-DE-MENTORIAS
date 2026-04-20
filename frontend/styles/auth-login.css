@@ -1,0 +1,157 @@
+:root {
+  --brand: #7b2cff;
+  --brand-dark: #6322d8;
+  --text-main: #182235;
+  --text-muted: #5d6881;
+  --surface: #ffffff;
+  --surface-muted: #f4f5f7;
+  --page-bg: linear-gradient(180deg, #f8f4ff 0%, #fbf9ff 52%, #ffffff 100%);
+}
+
+body {
+  min-height: 100vh;
+  font-family: "Segoe UI", sans-serif;
+  color: var(--text-main);
+  background: var(--page-bg);
+}
+
+.topbar {
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(12px);
+}
+
+.topbar-brand {
+  color: var(--text-main);
+  text-decoration: none;
+}
+
+.login-shell {
+  min-height: calc(100vh - 76px);
+}
+
+.brand-block {
+  text-align: center;
+}
+
+.brand-mark {
+  width: 3.15rem;
+  height: 3.15rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 1rem;
+  background: linear-gradient(135deg, #6f1eff, #9b45ff);
+  color: #fff;
+  box-shadow: 0 14px 32px rgba(123, 44, 255, 0.28);
+}
+
+.brand-name {
+  font-size: clamp(2.2rem, 5vw, 3.1rem);
+  font-weight: 800;
+  letter-spacing: -0.04em;
+}
+
+.brand-subtitle {
+  color: var(--text-muted);
+  font-size: 1.15rem;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 450px;
+  background: var(--surface);
+  border: 0;
+  border-radius: 1.75rem;
+  box-shadow: 0 24px 60px rgba(32, 42, 68, 0.12);
+}
+
+.panel-title {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 3.35rem;
+  width: 100%;
+  border-radius: 1rem;
+  font-weight: 700;
+  color: #fff;
+  background: #0f1021;
+}
+
+.form-label {
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+}
+
+.input-shell {
+  display: flex;
+  align-items: center;
+  min-height: 3.5rem;
+  background: var(--surface-muted);
+  border-radius: 1rem;
+  padding: 0 0.9rem;
+  border: 1px solid transparent;
+}
+
+.input-shell:focus-within {
+  border-color: rgba(123, 44, 255, 0.28);
+  box-shadow: 0 0 0 0.25rem rgba(123, 44, 255, 0.08);
+}
+
+.input-shell i {
+  color: #8a95a8;
+}
+
+.input-shell .form-control {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  padding-left: 0.8rem;
+  padding-right: 0.8rem;
+}
+
+.password-toggle {
+  border: 0;
+  background: transparent;
+  color: #8a95a8;
+  padding: 0;
+}
+
+.password-toggle:hover,
+.password-toggle:focus {
+  color: var(--brand);
+}
+
+.forgot-link,
+.register-link {
+  color: var(--brand);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.forgot-link:hover,
+.forgot-link:focus,
+.register-link:hover,
+.register-link:focus {
+  color: var(--brand-dark);
+}
+
+.btn-login {
+  min-height: 3.5rem;
+  border: 0;
+  border-radius: 1rem;
+  background: linear-gradient(135deg, var(--brand), #a02eff);
+  color: #fff;
+  font-weight: 700;
+}
+
+.btn-login:hover,
+.btn-login:focus {
+  background: linear-gradient(135deg, var(--brand-dark), #8a24ff);
+  color: #fff;
+}
+
+@media (max-width: 575.98px) {
+  .login-card {
+    border-radius: 1.4rem;
+  }
+}

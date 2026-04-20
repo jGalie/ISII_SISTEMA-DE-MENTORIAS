@@ -1,0 +1,29 @@
+<!--
+  Campos reutilizables para crear/editar clase (referencia para páginas).
+-->
+<div class="form__row">
+  <label class="form__label" for="titulo">Título</label>
+  <input class="form__input" type="text" id="titulo" name="titulo" required maxlength="200" />
+</div>
+<div class="form__row">
+  <label class="form__label" for="descripcion">Descripción</label>
+  <textarea class="form__textarea" id="descripcion" name="descripcion" rows="4"></textarea>
+</div>
+<div class="form__row">
+  <label class="form__label" for="materiaId">Materia</label>
+  <select class="form__select" id="materiaId" name="materiaId" required></select>
+  <p class="form__hint">Se llena dinámicamente con <code>GET /materias</code>.</p>
+</div>
+<div class="form__row">
+  <label class="form__label" for="mentorId">Mentor (ID)</label>
+  <input class="form__input" type="number" id="mentorId" name="mentorId" min="1" required />
+  <p class="form__hint">En datos semilla el mentor tiene <strong>id = 1</strong>.</p>
+</div>
+<div class="form__row">
+  <label class="form__label" for="estado">Estado</label>
+  <select class="form__select" id="estado" name="estado">
+    <option value="borrador">borrador</option>
+    <option value="publicada">publicada</option>
+    <option value="cerrada">cerrada</option>
+  </select>
+</div>

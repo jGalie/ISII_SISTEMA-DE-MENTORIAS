@@ -1,0 +1,16 @@
+.mentorix-navbar {
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(12px);
+}
+
+.mentorix-brand-mark {
+  width: 2.5rem;
+  height: 2.5rem;
+  background: linear-gradient(135deg, #6f1eff, #9b45ff);
+  box-shadow: 0 14px 32px rgba(123, 44, 255, 0.28);
+}
+
+.clase-card-shell {
+  border-radius: 1.5rem;
+  box-shadow: 0 18px 42px rgba(32, 42, 68, 0.12);
+}

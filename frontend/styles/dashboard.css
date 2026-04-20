@@ -1,0 +1,85 @@
+:root {
+  --brand: #7b2cff;
+  --brand-dark: #6322d8;
+  --text-main: #182235;
+  --text-muted: #5d6881;
+  --page-bg: linear-gradient(180deg, #f8f4ff 0%, #fbf9ff 52%, #ffffff 100%);
+  --surface: #ffffff;
+}
+
+body {
+  min-height: 100vh;
+  font-family: "Segoe UI", sans-serif;
+  color: var(--text-main);
+  background: var(--page-bg);
+}
+
+.topbar {
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(12px);
+}
+
+.brand-mark {
+  width: 2.8rem;
+  height: 2.8rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 1rem;
+  background: linear-gradient(135deg, #6f1eff, #9b45ff);
+  color: #fff;
+  box-shadow: 0 14px 32px rgba(123, 44, 255, 0.28);
+}
+
+.hero-panel,
+.dashboard-card {
+  border: 0;
+  border-radius: 1.75rem;
+  background: var(--surface);
+  box-shadow: 0 24px 60px rgba(32, 42, 68, 0.12);
+}
+
+.hero-panel {
+  background: linear-gradient(135deg, rgba(123, 44, 255, 0.12), rgba(255, 255, 255, 0.98));
+}
+
+.pill-button {
+  border-radius: 999px;
+}
+
+.metric-card {
+  border-radius: 1.2rem;
+  background: #fbf8ff;
+  border: 1px solid #f0e7ff;
+}
+
+.status-badge {
+  border-radius: 999px;
+  padding: 0.4rem 0.8rem;
+  font-weight: 600;
+}
+
+.status-pendiente {
+  background: #fff3cd;
+  color: #8a6200;
+}
+
+.status-aceptada {
+  background: #d1e7dd;
+  color: #146c43;
+}
+
+.status-rechazada {
+  background: #f8d7da;
+  color: #b02a37;
+}
+
+.item-card {
+  border-radius: 1.25rem;
+  border: 1px solid #f0e7ff;
+  background: #fff;
+}
+
+.mentor-actions .btn {
+  min-width: 110px;
+}
