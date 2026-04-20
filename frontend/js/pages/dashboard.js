@@ -1,6 +1,9 @@
 (async function () {
   if (!MentoriasAuth.requireAuth()) return;
-  await MentoriasUI.mountNavbar();
+
+  if (window.MentoriasUI && typeof MentoriasUI.mountNavbar === 'function') {
+    await MentoriasUI.mountNavbar();
+  }
 
   const user = MentoriasAuth.getUser();
   const welcome = document.getElementById('welcome-text');
@@ -33,11 +36,13 @@
   }
 
   function showError(message) {
+    if (!errorBox) return;
     errorBox.textContent = message;
     errorBox.classList.remove('d-none');
   }
 
   function clearError() {
+    if (!errorBox) return;
     errorBox.classList.add('d-none');
     errorBox.textContent = '';
   }
@@ -80,8 +85,12 @@
           </div>
           <span class="status-badge ${statusClass(item.estado)}">${escapeHtml(item.estado)}</span>
         </div>
-        <p class="text-muted small mb-1"><i class="bi bi-calendar-event me-1"></i>${escapeHtml(formatDate(item.claseFecha))}</p>
-        <p class="text-muted small mb-0"><i class="bi bi-clock-history me-1"></i>Solicitada: ${escapeHtml(formatDate(item.fechaSolicitud))}</p>
+        <p class="text-muted small mb-1">
+          <i class="bi bi-calendar-event me-1"></i>${escapeHtml(formatDate(item.claseFecha))}
+        </p>
+        <p class="text-muted small mb-0">
+          <i class="bi bi-clock-history me-1"></i>Solicitada: ${escapeHtml(formatDate(item.fechaSolicitud))}
+        </p>
       </article>
     `;
   }
@@ -100,8 +109,12 @@
         </div>
         <p class="text-muted small mb-3">${escapeHtml(item.claseDescripcion || '')}</p>
         <div class="mentor-actions d-flex gap-2 flex-wrap">
-          <button class="btn btn-success ${pending ? '' : 'disabled'}" data-action="aceptada" data-id="${item.id}" type="button">Aceptar</button>
-          <button class="btn btn-outline-danger ${pending ? '' : 'disabled'}" data-action="rechazada" data-id="${item.id}" type="button">Rechazar</button>
+          <button class="btn btn-success ${pending ? '' : 'disabled'}" data-action="aceptada" data-id="${item.id}" type="button">
+            Aceptar
+          </button>
+          <button class="btn btn-outline-danger ${pending ? '' : 'disabled'}" data-action="rechazada" data-id="${item.id}" type="button">
+            Rechazar
+          </button>
         </div>
       </article>
     `;
@@ -109,6 +122,7 @@
 
   function buildMentorClassCard(clase) {
     const fecha = new Date(clase.fecha);
+
     const fechaTexto = Number.isNaN(fecha.getTime())
       ? 'Fecha pendiente'
       : fecha.toLocaleDateString('es-AR', {
@@ -118,7 +132,7 @@
         });
 
     const horaTexto = Number.isNaN(fecha.getTime())
-      ? ''
+      ? 'Horario pendiente'
       : fecha.toLocaleTimeString('es-AR', {
           hour: '2-digit',
           minute: '2-digit',
@@ -132,7 +146,7 @@
             <span class="status-badge status-pendiente">${escapeHtml(fechaTexto)}</span>
           </div>
           <p class="text-muted small mb-2">
-            <i class="bi bi-clock me-1"></i>${escapeHtml(horaTexto || 'Horario pendiente')}
+            <i class="bi bi-clock me-1"></i>${escapeHtml(horaTexto)}
           </p>
           <p class="text-muted small mb-0">${escapeHtml(clase.descripcion || 'Sin descripción.')}</p>
         </article>
@@ -141,6 +155,7 @@
   }
 
   function renderEmpty(container, message) {
+    if (!container) return;
     container.innerHTML = `
       <div class="item-card p-3 text-muted text-center">
         ${escapeHtml(message)}
@@ -149,6 +164,7 @@
   }
 
   function renderEmptyGrid(container, message) {
+    if (!container) return;
     container.innerHTML = `
       <div class="col-12">
         <div class="item-card p-3 text-muted text-center">
@@ -167,13 +183,14 @@
       { pendiente: 0, aceptada: 0, rechazada: 0 }
     );
 
-    metricPendiente.textContent = counts.pendiente || 0;
-    metricAceptada.textContent = counts.aceptada || 0;
-    metricRechazada.textContent = counts.rechazada || 0;
+    if (metricPendiente) metricPendiente.textContent = counts.pendiente || 0;
+    if (metricAceptada) metricAceptada.textContent = counts.aceptada || 0;
+    if (metricRechazada) metricRechazada.textContent = counts.rechazada || 0;
   }
 
   async function loadStudentDashboard() {
-    studentDashboard.classList.remove('d-none');
+    if (studentDashboard) studentDashboard.classList.remove('d-none');
+
     const response = await MentoriasApi.getInscripcionesUsuario(user.id);
     const items = Array.isArray(response.data) ? response.data : [];
     updateMetrics(items);
@@ -182,9 +199,9 @@
     const accepted = items.filter((item) => item.estado === 'aceptada');
     const rejected = items.filter((item) => item.estado === 'rechazada');
 
-    pendingList.innerHTML = pending.length ? pending.map(buildStudentCard).join('') : '';
-    acceptedList.innerHTML = accepted.length ? accepted.map(buildStudentCard).join('') : '';
-    rejectedList.innerHTML = rejected.length ? rejected.map(buildStudentCard).join('') : '';
+    if (pendingList) pendingList.innerHTML = pending.length ? pending.map(buildStudentCard).join('') : '';
+    if (acceptedList) acceptedList.innerHTML = accepted.length ? accepted.map(buildStudentCard).join('') : '';
+    if (rejectedList) rejectedList.innerHTML = rejected.length ? rejected.map(buildStudentCard).join('') : '';
 
     if (!pending.length) renderEmpty(pendingList, 'No tienes solicitudes pendientes.');
     if (!accepted.length) renderEmpty(acceptedList, 'Todavía no tienes clases aceptadas.');
@@ -192,6 +209,8 @@
   }
 
   function attachMentorActions() {
+    if (!mentorList) return;
+
     mentorList.querySelectorAll('[data-action]').forEach((button) => {
       button.addEventListener('click', async function () {
         const id = Number(this.getAttribute('data-id'));
@@ -200,12 +219,13 @@
 
         this.disabled = true;
         clearError();
+
         try {
           await MentoriasApi.updateEstadoInscripcion(id, { estado, mentorId: user.id });
           await loadMentorDashboard();
         } catch (error) {
           this.disabled = false;
-          showError(error.message);
+          showError(error.message || 'No se pudo actualizar la inscripción.');
         }
       });
     });
@@ -215,11 +235,14 @@
     if (!mentorClassesList) return;
 
     try {
-      const response = await fetch('/api/clases');
+      const response = await fetch('/clases');
       const json = await response.json();
       const clases = Array.isArray(json.data) ? json.data : [];
 
-      const clasesMentor = clases.filter((clase) => Number(clase.id_mentor) === Number(user.id));
+      const clasesMentor = clases.filter(
+        (clase) =>
+          Number(clase.id_mentor ?? clase.idMentor ?? clase.mentorId) === Number(user.id)
+      );
 
       if (!clasesMentor.length) {
         renderEmptyGrid(mentorClassesList, 'Aún no tienes clases programadas.');
@@ -234,7 +257,8 @@
   }
 
   async function loadMentorDashboard() {
-    mentorDashboard.classList.remove('d-none');
+    if (mentorDashboard) mentorDashboard.classList.remove('d-none');
+
     const response = await MentoriasApi.getInscripcionesMentor(user.id);
     const items = Array.isArray(response.data) ? response.data : [];
     updateMetrics(items);
@@ -242,7 +266,7 @@
     if (!items.length) {
       renderEmpty(mentorList, 'Aún no tienes solicitudes de inscripción.');
     } else {
-      mentorList.innerHTML = items.map(buildMentorCard).join('');
+      if (mentorList) mentorList.innerHTML = items.map(buildMentorCard).join('');
       attachMentorActions();
     }
 
@@ -251,6 +275,7 @@
 
   try {
     clearError();
+
     if (user.rol === 'mentor') {
       await loadMentorDashboard();
     } else {
