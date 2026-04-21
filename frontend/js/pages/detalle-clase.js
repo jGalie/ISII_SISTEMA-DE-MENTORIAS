@@ -29,6 +29,10 @@
     document.getElementById('dc-fecha').textContent = MentoriasUI.formatDate(data.fecha);
     document.getElementById('dc-modalidad').textContent =
       data.modalidad === 'presencial' ? 'Presencial' : 'Virtual';
+    document.getElementById('dc-precio').textContent =
+      data.precio != null ? `$${Number(data.precio).toLocaleString('es-AR')}` : 'A coordinar';
+    document.getElementById('dc-ubicacion').textContent =
+      data.modalidad === 'presencial' ? data.ubicacion || 'No informada' : 'No aplica';
 
     if (user && user.rol === 'mentor' && Number(user.id) === Number(data.mentorId)) {
       editLink.href = `/pages/crear-clase.html?id=${encodeURIComponent(data.id)}`;

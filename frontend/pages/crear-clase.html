@@ -79,6 +79,22 @@
                   </div>
                 </div>
 
+                <div class="mb-4">
+                  <label class="form-label fw-semibold" for="precio">Precio de la clase</label>
+                  <div class="input-shell">
+                    <i class="bi bi-cash-coin me-2"></i>
+                    <input class="form-control" type="number" id="precio" name="precio" min="0" step="0.01" required placeholder="Ej. 12000" />
+                  </div>
+                </div>
+
+                <div id="ubicacion-wrapper" class="mb-4 d-none">
+                  <label class="form-label fw-semibold" for="ubicacion">Ubicacion</label>
+                  <div class="input-shell">
+                    <i class="bi bi-geo-alt me-2"></i>
+                    <input class="form-control" type="text" id="ubicacion" name="ubicacion" maxlength="255" placeholder="Ej. Aula 204, Sede Centro" />
+                  </div>
+                </div>
+
                 <div class="d-flex gap-3 flex-wrap">
                   <button id="btn-guardar" class="btn btn-brand px-4" type="submit">Crear clase</button>
                   <button id="btn-delete" class="btn btn-outline-danger rounded-pill px-4 d-none" type="button">Eliminar clase</button>

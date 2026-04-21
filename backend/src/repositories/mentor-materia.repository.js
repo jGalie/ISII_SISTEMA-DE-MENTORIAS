@@ -79,9 +79,14 @@ async function create({ mentorId, materiaId }, executor = pool) {
   return rows.length ? toMentorMateria(rows[0]) : null;
 }
 
+async function deleteByMentorId(mentorId, executor = pool) {
+  await executor.query('DELETE FROM mentor_materias WHERE id_mentor = ?', [Number(mentorId)]);
+}
+
 module.exports = {
   findAll,
   findByMentorId,
   exists,
   create,
+  deleteByMentorId,
 };

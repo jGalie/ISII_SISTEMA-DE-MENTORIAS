@@ -10,6 +10,8 @@ function createClaseRepository({ pool }) {
       c.modalidad,
       c.id_mentor,
       c.id_materia,
+      c.precio,
+      c.ubicacion,
       u.nombre AS mentor_nombre,
       u.email AS mentor_email,
       m.nombre AS materia_nombre
@@ -19,13 +21,13 @@ function createClaseRepository({ pool }) {
   `;
 
   return {
-    async createClase({ titulo, descripcion, fecha, modalidad, id_mentor, id_materia }) {
+    async createClase({ titulo, descripcion, fecha, modalidad, id_mentor, id_materia, precio, ubicacion }) {
       const [result] = await pool.query(
         `
-          INSERT INTO clases (titulo, descripcion, fecha, modalidad, id_mentor, id_materia)
-          VALUES (?, ?, ?, ?, ?, ?)
+          INSERT INTO clases (titulo, descripcion, fecha, modalidad, id_mentor, id_materia, precio, ubicacion)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         `,
-        [titulo, descripcion, fecha, modalidad, id_mentor, id_materia]
+        [titulo, descripcion, fecha, modalidad, id_mentor, id_materia, precio, ubicacion]
       );
 
       return this.findById(result.insertId);
@@ -66,14 +68,14 @@ function createClaseRepository({ pool }) {
       return rows.map(toClase);
     },
 
-    async updateClase(id, { titulo, descripcion, fecha, modalidad, id_materia }) {
+    async updateClase(id, { titulo, descripcion, fecha, modalidad, id_materia, precio, ubicacion }) {
       await pool.query(
         `
           UPDATE clases
-          SET titulo = ?, descripcion = ?, fecha = ?, modalidad = ?, id_materia = ?
+          SET titulo = ?, descripcion = ?, fecha = ?, modalidad = ?, id_materia = ?, precio = ?, ubicacion = ?
           WHERE id_clase = ?
         `,
-        [titulo, descripcion, fecha, modalidad, id_materia, Number(id)]
+        [titulo, descripcion, fecha, modalidad, id_materia, precio, ubicacion, Number(id)]
       );
 
       return this.findById(id);

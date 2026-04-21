@@ -46,6 +46,19 @@ function createUsuarioRepository({ pool }) {
     async create(data) {
       return this.createUser(data);
     },
+
+    async updateUser(id, { nombre, email, niveles_educativos }, executor = pool) {
+      await executor.query(
+        `
+          UPDATE usuarios
+          SET nombre = ?, email = ?, niveles_educativos = ?
+          WHERE id_usuario = ?
+        `,
+        [nombre, email, niveles_educativos || null, Number(id)]
+      );
+
+      return this.findById(id);
+    },
   };
 }
 

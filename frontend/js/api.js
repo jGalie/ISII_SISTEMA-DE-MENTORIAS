@@ -79,6 +79,15 @@
     getUsuarios() {
       return apiJson('/usuarios');
     },
+    getUsuario(id) {
+      return apiJson(`/usuarios/${encodeURIComponent(id)}`);
+    },
+    updateUsuario(id, payload) {
+      return apiJson(`/usuarios/${encodeURIComponent(id)}`, {
+        method: 'PUT',
+        body: JSON.stringify(payload),
+      });
+    },
     getMaterias() {
       return apiJson('/materias');
     },

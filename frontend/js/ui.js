@@ -29,6 +29,7 @@
     if (pathname.endsWith('/clases.html')) return 'clases';
     if (pathname.endsWith('/crear-clase.html')) return 'crear';
     if (pathname.endsWith('/detalle-clase.html')) return 'clases';
+    if (pathname.endsWith('/perfil.html')) return 'perfil';
     if (pathname.endsWith('/login.html')) return 'login';
     if (pathname.endsWith('/register.html')) return 'register';
     return 'inicio';
@@ -96,7 +97,7 @@
           </button>
           <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="user-menu">
             <li><h6 class="dropdown-header">${esc(user.email || roleLabel)}</h6></li>
-            <li><a class="dropdown-item disabled" href="#" aria-disabled="true"><i class="bi bi-person-gear me-2"></i>Modificar perfil</a></li>
+            <li><a class="dropdown-item" href="/pages/perfil.html"><i class="bi bi-person-gear me-2"></i>Modificar perfil</a></li>
             <li><hr class="dropdown-divider"></li>
             <li><button id="btn-logout" class="dropdown-item" type="button"><i class="bi bi-box-arrow-right me-2"></i>Cerrar sesión</button></li>
           </ul>
@@ -116,8 +117,7 @@
     </button>
     <div class="collapse navbar-collapse" id="navMain">
       <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-2">
-        <li class="nav-item"><a class="nav-link ${activeKey === 'inicio' ? 'active fw-semibold' : ''}" href="${homePath}">Inicio</a></li>
-        <li class="nav-item"><a class="nav-link ${activeKey === 'dashboard' ? 'active fw-semibold' : ''}" href="/pages/dashboard.html">Dashboard</a></li>
+        <li class="nav-item"><a class="nav-link ${activeKey === 'dashboard' ? 'active fw-semibold' : ''}" href="/pages/dashboard.html">Mis mentorias</a></li>
         ${createLink}
         <li class="nav-item dropdown">
           <button class="btn btn-outline-dark rounded-pill px-3 dropdown-toggle d-flex align-items-center gap-2" id="user-menu" type="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -127,7 +127,7 @@
           </button>
           <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="user-menu">
             <li><h6 class="dropdown-header">${esc(user.email || roleLabel)}</h6></li>
-            <li><a class="dropdown-item disabled" href="#" aria-disabled="true"><i class="bi bi-person-gear me-2"></i>Modificar perfil</a></li>
+            <li><a class="dropdown-item" href="/pages/perfil.html"><i class="bi bi-person-gear me-2"></i>Modificar perfil</a></li>
             <li><hr class="dropdown-divider"></li>
             <li><button id="btn-logout" class="dropdown-item" type="button"><i class="bi bi-box-arrow-right me-2"></i>Cerrar sesión</button></li>
           </ul>
@@ -206,6 +206,8 @@
           <div class="text-muted small"><i class="bi bi-person-circle me-1"></i>${esc(clase.mentorNombre || 'Mentor')}</div>
           <div class="text-muted small"><i class="bi bi-journal-bookmark me-1"></i>${esc(clase.materiaNombre || 'Materia a definir')}</div>
           <div class="text-muted small"><i class="bi ${clase.modalidad === 'presencial' ? 'bi-geo-alt' : 'bi-camera-video'} me-1"></i>${esc(modalityLabel(clase.modalidad))}</div>
+          <div class="text-muted small"><i class="bi bi-cash-coin me-1"></i>${esc(clase.precio != null ? `$${Number(clase.precio).toLocaleString('es-AR')}` : 'Precio a coordinar')}</div>
+          ${clase.modalidad === 'presencial' && clase.ubicacion ? `<div class="text-muted small"><i class="bi bi-pin-map me-1"></i>${esc(clase.ubicacion)}</div>` : ''}
         </div>
         <span class="badge rounded-pill text-bg-light border">${esc(formatDate(clase.fecha))}</span>
       </div>

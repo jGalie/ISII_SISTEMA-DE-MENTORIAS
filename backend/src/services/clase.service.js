@@ -10,6 +10,8 @@ function validateClasePayload(data) {
   const fecha = String(data?.fecha || '').trim();
   const modalidad = String(data?.modalidad || 'virtual').trim().toLowerCase();
   const id_materia = Number(data?.id_materia || data?.materiaId);
+  const precio = Number(data?.precio);
+  const ubicacion = String(data?.ubicacion || '').trim();
 
   if (!titulo || !descripcion || !fecha) {
     throw createAppError('Titulo, descripcion y fecha son obligatorios.', 'VALIDATION_ERROR');
@@ -23,7 +25,23 @@ function validateClasePayload(data) {
     throw createAppError('Debes seleccionar una materia para la clase.', 'VALIDATION_ERROR');
   }
 
-  return { titulo, descripcion, fecha, modalidad, id_materia };
+  if (!Number.isFinite(precio) || precio < 0) {
+    throw createAppError('Debes ingresar un precio valido para la clase.', 'VALIDATION_ERROR');
+  }
+
+  if (modalidad === 'presencial' && !ubicacion) {
+    throw createAppError('Debes indicar una ubicacion para una clase presencial.', 'VALIDATION_ERROR');
+  }
+
+  return {
+    titulo,
+    descripcion,
+    fecha,
+    modalidad,
+    id_materia,
+    precio,
+    ubicacion: modalidad === 'presencial' ? ubicacion : null,
+  };
 }
 
 function createClaseService({ claseRepository, usuarioRepository, mentorMateriaRepository }) {

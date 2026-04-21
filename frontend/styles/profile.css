@@ -1,0 +1,94 @@
+:root {
+  --brand: #7b2cff;
+  --brand-dark: #6322d8;
+  --text-main: #182235;
+  --page-bg: linear-gradient(180deg, #f8f4ff 0%, #fbf9ff 52%, #ffffff 100%);
+}
+
+body {
+  min-height: 100vh;
+  font-family: "Segoe UI", sans-serif;
+  color: var(--text-main);
+  background: var(--page-bg);
+}
+
+.page-card {
+  border: 0;
+  border-radius: 1.75rem;
+  box-shadow: 0 24px 60px rgba(32, 42, 68, 0.12);
+}
+
+.input-shell,
+.textarea-shell {
+  display: flex;
+  align-items: center;
+  min-height: 3.5rem;
+  background: #f4f5f7;
+  border-radius: 1rem;
+  padding: 0 0.9rem;
+  border: 1px solid transparent;
+}
+
+.textarea-shell {
+  align-items: flex-start;
+  padding: 0.75rem 0.9rem;
+}
+
+.input-shell:focus-within,
+.textarea-shell:focus-within {
+  border-color: rgba(123, 44, 255, 0.28);
+  box-shadow: 0 0 0 0.25rem rgba(123, 44, 255, 0.08);
+}
+
+.input-shell i {
+  color: #8a95a8;
+}
+
+.input-shell .form-control,
+.textarea-shell .form-control {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.mentor-panel {
+  background: #f7f7fa;
+  border-radius: 1rem;
+  padding: 1rem;
+}
+
+.chips-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 0.75rem;
+}
+
+.chip-option {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid #d9deea;
+  border-radius: 0.95rem;
+  background: #fff;
+  cursor: pointer;
+}
+
+.chip-option input {
+  accent-color: var(--brand);
+}
+
+.btn-brand {
+  min-height: 3.5rem;
+  border: 0;
+  border-radius: 1rem;
+  background: linear-gradient(135deg, var(--brand), #a02eff);
+  color: #fff;
+  font-weight: 700;
+}
+
+@media (max-width: 575.98px) {
+  .chips-grid {
+    grid-template-columns: 1fr;
+  }
+}

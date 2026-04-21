@@ -131,6 +131,9 @@
   }
 
   function getTeacherPrice(clase) {
+    if (clase.precio != null) {
+      return `$${Number(clase.precio).toLocaleString('es-AR')} / clase`;
+    }
     const base = 7000;
     const extra = ((Number(clase.id) || 1) % 5) * 1200;
     return `$${(base + extra).toLocaleString('es-AR')} / clase`;

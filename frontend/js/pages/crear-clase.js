@@ -19,6 +19,10 @@
   const pageTitle = document.getElementById('page-title');
   const materiaSelect = document.getElementById('materia');
   const materiaHelp = document.getElementById('materia-help');
+  const modalidadSelect = document.getElementById('modalidad');
+  const precioInput = document.getElementById('precio');
+  const ubicacionWrapper = document.getElementById('ubicacion-wrapper');
+  const ubicacionInput = document.getElementById('ubicacion');
 
   function showMessage(type, text) {
     msg.className = `alert alert-${type}`;
@@ -31,6 +35,17 @@
       if (element === deleteButton) return;
       element.disabled = !enabled;
     });
+  }
+
+  function syncUbicacionField() {
+    const isPresencial = modalidadSelect && modalidadSelect.value === 'presencial';
+    ubicacionWrapper?.classList.toggle('d-none', !isPresencial);
+    if (ubicacionInput) {
+      ubicacionInput.required = isPresencial;
+      if (!isPresencial) {
+        ubicacionInput.value = '';
+      }
+    }
   }
 
   function renderMaterias(items, selectedId) {
@@ -74,6 +89,8 @@
       document.getElementById('titulo').value = data.titulo || '';
       document.getElementById('descripcion').value = data.descripcion || '';
       document.getElementById('modalidad').value = data.modalidad || 'virtual';
+      document.getElementById('precio').value = data.precio != null ? data.precio : '';
+      document.getElementById('ubicacion').value = data.ubicacion || '';
       if (data.fecha) {
         const date = new Date(data.fecha);
         const offset = date.getTimezoneOffset();
@@ -83,10 +100,15 @@
     }
 
     renderMaterias(materiasMentor, currentClase?.materiaId);
+    syncUbicacionField();
   } catch (error) {
     showMessage('danger', error.message);
     toggleFormAvailability(false);
     return;
+  }
+
+  if (modalidadSelect) {
+    modalidadSelect.addEventListener('change', syncUbicacionField);
   }
 
   form.addEventListener('submit', async function (event) {
@@ -98,12 +120,28 @@
       return;
     }
 
+    const precio = Number(precioInput.value);
+    const modalidad = document.getElementById('modalidad').value;
+    const ubicacion = ubicacionInput.value.trim();
+
+    if (!Number.isFinite(precio) || precio < 0) {
+      showMessage('danger', 'Debes ingresar un precio valido.');
+      return;
+    }
+
+    if (modalidad === 'presencial' && !ubicacion) {
+      showMessage('danger', 'Debes ingresar una ubicacion para una clase presencial.');
+      return;
+    }
+
     const payload = {
       titulo: document.getElementById('titulo').value,
       descripcion: document.getElementById('descripcion').value,
       fecha: new Date(fechaValue).toISOString().slice(0, 19).replace('T', ' '),
-      modalidad: document.getElementById('modalidad').value,
+      modalidad,
       materiaId: Number(materiaSelect.value),
+      precio,
+      ubicacion: modalidad === 'presencial' ? ubicacion : null,
       mentorId: user.id,
     };
 

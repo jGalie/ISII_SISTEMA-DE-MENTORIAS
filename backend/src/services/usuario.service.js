@@ -1,3 +1,17 @@
+const { pool } = require('../config/db');
+const materiaRepository = require('../repositories/materia.repository');
+const mentorMateriaRepository = require('../repositories/mentor-materia.repository');
+
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const EDUCATIONAL_LEVELS = new Set([
+  'primaria',
+  'secundaria',
+  'terciario',
+  'universitario',
+  'posgrado',
+  'adultos',
+]);
+
 function requireFields(body, fields) {
   for (const field of fields) {
     if (body[field] == null || String(body[field]).trim() === '') {
@@ -6,10 +20,73 @@ function requireFields(body, fields) {
   }
 }
 
+function createAppError(message, code) {
+  const error = new Error(message);
+  error.code = code;
+  return error;
+}
+
+function normalizeList(value) {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((item) => String(item || '').trim())
+    .filter(Boolean);
+}
+
+function uniqueList(items) {
+  return Array.from(new Set(items.map((item) => item.trim()))).filter(Boolean);
+}
+
+function parseMentorSubjects(data) {
+  const predefined = normalizeList(data?.materias);
+  const custom = String(data?.otrasMaterias || '')
+    .split(',')
+    .map((item) => item.trim())
+    .filter(Boolean);
+
+  return uniqueList([...predefined, ...custom]);
+}
+
+function parseEducationalLevels(data) {
+  return uniqueList(normalizeList(data?.nivelesEducativos)).filter((level) =>
+    EDUCATIONAL_LEVELS.has(level)
+  );
+}
+
+function buildProfileResponse(user, materias = []) {
+  return {
+    id: user.id,
+    nombre: user.nombre,
+    email: user.email,
+    rol: user.rol,
+    nivelesEducativos: user.nivelesEducativos || [],
+    materias,
+  };
+}
+
 function createUsuarioService({ usuarioRepository }) {
   return {
     async listar() {
       return usuarioRepository.findAll();
+    },
+
+    async obtener(id) {
+      const user = await usuarioRepository.findById(id);
+      if (!user) {
+        throw createAppError('Usuario no encontrado.', 'NOT_FOUND');
+      }
+
+      let materias = [];
+      if (user.rol === 'mentor') {
+        const links = await mentorMateriaRepository.findByMentorId(user.id);
+        materias = links.map((item) => ({
+          id: item.materiaId,
+          nombre: item.materiaNombre,
+          codigo: item.materiaCodigo,
+        }));
+      }
+
+      return buildProfileResponse(user, materias);
     },
 
     async crear(body) {
@@ -21,6 +98,85 @@ function createUsuarioService({ usuarioRepository }) {
         password_hash: body.password_hash,
         rol,
       });
+    },
+
+    async actualizar(id, body) {
+      const actorId = Number(body?.actorId || body?.id);
+      const targetId = Number(id);
+
+      if (!targetId || !actorId || targetId !== actorId) {
+        throw createAppError('No tienes permisos para editar este perfil.', 'FORBIDDEN');
+      }
+
+      const existingUser = await usuarioRepository.findById(targetId);
+      if (!existingUser) {
+        throw createAppError('Usuario no encontrado.', 'NOT_FOUND');
+      }
+
+      const nombre = String(body?.nombre || '').trim();
+      const email = String(body?.email || '').trim().toLowerCase();
+      const nivelesEducativos = parseEducationalLevels(body);
+      const mentorSubjects = parseMentorSubjects(body);
+
+      if (!nombre) {
+        throw createAppError('Campo obligatorio: nombre', 'VALIDATION_ERROR');
+      }
+      if (!EMAIL_REGEX.test(email)) {
+        throw createAppError('Email invalido.', 'VALIDATION_ERROR');
+      }
+      if (existingUser.rol === 'mentor' && mentorSubjects.length === 0) {
+        throw createAppError('Debes indicar al menos una materia para el mentor.', 'VALIDATION_ERROR');
+      }
+      if (existingUser.rol === 'mentor' && nivelesEducativos.length === 0) {
+        throw createAppError('Debes seleccionar al menos un nivel educativo para el mentor.', 'VALIDATION_ERROR');
+      }
+
+      const duplicated = await usuarioRepository.findByEmail(email);
+      if (duplicated && Number(duplicated.id) !== targetId) {
+        throw createAppError('Ya existe un usuario registrado con ese email.', 'DUPLICATE_USER');
+      }
+
+      const connection = await pool.getConnection();
+      try {
+        await connection.beginTransaction();
+
+        const updatedUser = await usuarioRepository.updateUser(
+          targetId,
+          {
+            nombre,
+            email,
+            niveles_educativos:
+              existingUser.rol === 'mentor' ? JSON.stringify(nivelesEducativos) : null,
+          },
+          connection
+        );
+
+        let materias = [];
+
+        if (existingUser.rol === 'mentor') {
+          await mentorMateriaRepository.deleteByMentorId(targetId, connection);
+
+          for (const subjectName of mentorSubjects) {
+            const materia = await materiaRepository.findOrCreateByNombre(subjectName, connection);
+            if (!materia) continue;
+
+            await mentorMateriaRepository.create(
+              { mentorId: targetId, materiaId: materia.id },
+              connection
+            );
+
+            materias.push(materia);
+          }
+        }
+
+        await connection.commit();
+        return buildProfileResponse(updatedUser, materias);
+      } catch (error) {
+        await connection.rollback();
+        throw error;
+      } finally {
+        connection.release();
+      }
     },
   };
 }

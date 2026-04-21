@@ -127,6 +127,16 @@ async function ensureDatabaseSchema() {
     'id_materia',
     'ALTER TABLE clases ADD COLUMN id_materia INT NULL AFTER id_mentor'
   );
+  await ensureColumn(
+    'clases',
+    'precio',
+    'ALTER TABLE clases ADD COLUMN precio DECIMAL(10,2) NULL AFTER id_materia'
+  );
+  await ensureColumn(
+    'clases',
+    'ubicacion',
+    'ALTER TABLE clases ADD COLUMN ubicacion VARCHAR(255) NULL AFTER precio'
+  );
 
   await pool.query(`
     CREATE TABLE IF NOT EXISTS mentor_materias (
@@ -198,8 +208,8 @@ async function ensureDatabaseSchema() {
 
   await pool.query(
     `
-      INSERT INTO clases (titulo, descripcion, fecha, modalidad, id_mentor, id_materia)
-      SELECT ?, ?, ?, ?, u.id_usuario, m.id_materia
+      INSERT INTO clases (titulo, descripcion, fecha, modalidad, id_mentor, id_materia, precio, ubicacion)
+      SELECT ?, ?, ?, ?, u.id_usuario, m.id_materia, ?, ?
       FROM usuarios u
       INNER JOIN materias m ON LOWER(m.nombre) = LOWER(?)
       WHERE u.email = ?
@@ -212,6 +222,8 @@ async function ensureDatabaseSchema() {
       'Sesion practica para entender controllers, services y repositories en aplicaciones Node.js.',
       '2026-05-05 18:00:00',
       'virtual',
+      12000,
+      null,
       'Ingenieria de Software II',
       'mentor@mentorix.com',
       'Mentoria de Arquitectura en Capas',
@@ -220,8 +232,8 @@ async function ensureDatabaseSchema() {
 
   await pool.query(
     `
-      INSERT INTO clases (titulo, descripcion, fecha, modalidad, id_mentor, id_materia)
-      SELECT ?, ?, ?, ?, u.id_usuario, m.id_materia
+      INSERT INTO clases (titulo, descripcion, fecha, modalidad, id_mentor, id_materia, precio, ubicacion)
+      SELECT ?, ?, ?, ?, u.id_usuario, m.id_materia, ?, ?
       FROM usuarios u
       INNER JOIN materias m ON LOWER(m.nombre) = LOWER(?)
       WHERE u.email = ?
@@ -234,6 +246,8 @@ async function ensureDatabaseSchema() {
       'Buenas practicas para modelar recursos, validar entradas y persistir datos con mysql2/promise.',
       '2026-05-07 19:30:00',
       'presencial',
+      15000,
+      'Aula 204, Sede Centro',
       'Bases de Datos',
       'mentor@mentorix.com',
       'API REST con Express y MySQL',
