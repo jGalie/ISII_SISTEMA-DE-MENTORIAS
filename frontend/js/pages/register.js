@@ -11,6 +11,9 @@
   const passConfirmEl = document.getElementById('password-confirm');
   const mentorFields = document.getElementById('mentor-fields');
   const materiasContainer = document.getElementById('materias-container');
+  const materiasSearchEl = document.getElementById('materias-search');
+  const materiasSelectedEl = document.getElementById('materias-selected');
+  const materiasEmptyEl = document.getElementById('materias-empty');
   const otrasMateriasEl = document.getElementById('otras-materias');
   const emailFeedback = document.getElementById('email-feedback');
   const passwordMatchFeedback = document.getElementById('password-match-feedback');
@@ -19,6 +22,9 @@
   const chkLetter = document.getElementById('chk-letter');
   const chkNumber = document.getElementById('chk-number');
   const chkMatch = document.getElementById('chk-match');
+
+  const allMaterias = [];
+  const selectedMaterias = new Set();
 
   function showError(message) {
     if (alertBox) {
@@ -38,6 +44,14 @@
 
   function normalize(value) {
     return String(value || '').trim();
+  }
+
+  function normalizeKey(value) {
+    return String(value || '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .trim();
   }
 
   function isValidEmail(email) {
@@ -63,11 +77,65 @@
   }
 
   function getSelectedMaterias() {
-    return Array.from(document.querySelectorAll('input[name="materia"]:checked')).map((input) => input.value);
+    return Array.from(selectedMaterias.values());
   }
 
   function getSelectedLevels() {
     return Array.from(document.querySelectorAll('input[name="nivel-educativo"]:checked')).map((input) => input.value);
+  }
+
+  function updateChipStates() {
+    document.querySelectorAll('.chip-option').forEach((label) => {
+      const input = label.querySelector('input[type="checkbox"]');
+      if (!input) return;
+      label.classList.toggle('is-selected', Boolean(input.checked));
+    });
+  }
+
+  function renderSelectedMaterias() {
+    if (!materiasSelectedEl) return;
+
+    const values = getSelectedMaterias();
+    if (!values.length) {
+      materiasSelectedEl.innerHTML = '<span class="empty-selected">Aun no seleccionaste materias.</span>';
+      return;
+    }
+
+    materiasSelectedEl.innerHTML = values
+      .map(
+        (materia) => `
+          <button type="button" class="selected-tag" data-remove-materia="${materia}">
+            <span>${materia}</span>
+            <i class="bi bi-x-lg"></i>
+          </button>
+        `
+      )
+      .join('');
+  }
+
+  function renderMaterias() {
+    if (!materiasContainer) return;
+
+    const searchValue = normalizeKey(materiasSearchEl?.value);
+    const filtered = allMaterias.filter((materia) =>
+      !searchValue || normalizeKey(materia.nombre).includes(searchValue)
+    );
+
+    materiasContainer.innerHTML = filtered
+      .map((materia) => {
+        const checked = selectedMaterias.has(materia.nombre);
+        return `
+          <label class="chip-option ${checked ? 'is-selected' : ''}">
+            <input type="checkbox" name="materia" value="${materia.nombre}" ${checked ? 'checked' : ''} />
+            <span>${materia.nombre}</span>
+          </label>
+        `;
+      })
+      .join('');
+
+    if (materiasEmptyEl) {
+      materiasEmptyEl.classList.toggle('d-none', filtered.length > 0);
+    }
   }
 
   function updateChecklist() {
@@ -134,28 +202,28 @@
     });
   }
 
-  function renderMaterias(materias) {
-    if (!materiasContainer) return;
+  function syncSelectedMateriasFromInput(input) {
+    const value = normalize(input.value);
+    if (!value) return;
 
-    materiasContainer.innerHTML = materias
-      .map(
-        (materia) => `
-          <label class="chip-option">
-            <input type="checkbox" name="materia" value="${materia.nombre}" />
-            <span>${materia.nombre}</span>
-          </label>
-        `
-      )
-      .join('');
+    if (input.checked) {
+      selectedMaterias.add(value);
+    } else {
+      selectedMaterias.delete(value);
+    }
+
+    renderSelectedMaterias();
+    updateChipStates();
   }
 
   async function loadMaterias() {
     try {
       const response = await MentoriasApi.getMaterias();
       const materias = Array.isArray(response.data) ? response.data : [];
-      renderMaterias(materias);
+      allMaterias.splice(0, allMaterias.length, ...materias);
+      renderMaterias();
+      renderSelectedMaterias();
     } catch (error) {
-      renderMaterias([]);
       if (materiasContainer) {
         materiasContainer.innerHTML = '<div class="text-muted small">No se pudieron cargar las materias predefinidas.</div>';
       }
@@ -166,11 +234,38 @@
   if (passConfirmEl) passConfirmEl.addEventListener('input', updateChecklist);
   if (emailEl) emailEl.addEventListener('input', updateEmailValidity);
   if (rolEl) rolEl.addEventListener('change', updateMentorFields);
+  if (materiasSearchEl) {
+    materiasSearchEl.addEventListener('input', renderMaterias);
+  }
+  if (materiasContainer) {
+    materiasContainer.addEventListener('change', function (event) {
+      const input = event.target;
+      if (!(input instanceof HTMLInputElement) || input.name !== 'materia') return;
+      syncSelectedMateriasFromInput(input);
+    });
+  }
+  if (materiasSelectedEl) {
+    materiasSelectedEl.addEventListener('click', function (event) {
+      const button = event.target.closest('[data-remove-materia]');
+      if (!button) return;
+      const value = normalize(button.getAttribute('data-remove-materia'));
+      if (!value) return;
+      selectedMaterias.delete(value);
+      renderMaterias();
+      renderSelectedMaterias();
+    });
+  }
+  document.addEventListener('change', function (event) {
+    const input = event.target;
+    if (!(input instanceof HTMLInputElement) || input.name !== 'nivel-educativo') return;
+    updateChipStates();
+  });
 
   bindPasswordToggles();
   updateChecklist();
   updateMentorFields();
   await loadMaterias();
+  updateChipStates();
 
   if (!form) return;
 

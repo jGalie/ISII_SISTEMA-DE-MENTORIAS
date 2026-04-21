@@ -81,12 +81,28 @@
             <div id="mentor-fields" class="mentor-fields d-none">
               <div class="mentor-panel mb-4">
                 <div class="fw-semibold mb-3">Materias que dicta</div>
-                <div id="materias-container" class="chips-grid"></div>
+                <div class="subject-selector">
+                  <div class="input-shell subject-search-shell mb-3">
+                    <i class="bi bi-search"></i>
+                    <input id="materias-search" type="search" class="form-control" placeholder="Buscar materias..." autocomplete="off" />
+                  </div>
+
+                  <div class="selected-strip mb-3">
+                    <div class="small text-muted mb-2">Seleccionadas</div>
+                    <div id="materias-selected" class="selected-tags">
+                      <span class="empty-selected">Aun no seleccionaste materias.</span>
+                    </div>
+                  </div>
+
+                  <div id="materias-container" class="chips-grid chips-grid-scroll"></div>
+                  <div id="materias-empty" class="small text-muted mt-3 d-none">No hay materias que coincidan con tu busqueda.</div>
+                </div>
                 <div class="mt-3">
                   <label for="otras-materias" class="form-label small">Otras materias</label>
                   <div class="textarea-shell">
                     <textarea id="otras-materias" class="form-control" rows="3" placeholder="Escribi una o varias materias separadas por coma. Ej: Algebra, Quimica organica"></textarea>
                   </div>
+                  <div class="form-text">Puedes escribir varias materias separadas por coma. Se guardaran sin duplicados.</div>
                 </div>
               </div>
 

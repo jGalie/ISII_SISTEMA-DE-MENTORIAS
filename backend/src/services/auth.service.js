@@ -30,7 +30,22 @@ function normalizeList(value) {
 }
 
 function uniqueList(items) {
-  return Array.from(new Set(items.map((item) => item.trim()))).filter(Boolean);
+  const seen = new Set();
+  const unique = [];
+
+  for (const item of items) {
+    const trimmed = String(item || '').trim();
+    const key = trimmed
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase();
+
+    if (!trimmed || seen.has(key)) continue;
+    seen.add(key);
+    unique.push(trimmed);
+  }
+
+  return unique;
 }
 
 function parseMentorSubjects(data) {
