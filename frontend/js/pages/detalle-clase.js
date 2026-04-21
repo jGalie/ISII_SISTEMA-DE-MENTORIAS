@@ -26,6 +26,8 @@
     document.getElementById('dc-mentor').textContent = `Mentor: ${data.mentorNombre || 'Mentorix'}`;
     document.getElementById('dc-email').textContent = data.mentorEmail || 'No disponible';
     document.getElementById('dc-fecha').textContent = MentoriasUI.formatDate(data.fecha);
+    document.getElementById('dc-modalidad').textContent =
+      data.modalidad === 'presencial' ? 'Presencial' : 'Virtual';
 
     if (user && user.rol === 'mentor' && Number(user.id) === Number(data.mentorId)) {
       editLink.href = `/pages/crear-clase.html?id=${encodeURIComponent(data.id)}`;

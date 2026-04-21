@@ -2,13 +2,13 @@ const { toClase } = require('../models/clase.model');
 
 function createClaseRepository({ pool }) {
   return {
-    async createClase({ titulo, descripcion, fecha, id_mentor }) {
+    async createClase({ titulo, descripcion, fecha, modalidad, id_mentor }) {
       const [result] = await pool.query(
         `
-          INSERT INTO clases (titulo, descripcion, fecha, id_mentor)
-          VALUES (?, ?, ?, ?)
+          INSERT INTO clases (titulo, descripcion, fecha, modalidad, id_mentor)
+          VALUES (?, ?, ?, ?, ?)
         `,
-        [titulo, descripcion, fecha, id_mentor]
+        [titulo, descripcion, fecha, modalidad, id_mentor]
       );
 
       return this.findById(result.insertId);
@@ -21,6 +21,7 @@ function createClaseRepository({ pool }) {
           c.titulo,
           c.descripcion,
           c.fecha,
+          c.modalidad,
           c.id_mentor,
           u.nombre AS mentor_nombre,
           u.email AS mentor_email
@@ -40,6 +41,7 @@ function createClaseRepository({ pool }) {
             c.titulo,
             c.descripcion,
             c.fecha,
+            c.modalidad,
             c.id_mentor,
             u.nombre AS mentor_nombre,
             u.email AS mentor_email
@@ -62,6 +64,7 @@ function createClaseRepository({ pool }) {
             c.titulo,
             c.descripcion,
             c.fecha,
+            c.modalidad,
             c.id_mentor,
             u.nombre AS mentor_nombre,
             u.email AS mentor_email
@@ -76,14 +79,14 @@ function createClaseRepository({ pool }) {
       return rows.map(toClase);
     },
 
-    async updateClase(id, { titulo, descripcion, fecha }) {
+    async updateClase(id, { titulo, descripcion, fecha, modalidad }) {
       await pool.query(
         `
           UPDATE clases
-          SET titulo = ?, descripcion = ?, fecha = ?
+          SET titulo = ?, descripcion = ?, fecha = ?, modalidad = ?
           WHERE id_clase = ?
         `,
-        [titulo, descripcion, fecha, Number(id)]
+        [titulo, descripcion, fecha, modalidad, Number(id)]
       );
 
       return this.findById(id);

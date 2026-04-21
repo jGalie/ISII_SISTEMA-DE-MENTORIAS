@@ -8,12 +8,17 @@ function validateClasePayload(data) {
   const titulo = String(data?.titulo || '').trim();
   const descripcion = String(data?.descripcion || '').trim();
   const fecha = String(data?.fecha || '').trim();
+  const modalidad = String(data?.modalidad || 'virtual').trim().toLowerCase();
 
   if (!titulo || !descripcion || !fecha) {
     throw createAppError('Título, descripción y fecha son obligatorios.', 'VALIDATION_ERROR');
   }
 
-  return { titulo, descripcion, fecha };
+  if (!['virtual', 'presencial'].includes(modalidad)) {
+    throw createAppError('Modalidad de clase invalida.', 'VALIDATION_ERROR');
+  }
+
+  return { titulo, descripcion, fecha, modalidad };
 }
 
 function createClaseService({ claseRepository, usuarioRepository }) {

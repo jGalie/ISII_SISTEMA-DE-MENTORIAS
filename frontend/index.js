@@ -34,6 +34,7 @@
     classes: [],
     filteredClasses: [],
     activeSubject: '',
+    activeModality: '',
     query: '',
     subjects: DEFAULT_SUBJECTS,
     enrollmentByClassId: {},
@@ -48,6 +49,7 @@
   const subjectsPrev = document.getElementById('subjects-prev');
   const subjectsNext = document.getElementById('subjects-next');
   const errorAlert = document.getElementById('error-alert');
+  const modalityButtons = document.querySelectorAll('[data-modalidad]');
 
   function normalize(value) {
     return String(value || '')
@@ -108,6 +110,13 @@
     const base = 7000;
     const extra = ((Number(clase.id) || 1) % 5) * 1200;
     return `$${(base + extra).toLocaleString('es-AR')} / clase`;
+  }
+
+  function getModalityMeta(clase) {
+    const modalidad = clase.modalidad === 'presencial' ? 'presencial' : 'virtual';
+    return modalidad === 'presencial'
+      ? { label: 'Presencial', icon: 'bi-geo-alt', className: 'modality-presencial' }
+      : { label: 'Virtual', icon: 'bi-camera-video', className: 'modality-virtual' };
   }
 
   function formatDescription(clase) {
@@ -209,6 +218,7 @@
     const location = getTeacherLocation(clase);
     const rating = getTeacherRating(clase);
     const avatar = createAvatarDataUri(mentorName, subject.key);
+    const modality = getModalityMeta(clase);
 
     return `
       <div class="col-12 col-md-6 col-xl-4">
@@ -219,6 +229,7 @@
               <div>
                 <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
                   <span class="badge rounded-pill text-bg-light border">${escapeHtml(subject.label)}</span>
+                  <span class="badge rounded-pill modality-badge ${escapeHtml(modality.className)}"><i class="bi ${escapeHtml(modality.icon)} me-1"></i>${escapeHtml(modality.label)}</span>
                   <span class="teacher-meta small"><i class="bi bi-geo-alt me-1"></i>${escapeHtml(location)}</span>
                   ${getEnrollmentBadge(clase.id)}
                 </div>
@@ -332,10 +343,12 @@
     state.filteredClasses = state.classes.filter((clase) => {
       const subject = getSubjectMeta(clase);
       const mentorName = clase.mentorNombre || '';
-      const searchable = [clase.titulo, clase.descripcion, subject.label, mentorName].map(normalize).join(' ');
+      const modalidad = clase.modalidad === 'presencial' ? 'presencial' : 'virtual';
+      const searchable = [clase.titulo, clase.descripcion, subject.label, mentorName, modalidad].map(normalize).join(' ');
       const matchesSubject = !state.activeSubject || subject.key === state.activeSubject;
+      const matchesModality = !state.activeModality || modalidad === state.activeModality;
       const matchesQuery = !query || searchable.includes(query);
-      return matchesSubject && matchesQuery;
+      return matchesSubject && matchesModality && matchesQuery;
     });
 
     renderSubjects();
@@ -409,6 +422,14 @@
   searchInput.addEventListener('input', function () {
     state.query = this.value;
     applyFilters();
+  });
+
+  modalityButtons.forEach((button) => {
+    button.addEventListener('click', function () {
+      state.activeModality = this.getAttribute('data-modalidad') || '';
+      modalityButtons.forEach((item) => item.classList.toggle('is-active', item === this));
+      applyFilters();
+    });
   });
 
   if (subjectsPrev) {

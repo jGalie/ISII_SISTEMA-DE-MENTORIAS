@@ -117,13 +117,51 @@ body {
   font-size: 1.15rem;
 }
 
+.modality-filter {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  max-width: 100%;
+  padding: 0.35rem;
+  border: 1px solid #ede7fb;
+  border-radius: 999px;
+  background: #ffffff;
+  box-shadow: 0 10px 24px rgba(32, 42, 68, 0.08);
+}
+
+.modality-chip {
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-main);
+  font-weight: 700;
+  padding: 0.55rem 1rem;
+}
+
+.modality-chip:hover,
+.modality-chip:focus {
+  background: #f5f1ff;
+}
+
+.modality-chip.is-active {
+  background: linear-gradient(135deg, var(--brand), #a62eff);
+  color: #ffffff;
+}
+
 .subjects-track-shell {
   position: relative;
+  max-width: 62rem;
+  margin: 0 auto;
 }
 
 .subjects-track {
   display: flex;
+  justify-content: flex-start;
   gap: 1rem;
+  width: fit-content;
+  max-width: 100%;
+  margin: 0 auto;
   overflow-x: auto;
   scroll-behavior: smooth;
   padding: 0.35rem 0.25rem 1rem;
@@ -284,6 +322,20 @@ body {
   background: #f5eeff;
   color: var(--brand-dark);
   font-weight: 600;
+}
+
+.modality-badge {
+  border: 0;
+}
+
+.modality-virtual {
+  background: #e9f5ff;
+  color: #075985;
+}
+
+.modality-presencial {
+  background: #ecfdf5;
+  color: #166534;
 }
 
 .cta-section {

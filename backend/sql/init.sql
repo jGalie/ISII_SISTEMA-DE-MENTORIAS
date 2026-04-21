@@ -31,6 +31,7 @@ CREATE TABLE clases (
   titulo VARCHAR(100) NOT NULL,
   descripcion TEXT NOT NULL,
   fecha DATETIME NOT NULL,
+  modalidad ENUM('virtual', 'presencial') NOT NULL DEFAULT 'virtual',
   id_mentor INT NOT NULL,
   FOREIGN KEY (id_mentor) REFERENCES usuarios(id_usuario)
 );
@@ -90,17 +91,19 @@ INSERT INTO materias (nombre, codigo) VALUES
 ('Ingeniería de Software II', 'ISII'),
 ('Bases de Datos', 'BD');
 
-INSERT INTO clases (titulo, descripcion, fecha, id_mentor) VALUES
+INSERT INTO clases (titulo, descripcion, fecha, modalidad, id_mentor) VALUES
 (
   'Mentoría de Arquitectura en Capas',
   'Sesión práctica para entender controllers, services y repositories en aplicaciones Node.js.',
   '2026-05-05 18:00:00',
+  'virtual',
   1
 ),
 (
   'API REST con Express y MySQL',
   'Buenas prácticas para modelar recursos, validar entradas y persistir datos con mysql2/promise.',
   '2026-05-07 19:30:00',
+  'presencial',
   1
 );
 

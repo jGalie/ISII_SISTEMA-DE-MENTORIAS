@@ -38,6 +38,7 @@
 
       document.getElementById('titulo').value = data.titulo || '';
       document.getElementById('descripcion').value = data.descripcion || '';
+      document.getElementById('modalidad').value = data.modalidad || 'virtual';
       if (data.fecha) {
         const date = new Date(data.fecha);
         const offset = date.getTimezoneOffset();
@@ -56,6 +57,7 @@
       titulo: document.getElementById('titulo').value,
       descripcion: document.getElementById('descripcion').value,
       fecha: new Date(document.getElementById('fecha').value).toISOString().slice(0, 19).replace('T', ' '),
+      modalidad: document.getElementById('modalidad').value,
       mentorId: user.id,
     };
 

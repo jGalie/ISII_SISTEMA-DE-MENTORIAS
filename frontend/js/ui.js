@@ -34,6 +34,10 @@
     return 'inicio';
   }
 
+  function modalityLabel(value) {
+    return value === 'presencial' ? 'Presencial' : 'Virtual';
+  }
+
   function navbarHtml({ user, activeKey }) {
     const homePath =
       user && global.MentoriasAuth ? global.MentoriasAuth.getHomePath(user) : '/index.html';
@@ -200,6 +204,7 @@
         <div>
           <h5 class="card-title fw-bold mb-1">${esc(clase.titulo)}</h5>
           <div class="text-muted small"><i class="bi bi-person-circle me-1"></i>${esc(clase.mentorNombre || 'Mentor')}</div>
+          <div class="text-muted small"><i class="bi ${clase.modalidad === 'presencial' ? 'bi-geo-alt' : 'bi-camera-video'} me-1"></i>${esc(modalityLabel(clase.modalidad))}</div>
         </div>
         <span class="badge rounded-pill text-bg-light border">${esc(formatDate(clase.fecha))}</span>
       </div>

@@ -5,6 +5,7 @@
  * @property {string} titulo
  * @property {string} descripcion
  * @property {string} fecha
+ * @property {'virtual'|'presencial'} modalidad
  * @property {number} mentorId
  * @property {string} mentorNombre
  * @property {string} mentorEmail
@@ -17,6 +18,7 @@ function toClase(row) {
     titulo: row.titulo,
     descripcion: row.descripcion,
     fecha: row.fecha,
+    modalidad: row.modalidad || 'virtual',
     mentorId: row.mentorId ?? row.id_mentor,
     mentorNombre: row.mentorNombre ?? row.mentor_nombre ?? null,
     mentorEmail: row.mentorEmail ?? row.mentor_email ?? null,

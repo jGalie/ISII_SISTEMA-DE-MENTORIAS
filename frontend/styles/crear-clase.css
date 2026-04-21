@@ -46,6 +46,7 @@ body {
 }
 
 .input-shell .form-control,
+.input-shell .form-select,
 .textarea-shell .form-control {
   border: 0;
   background: transparent;
