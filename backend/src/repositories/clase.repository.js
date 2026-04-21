@@ -1,14 +1,31 @@
 const { toClase } = require('../models/clase.model');
 
 function createClaseRepository({ pool }) {
+  const baseSelect = `
+    SELECT
+      c.id_clase,
+      c.titulo,
+      c.descripcion,
+      c.fecha,
+      c.modalidad,
+      c.id_mentor,
+      c.id_materia,
+      u.nombre AS mentor_nombre,
+      u.email AS mentor_email,
+      m.nombre AS materia_nombre
+    FROM clases c
+    INNER JOIN usuarios u ON u.id_usuario = c.id_mentor
+    LEFT JOIN materias m ON m.id_materia = c.id_materia
+  `;
+
   return {
-    async createClase({ titulo, descripcion, fecha, modalidad, id_mentor }) {
+    async createClase({ titulo, descripcion, fecha, modalidad, id_mentor, id_materia }) {
       const [result] = await pool.query(
         `
-          INSERT INTO clases (titulo, descripcion, fecha, modalidad, id_mentor)
-          VALUES (?, ?, ?, ?, ?)
+          INSERT INTO clases (titulo, descripcion, fecha, modalidad, id_mentor, id_materia)
+          VALUES (?, ?, ?, ?, ?, ?)
         `,
-        [titulo, descripcion, fecha, modalidad, id_mentor]
+        [titulo, descripcion, fecha, modalidad, id_mentor, id_materia]
       );
 
       return this.findById(result.insertId);
@@ -16,17 +33,7 @@ function createClaseRepository({ pool }) {
 
     async findAll() {
       const [rows] = await pool.query(`
-        SELECT
-          c.id_clase,
-          c.titulo,
-          c.descripcion,
-          c.fecha,
-          c.modalidad,
-          c.id_mentor,
-          u.nombre AS mentor_nombre,
-          u.email AS mentor_email
-        FROM clases c
-        INNER JOIN usuarios u ON u.id_usuario = c.id_mentor
+        ${baseSelect}
         ORDER BY c.fecha ASC, c.id_clase ASC
       `);
 
@@ -36,17 +43,7 @@ function createClaseRepository({ pool }) {
     async findById(id) {
       const [rows] = await pool.query(
         `
-          SELECT
-            c.id_clase,
-            c.titulo,
-            c.descripcion,
-            c.fecha,
-            c.modalidad,
-            c.id_mentor,
-            u.nombre AS mentor_nombre,
-            u.email AS mentor_email
-          FROM clases c
-          INNER JOIN usuarios u ON u.id_usuario = c.id_mentor
+          ${baseSelect}
           WHERE c.id_clase = ?
           LIMIT 1
         `,
@@ -59,17 +56,7 @@ function createClaseRepository({ pool }) {
     async findByMentor(id_mentor) {
       const [rows] = await pool.query(
         `
-          SELECT
-            c.id_clase,
-            c.titulo,
-            c.descripcion,
-            c.fecha,
-            c.modalidad,
-            c.id_mentor,
-            u.nombre AS mentor_nombre,
-            u.email AS mentor_email
-          FROM clases c
-          INNER JOIN usuarios u ON u.id_usuario = c.id_mentor
+          ${baseSelect}
           WHERE c.id_mentor = ?
           ORDER BY c.fecha ASC, c.id_clase ASC
         `,
@@ -79,14 +66,14 @@ function createClaseRepository({ pool }) {
       return rows.map(toClase);
     },
 
-    async updateClase(id, { titulo, descripcion, fecha, modalidad }) {
+    async updateClase(id, { titulo, descripcion, fecha, modalidad, id_materia }) {
       await pool.query(
         `
           UPDATE clases
-          SET titulo = ?, descripcion = ?, fecha = ?, modalidad = ?
+          SET titulo = ?, descripcion = ?, fecha = ?, modalidad = ?, id_materia = ?
           WHERE id_clase = ?
         `,
-        [titulo, descripcion, fecha, modalidad, Number(id)]
+        [titulo, descripcion, fecha, modalidad, id_materia, Number(id)]
       );
 
       return this.findById(id);

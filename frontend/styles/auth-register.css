@@ -58,7 +58,7 @@ body {
 
 .register-card {
   width: 100%;
-  max-width: 450px;
+  max-width: 620px;
   border: 0;
   border-radius: 1.75rem;
   background: var(--surface);
@@ -83,7 +83,8 @@ body {
 }
 
 .input-shell,
-.select-shell {
+.select-shell,
+.textarea-shell {
   display: flex;
   align-items: center;
   min-height: 3.5rem;
@@ -94,7 +95,8 @@ body {
 }
 
 .input-shell:focus-within,
-.select-shell:focus-within {
+.select-shell:focus-within,
+.textarea-shell:focus-within {
   border-color: rgba(123, 44, 255, 0.28);
   box-shadow: 0 0 0 0.25rem rgba(123, 44, 255, 0.08);
 }
@@ -105,11 +107,63 @@ body {
 }
 
 .input-shell .form-control,
-.select-shell .form-select {
+.select-shell .form-select,
+.textarea-shell .form-control {
   border: 0;
   background: transparent;
   box-shadow: none;
   padding-left: 0.8rem;
+}
+
+.textarea-shell {
+  padding: 0.75rem 0.9rem;
+  align-items: flex-start;
+}
+
+.mentor-panel {
+  background: #f7f7fa;
+  border-radius: 1rem;
+  padding: 1rem;
+}
+
+.chips-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 0.75rem;
+}
+
+.chip-option {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid #d9deea;
+  border-radius: 0.95rem;
+  background: #fff;
+  cursor: pointer;
+  transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.chip-option:hover {
+  transform: translateY(-1px);
+  border-color: rgba(123, 44, 255, 0.28);
+}
+
+.chip-option input {
+  accent-color: var(--brand);
+}
+
+.password-shell {
+  gap: 0.5rem;
+}
+
+.password-toggle {
+  border: 0;
+  background: transparent;
+  color: #8a95a8;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .email-feedback {
@@ -133,8 +187,10 @@ body {
 }
 
 .check-item .status-icon {
-  width: 1rem;
+  width: 1.6rem;
   text-align: center;
+  font-size: 0.75rem;
+  font-weight: 700;
 }
 
 .check-item.is-valid {
@@ -164,4 +220,14 @@ body {
   color: var(--brand);
   text-decoration: none;
   font-weight: 600;
+}
+
+@media (max-width: 575.98px) {
+  .register-card {
+    max-width: 100%;
+  }
+
+  .chips-grid {
+    grid-template-columns: 1fr;
+  }
 }

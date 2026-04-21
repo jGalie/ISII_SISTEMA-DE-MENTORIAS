@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="es">
   <head>
@@ -15,9 +14,9 @@
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
     />
-      <link rel="stylesheet" href="/styles/crear-clase.css" />
+    <link rel="stylesheet" href="/styles/crear-clase.css" />
     <link rel="stylesheet" href="/styles/shared-ui.css" />
-</head>
+  </head>
   <body>
     <div data-component="navbar"></div>
     <main class="container py-4 py-lg-5">
@@ -27,9 +26,9 @@
             <div class="card-body p-4 p-lg-5">
               <div class="d-flex justify-content-between align-items-start gap-3 mb-4">
                 <div>
-                  <p class="text-uppercase small fw-bold text-secondary mb-2">Gestión de clases</p>
+                  <p class="text-uppercase small fw-bold text-secondary mb-2">Gestion de clases</p>
                   <h1 id="page-title" class="h3 fw-bold mb-1">Crear clase</h1>
-                  <p class="text-muted mb-0">Publicá una nueva mentoría con el estilo Mentorix.</p>
+                  <p class="text-muted mb-0">Publica una nueva mentoria con las materias que registraste como mentor.</p>
                 </div>
                 <a class="btn btn-outline-dark rounded-pill px-4" href="/pages/clases.html">Volver</a>
               </div>
@@ -38,17 +37,26 @@
 
               <form id="form-clase" novalidate>
                 <div class="mb-4">
-                  <label class="form-label fw-semibold" for="titulo">Título</label>
+                  <label class="form-label fw-semibold" for="materia">Materia</label>
+                  <div class="input-shell">
+                    <i class="bi bi-journal-bookmark me-2"></i>
+                    <select class="form-select" id="materia" name="materia" required></select>
+                  </div>
+                  <div id="materia-help" class="form-text">La materia se toma de las que definiste al registrarte como mentor.</div>
+                </div>
+
+                <div class="mb-4">
+                  <label class="form-label fw-semibold" for="titulo">Titulo</label>
                   <div class="input-shell">
                     <i class="bi bi-book me-2"></i>
-                    <input class="form-control" type="text" id="titulo" name="titulo" required maxlength="100" placeholder="Ej. Introducción a Node.js" />
+                    <input class="form-control" type="text" id="titulo" name="titulo" required maxlength="100" placeholder="Ej. Introduccion a Node.js" />
                   </div>
                 </div>
 
                 <div class="mb-4">
-                  <label class="form-label fw-semibold" for="descripcion">Descripción</label>
+                  <label class="form-label fw-semibold" for="descripcion">Descripcion</label>
                   <div class="textarea-shell">
-                    <textarea class="form-control" id="descripcion" name="descripcion" rows="5" required placeholder="Contá qué van a aprender en esta clase."></textarea>
+                    <textarea class="form-control" id="descripcion" name="descripcion" rows="5" required placeholder="Conta que van a aprender en esta clase."></textarea>
                   </div>
                 </div>
 

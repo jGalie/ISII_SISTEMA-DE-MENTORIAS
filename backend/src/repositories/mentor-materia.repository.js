@@ -1,34 +1,87 @@
+const { pool } = require('../config/db');
 const { toMentorMateria } = require('../models/mentor-materia.model');
 
-let nextId = 1;
-const store = [];
+async function findAll() {
+  const [rows] = await pool.query(`
+    SELECT
+      mm.id_mentor_materia,
+      mm.id_mentor,
+      mm.id_materia,
+      m.nombre AS materia_nombre,
+      m.codigo AS materia_codigo
+    FROM mentor_materias mm
+    INNER JOIN materias m ON m.id_materia = mm.id_materia
+    ORDER BY mm.id_mentor ASC, m.nombre ASC
+  `);
 
-function seed() {
-  store.push({ id: nextId++, mentorId: 1, materiaId: 1 });
+  return rows.map(toMentorMateria);
 }
-seed();
 
-function findAll() {
-  return store.map((r) => toMentorMateria(r));
+async function findByMentorId(mentorId) {
+  const [rows] = await pool.query(
+    `
+      SELECT
+        mm.id_mentor_materia,
+        mm.id_mentor,
+        mm.id_materia,
+        m.nombre AS materia_nombre,
+        m.codigo AS materia_codigo
+      FROM mentor_materias mm
+      INNER JOIN materias m ON m.id_materia = mm.id_materia
+      WHERE mm.id_mentor = ?
+      ORDER BY m.nombre ASC, mm.id_mentor_materia ASC
+    `,
+    [Number(mentorId)]
+  );
+
+  return rows.map(toMentorMateria);
 }
 
-function findById(id) {
-  const row = store.find((r) => r.id === Number(id));
-  return row ? toMentorMateria(row) : null;
+async function exists(mentorId, materiaId, executor = pool) {
+  const [rows] = await executor.query(
+    `
+      SELECT 1
+      FROM mentor_materias
+      WHERE id_mentor = ? AND id_materia = ?
+      LIMIT 1
+    `,
+    [Number(mentorId), Number(materiaId)]
+  );
+
+  return rows.length > 0;
 }
 
-function create(data) {
-  const row = {
-    id: nextId++,
-    mentorId: Number(data.mentorId),
-    materiaId: Number(data.materiaId),
-  };
-  store.push(row);
-  return toMentorMateria(row);
+async function create({ mentorId, materiaId }, executor = pool) {
+  await executor.query(
+    `
+      INSERT IGNORE INTO mentor_materias (id_mentor, id_materia)
+      VALUES (?, ?)
+    `,
+    [Number(mentorId), Number(materiaId)]
+  );
+
+  const [rows] = await executor.query(
+    `
+      SELECT
+        mm.id_mentor_materia,
+        mm.id_mentor,
+        mm.id_materia,
+        m.nombre AS materia_nombre,
+        m.codigo AS materia_codigo
+      FROM mentor_materias mm
+      INNER JOIN materias m ON m.id_materia = mm.id_materia
+      WHERE mm.id_mentor = ? AND mm.id_materia = ?
+      LIMIT 1
+    `,
+    [Number(mentorId), Number(materiaId)]
+  );
+
+  return rows.length ? toMentorMateria(rows[0]) : null;
 }
 
 module.exports = {
   findAll,
-  findById,
+  findByMentorId,
+  exists,
   create,
 };

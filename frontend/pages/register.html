@@ -14,8 +14,8 @@
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
     />
-      <link rel="stylesheet" href="/styles/auth-register.css" />
-</head>
+    <link rel="stylesheet" href="/styles/auth-register.css" />
+  </head>
   <body>
     <header class="topbar border-bottom border-white border-opacity-75 sticky-top">
       <nav class="navbar navbar-expand-lg">
@@ -59,30 +59,12 @@
             </div>
 
             <div class="mb-4">
-              <label for="email" class="form-label">Correo electrónico</label>
+              <label for="email" class="form-label">Correo electronico</label>
               <div class="input-shell">
                 <i class="bi bi-envelope"></i>
                 <input id="email" type="email" class="form-control" placeholder="tu@email.com" required />
               </div>
-              <div class="invalid-feedback d-block email-feedback" id="email-feedback">Ingresa un email válido.</div>
-            </div>
-
-            <div class="mb-3">
-              <label for="password" class="form-label">Contraseña</label>
-              <div class="input-shell">
-                <i class="bi bi-lock"></i>
-                <input id="password" type="password" class="form-control" placeholder="Crea una contraseña" required />
-              </div>
-              <div class="form-text">Mínimo 8 caracteres, con letras y números.</div>
-            </div>
-
-            <div class="checklist-card p-3 mb-4">
-              <div class="fw-semibold small mb-2">Requisitos</div>
-              <ul class="list-unstyled small m-0 d-grid gap-2">
-                <li id="chk-len" class="check-item"><span class="status-icon">•</span><span>Longitud mínima (8)</span></li>
-                <li id="chk-letter" class="check-item"><span class="status-icon">•</span><span>Contiene letras</span></li>
-                <li id="chk-number" class="check-item"><span class="status-icon">•</span><span>Contiene números</span></li>
-              </ul>
+              <div class="invalid-feedback d-block email-feedback" id="email-feedback">Ingresa un email valido.</div>
             </div>
 
             <div class="mb-4">
@@ -96,11 +78,88 @@
               </div>
             </div>
 
+            <div id="mentor-fields" class="mentor-fields d-none">
+              <div class="mentor-panel mb-4">
+                <div class="fw-semibold mb-3">Materias que dicta</div>
+                <div id="materias-container" class="chips-grid"></div>
+                <div class="mt-3">
+                  <label for="otras-materias" class="form-label small">Otras materias</label>
+                  <div class="textarea-shell">
+                    <textarea id="otras-materias" class="form-control" rows="3" placeholder="Escribi una o varias materias separadas por coma. Ej: Algebra, Quimica organica"></textarea>
+                  </div>
+                </div>
+              </div>
+
+              <div class="mentor-panel mb-4">
+                <div class="fw-semibold mb-3">Niveles educativos</div>
+                <div class="chips-grid">
+                  <label class="chip-option">
+                    <input type="checkbox" name="nivel-educativo" value="primaria" />
+                    <span>Primaria</span>
+                  </label>
+                  <label class="chip-option">
+                    <input type="checkbox" name="nivel-educativo" value="secundaria" />
+                    <span>Secundaria</span>
+                  </label>
+                  <label class="chip-option">
+                    <input type="checkbox" name="nivel-educativo" value="terciario" />
+                    <span>Terciario</span>
+                  </label>
+                  <label class="chip-option">
+                    <input type="checkbox" name="nivel-educativo" value="universitario" />
+                    <span>Universitario</span>
+                  </label>
+                  <label class="chip-option">
+                    <input type="checkbox" name="nivel-educativo" value="posgrado" />
+                    <span>Posgrado</span>
+                  </label>
+                  <label class="chip-option">
+                    <input type="checkbox" name="nivel-educativo" value="adultos" />
+                    <span>Adultos</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label for="password" class="form-label">Contrasena</label>
+              <div class="input-shell password-shell">
+                <i class="bi bi-lock"></i>
+                <input id="password" type="password" class="form-control" placeholder="Crea una contrasena" required />
+                <button class="password-toggle" type="button" data-target="password" aria-label="Mostrar contrasena">
+                  <i class="bi bi-eye"></i>
+                </button>
+              </div>
+              <div class="form-text">Minimo 8 caracteres, con letras y numeros.</div>
+            </div>
+
+            <div class="mb-4">
+              <label for="password-confirm" class="form-label">Repetir contrasena</label>
+              <div class="input-shell password-shell">
+                <i class="bi bi-shield-lock"></i>
+                <input id="password-confirm" type="password" class="form-control" placeholder="Escribila otra vez" required />
+                <button class="password-toggle" type="button" data-target="password-confirm" aria-label="Mostrar confirmacion de contrasena">
+                  <i class="bi bi-eye"></i>
+                </button>
+              </div>
+              <div id="password-match-feedback" class="invalid-feedback d-block email-feedback">Las contrasenas no coinciden.</div>
+            </div>
+
+            <div class="checklist-card p-3 mb-4">
+              <div class="fw-semibold small mb-2">Requisitos</div>
+              <ul class="list-unstyled small m-0 d-grid gap-2">
+                <li id="chk-len" class="check-item"><span class="status-icon">*</span><span>Longitud minima (8)</span></li>
+                <li id="chk-letter" class="check-item"><span class="status-icon">*</span><span>Contiene letras</span></li>
+                <li id="chk-number" class="check-item"><span class="status-icon">*</span><span>Contiene numeros</span></li>
+                <li id="chk-match" class="check-item"><span class="status-icon">*</span><span>Las dos contrasenas coinciden</span></li>
+              </ul>
+            </div>
+
             <button id="btn-register" class="btn btn-register w-100" type="submit">Registrarme</button>
           </form>
 
           <p class="text-center text-muted mb-0 mt-4">
-            ¿Ya tienes cuenta? <a class="login-link" href="/pages/login.html">Inicia sesión</a>
+            Ya tienes cuenta? <a class="login-link" href="/pages/login.html">Inicia sesion</a>
           </p>
         </div>
       </section>

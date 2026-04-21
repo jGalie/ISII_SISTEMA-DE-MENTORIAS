@@ -9,19 +9,24 @@ function validateClasePayload(data) {
   const descripcion = String(data?.descripcion || '').trim();
   const fecha = String(data?.fecha || '').trim();
   const modalidad = String(data?.modalidad || 'virtual').trim().toLowerCase();
+  const id_materia = Number(data?.id_materia || data?.materiaId);
 
   if (!titulo || !descripcion || !fecha) {
-    throw createAppError('Título, descripción y fecha son obligatorios.', 'VALIDATION_ERROR');
+    throw createAppError('Titulo, descripcion y fecha son obligatorios.', 'VALIDATION_ERROR');
   }
 
   if (!['virtual', 'presencial'].includes(modalidad)) {
     throw createAppError('Modalidad de clase invalida.', 'VALIDATION_ERROR');
   }
 
-  return { titulo, descripcion, fecha, modalidad };
+  if (!id_materia) {
+    throw createAppError('Debes seleccionar una materia para la clase.', 'VALIDATION_ERROR');
+  }
+
+  return { titulo, descripcion, fecha, modalidad, id_materia };
 }
 
-function createClaseService({ claseRepository, usuarioRepository }) {
+function createClaseService({ claseRepository, usuarioRepository, mentorMateriaRepository }) {
   return {
     async crearClase(data) {
       const payload = validateClasePayload(data);
@@ -34,6 +39,11 @@ function createClaseService({ claseRepository, usuarioRepository }) {
       const mentor = await usuarioRepository.findById(id_mentor);
       if (!mentor || mentor.rol !== 'mentor') {
         throw createAppError('Solo un mentor puede crear clases.', 'FORBIDDEN');
+      }
+
+      const hasSubject = await mentorMateriaRepository.exists(id_mentor, payload.id_materia);
+      if (!hasSubject) {
+        throw createAppError('La materia seleccionada no pertenece a las materias registradas por el mentor.', 'FORBIDDEN');
       }
 
       return claseRepository.createClase({ ...payload, id_mentor });
@@ -69,6 +79,11 @@ function createClaseService({ claseRepository, usuarioRepository }) {
       }
       if (!actorId || actorId !== clase.mentorId) {
         throw createAppError('Solo el mentor creador puede editar esta clase.', 'FORBIDDEN');
+      }
+
+      const hasSubject = await mentorMateriaRepository.exists(actorId, payload.id_materia);
+      if (!hasSubject) {
+        throw createAppError('La materia seleccionada no pertenece a las materias registradas por el mentor.', 'FORBIDDEN');
       }
 
       return claseRepository.updateClase(id, payload);

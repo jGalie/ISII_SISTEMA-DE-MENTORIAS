@@ -9,11 +9,23 @@
 
 function toUsuario(row) {
   if (!row) return null;
+  let nivelesEducativos = [];
+  if (Array.isArray(row.niveles_educativos)) {
+    nivelesEducativos = row.niveles_educativos;
+  } else if (typeof row.niveles_educativos === 'string' && row.niveles_educativos.trim()) {
+    try {
+      nivelesEducativos = JSON.parse(row.niveles_educativos);
+    } catch {
+      nivelesEducativos = [];
+    }
+  }
+
   return {
     id: row.id ?? row.id_usuario,
     nombre: row.nombre,
     email: row.email,
     rol: row.rol,
+    nivelesEducativos,
   };
 }
 

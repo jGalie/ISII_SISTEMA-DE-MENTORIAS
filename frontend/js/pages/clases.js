@@ -93,7 +93,7 @@
     }
 
     const filtered = clases.filter((clase) => {
-      const searchable = [clase.titulo, clase.descripcion, clase.mentorNombre].map(normalize).join(' ');
+      const searchable = [clase.titulo, clase.descripcion, clase.mentorNombre, clase.materiaNombre].map(normalize).join(' ');
       return searchable.includes(term);
     });
     render(filtered);

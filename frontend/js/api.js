@@ -79,6 +79,12 @@
     getUsuarios() {
       return apiJson('/usuarios');
     },
+    getMaterias() {
+      return apiJson('/materias');
+    },
+    getMentorMaterias(mentorId) {
+      return apiJson(`/mentor-materias?mentorId=${encodeURIComponent(mentorId)}`);
+    },
     register(payload) {
       return apiJson('/auth/register', {
         method: 'POST',

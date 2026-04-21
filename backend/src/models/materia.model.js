@@ -8,7 +8,7 @@
 
 function toMateria(row) {
   return {
-    id: row.id,
+    id: row.id ?? row.id_materia,
     nombre: row.nombre,
     codigo: row.codigo,
   };

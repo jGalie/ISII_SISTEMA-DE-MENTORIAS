@@ -1,18 +1,18 @@
 const materiaRepository = require('../repositories/materia.repository');
 
 function requireFields(body, fields) {
-  for (const f of fields) {
-    if (body[f] == null || String(body[f]).trim() === '') {
-      throw new Error(`Campo obligatorio: ${f}`);
+  for (const field of fields) {
+    if (body[field] == null || String(body[field]).trim() === '') {
+      throw new Error(`Campo obligatorio: ${field}`);
     }
   }
 }
 
-function listar() {
+async function listar() {
   return materiaRepository.findAll();
 }
 
-function crear(body) {
+async function crear(body) {
   requireFields(body, ['nombre', 'codigo']);
   return materiaRepository.create(body);
 }

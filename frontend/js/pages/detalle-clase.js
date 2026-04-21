@@ -25,6 +25,7 @@
     document.getElementById('dc-id').textContent = String(data.id);
     document.getElementById('dc-mentor').textContent = `Mentor: ${data.mentorNombre || 'Mentorix'}`;
     document.getElementById('dc-email').textContent = data.mentorEmail || 'No disponible';
+    document.getElementById('dc-materia').textContent = data.materiaNombre || 'Materia a definir';
     document.getElementById('dc-fecha').textContent = MentoriasUI.formatDate(data.fecha);
     document.getElementById('dc-modalidad').textContent =
       data.modalidad === 'presencial' ? 'Presencial' : 'Virtual';

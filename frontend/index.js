@@ -1,33 +1,57 @@
 (function () {
   const SUBJECT_CONFIG = {
-    matematica: { label: 'Matemática', icon: 'bi-calculator' },
-    ingles: { label: 'Inglés', icon: 'bi-globe2' },
-    programacion: { label: 'Programación', icon: 'bi-code-slash' },
-    musica: { label: 'Música', icon: 'bi-music-note-beamed' },
-    fisica: { label: 'Física', icon: 'bi-radioactive' },
-    diseno: { label: 'Diseño', icon: 'bi-palette2' },
+    matematica: { label: 'Matematica', icon: 'bi-calculator' },
+    ingles: { label: 'Ingles', icon: 'bi-globe2' },
+    programacion: { label: 'Programacion', icon: 'bi-code-slash' },
+    musica: { label: 'Musica', icon: 'bi-music-note-beamed' },
+    fisica: { label: 'Fisica', icon: 'bi-radioactive' },
+    diseno: { label: 'Diseno', icon: 'bi-palette2' },
     negocios: { label: 'Negocios', icon: 'bi-briefcase' },
-    default: { label: 'Mentorías', icon: 'bi-book' },
+    quimica: { label: 'Quimica', icon: 'bi-flask' },
+    biologia: { label: 'Biologia', icon: 'bi-tree' },
+    historia: { label: 'Historia', icon: 'bi-bank' },
+    geografia: { label: 'Geografia', icon: 'bi-map' },
+    literatura: { label: 'Literatura', icon: 'bi-book-half' },
+    algebra: { label: 'Algebra', icon: 'bi-superscript' },
+    calculo: { label: 'Calculo', icon: 'bi-graph-up' },
+    economia: { label: 'Economia', icon: 'bi-cash-coin' },
+    default: { label: 'Mentorias', icon: 'bi-book' },
   };
 
   const SUBJECT_ALIASES = [
-    { key: 'matematica', matches: ['matematica', 'matemática', 'algebra', 'cálculo', 'calculo'] },
-    { key: 'ingles', matches: ['ingles', 'inglés', 'english', 'idioma'] },
-    { key: 'programacion', matches: ['programacion', 'programación', 'codigo', 'código', 'api', 'software', 'node', 'mysql'] },
-    { key: 'musica', matches: ['musica', 'música', 'guitarra', 'piano', 'canto'] },
-    { key: 'fisica', matches: ['fisica', 'física', 'mecanica', 'mecánica'] },
-    { key: 'diseno', matches: ['diseno', 'diseño', 'ux', 'ui', 'grafico', 'gráfico'] },
+    { key: 'matematica', matches: ['matematica', 'algebra', 'geometria'] },
+    { key: 'ingles', matches: ['ingles', 'english', 'idioma'] },
+    { key: 'programacion', matches: ['programacion', 'codigo', 'api', 'software', 'node', 'mysql'] },
+    { key: 'musica', matches: ['musica', 'guitarra', 'piano', 'canto'] },
+    { key: 'fisica', matches: ['fisica', 'mecanica'] },
+    { key: 'diseno', matches: ['diseno', 'ux', 'ui', 'grafico'] },
     { key: 'negocios', matches: ['negocios', 'empresa', 'marketing', 'ventas', 'liderazgo'] },
+    { key: 'quimica', matches: ['quimica', 'organica'] },
+    { key: 'biologia', matches: ['biologia', 'genetica'] },
+    { key: 'historia', matches: ['historia'] },
+    { key: 'geografia', matches: ['geografia', 'mapas'] },
+    { key: 'literatura', matches: ['literatura', 'lengua', 'lectura'] },
+    { key: 'algebra', matches: ['algebra'] },
+    { key: 'calculo', matches: ['calculo'] },
+    { key: 'economia', matches: ['economia', 'finanzas'] },
   ];
 
   const DEFAULT_SUBJECTS = [
-    { key: 'ingles', label: 'Inglés', icon: 'bi-globe2' },
-    { key: 'matematica', label: 'Matemática', icon: 'bi-calculator' },
-    { key: 'programacion', label: 'Programación', icon: 'bi-code-slash' },
-    { key: 'musica', label: 'Música', icon: 'bi-music-note-beamed' },
-    { key: 'diseno', label: 'Diseño', icon: 'bi-palette2' },
-    { key: 'fisica', label: 'Física', icon: 'bi-radioactive' },
+    { key: 'ingles', label: 'Ingles', icon: 'bi-globe2' },
+    { key: 'matematica', label: 'Matematica', icon: 'bi-calculator' },
+    { key: 'programacion', label: 'Programacion', icon: 'bi-code-slash' },
+    { key: 'musica', label: 'Musica', icon: 'bi-music-note-beamed' },
+    { key: 'diseno', label: 'Diseno', icon: 'bi-palette2' },
+    { key: 'fisica', label: 'Fisica', icon: 'bi-radioactive' },
     { key: 'negocios', label: 'Negocios', icon: 'bi-briefcase' },
+    { key: 'quimica', label: 'Quimica', icon: 'bi-flask' },
+    { key: 'biologia', label: 'Biologia', icon: 'bi-tree' },
+    { key: 'historia', label: 'Historia', icon: 'bi-bank' },
+    { key: 'geografia', label: 'Geografia', icon: 'bi-map' },
+    { key: 'literatura', label: 'Literatura', icon: 'bi-book-half' },
+    { key: 'algebra', label: 'Algebra', icon: 'bi-superscript' },
+    { key: 'calculo', label: 'Calculo', icon: 'bi-graph-up' },
+    { key: 'economia', label: 'Economia', icon: 'bi-cash-coin' },
   ];
 
   const state = {
@@ -80,12 +104,12 @@
   }
 
   function getSubjectMeta(clase) {
-    const rawSubject = clase.titulo || clase.descripcion || '';
+    const rawSubject = clase.materiaNombre || clase.titulo || clase.descripcion || '';
     const subjectKey = getSubjectFromText(rawSubject);
     const subject = SUBJECT_CONFIG[subjectKey] || SUBJECT_CONFIG.default;
     return {
       key: subjectKey,
-      label: subject.label,
+      label: clase.materiaNombre || subject.label,
       icon: subject.icon,
     };
   }
@@ -93,7 +117,7 @@
   function getTeacherLocation(clase) {
     return randomFromSeed(clase.mentorId || clase.id, [
       'Buenos Aires, Argentina',
-      'Córdoba, Argentina',
+      'Cordoba, Argentina',
       'Rosario, Argentina',
       'Mendoza, Argentina',
       'La Plata, Argentina',
@@ -120,7 +144,7 @@
   }
 
   function formatDescription(clase) {
-    const description = clase.descripcion || 'Clase personalizada para avanzar paso a paso con acompañamiento individual.';
+    const description = clase.descripcion || 'Clase personalizada para avanzar paso a paso con acompanamiento individual.';
     return description.length > 120 ? `${description.slice(0, 117)}...` : description;
   }
 
@@ -144,6 +168,14 @@
       fisica: ['#e3f5ff', '#eef7ff'],
       diseno: ['#ffe8ce', '#fff4e7'],
       negocios: ['#e9eef5', '#f5f8fb'],
+      quimica: ['#e8f5d8', '#f6fff0'],
+      biologia: ['#d9f7e8', '#f2fff7'],
+      historia: ['#f6ead8', '#fff7ef'],
+      geografia: ['#dff2ff', '#f5fbff'],
+      literatura: ['#f7e7ef', '#fff8fb'],
+      algebra: ['#efe4ff', '#faf6ff'],
+      calculo: ['#dff4ff', '#eefbff'],
+      economia: ['#e5f5da', '#f6fff1'],
     };
     const [start, end] = palette[subjectKey] || ['#f6deed', '#f2efff'];
     const initials = name
@@ -192,7 +224,7 @@
   function buildActionArea(clase) {
     const user = state.user;
     if (!user) {
-      return `<a class="btn btn-soft" href="/pages/login.html">Iniciar sesión</a>`;
+      return `<a class="btn btn-soft" href="/pages/login.html">Iniciar sesion</a>`;
     }
 
     if (user.rol === 'mentor') {
@@ -206,7 +238,7 @@
         aceptada: 'Clase aceptada',
         rechazada: 'Solicitud rechazada',
       };
-      return `<button class="btn btn-outline-secondary" type="button" disabled>${labels[inscripcion.estado] || 'Inscripción registrada'}</button>`;
+      return `<button class="btn btn-outline-secondary" type="button" disabled>${labels[inscripcion.estado] || 'Inscripcion registrada'}</button>`;
     }
 
     return `<button class="btn btn-brand enroll-button" type="button" data-class-id="${escapeHtml(clase.id)}">Inscribirse</button>`;
@@ -269,7 +301,7 @@
           <div class="card-body p-4 text-center">
             <i class="bi bi-search fs-2 text-muted d-block mb-3"></i>
             <h3 class="h4 mb-2">No encontramos resultados</h3>
-            <p class="text-muted mb-0">Probá con otra materia, otro profesor o limpiá los filtros activos.</p>
+            <p class="text-muted mb-0">Proba con otra materia, otro profesor o limpia los filtros activos.</p>
           </div>
         </div>
       </div>
@@ -287,7 +319,7 @@
             data-subject="${escapeHtml(subject.key)}"
             aria-pressed="${subject.key === state.activeSubject}"
           >
-                  <span class="icon-wrap subject-icon-${escapeHtml(meta.key || 'default')}">
+            <span class="icon-wrap subject-icon-${escapeHtml(meta.key || 'default')}">
               <i class="bi ${escapeHtml(meta.icon)}"></i>
             </span>
             <span class="subject-label">${escapeHtml(meta.label || subject.label)}</span>
@@ -344,7 +376,9 @@
       const subject = getSubjectMeta(clase);
       const mentorName = clase.mentorNombre || '';
       const modalidad = clase.modalidad === 'presencial' ? 'presencial' : 'virtual';
-      const searchable = [clase.titulo, clase.descripcion, subject.label, mentorName, modalidad].map(normalize).join(' ');
+      const searchable = [clase.titulo, clase.descripcion, clase.materiaNombre, subject.label, mentorName, modalidad]
+        .map(normalize)
+        .join(' ');
       const matchesSubject = !state.activeSubject || subject.key === state.activeSubject;
       const matchesModality = !state.activeModality || modalidad === state.activeModality;
       const matchesQuery = !query || searchable.includes(query);
@@ -392,10 +426,7 @@
 
   async function loadData() {
     try {
-      const [clasesPayload] = await Promise.all([
-        MentoriasApi.getClases(),
-        loadEnrollmentsIfNeeded(),
-      ]);
+      const [clasesPayload] = await Promise.all([MentoriasApi.getClases(), loadEnrollmentsIfNeeded()]);
 
       const clases = Array.isArray(clasesPayload.data) ? clasesPayload.data : [];
       state.classes = clases;

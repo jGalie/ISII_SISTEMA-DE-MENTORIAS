@@ -6,6 +6,7 @@ const { pool } = require('./config/db');
 const { createUsuarioRepository } = require('./repositories/usuario.repository');
 const { createClaseRepository } = require('./repositories/clase.repository');
 const { createInscripcionRepository } = require('./repositories/inscripcion.repository');
+const mentorMateriaRepository = require('./repositories/mentor-materia.repository');
 const { createUsuarioService } = require('./services/usuario.service');
 const { createClaseService } = require('./services/clase.service');
 const { createInscripcionService } = require('./services/inscripcion.service');
@@ -30,7 +31,11 @@ const claseRepository = createClaseRepository({ pool });
 const inscripcionRepository = createInscripcionRepository({ pool });
 
 const usuarioService = createUsuarioService({ usuarioRepository });
-const claseService = createClaseService({ claseRepository, usuarioRepository });
+const claseService = createClaseService({
+  claseRepository,
+  usuarioRepository,
+  mentorMateriaRepository,
+});
 const inscripcionService = createInscripcionService({
   inscripcionRepository,
   claseRepository,
