@@ -1,4 +1,11 @@
 (async function () {
+  /**
+   * Listado general de clases.
+   *
+   * Esta pantalla integra la informacion recuperada desde la API con acciones
+   * propias del rol autenticado. Desde la interfaz se decide que botones mostrar,
+   * mientras que las autorizaciones definitivas quedan en el backend.
+   */
   await MentoriasUI.mountNavbar();
 
   const box = document.getElementById('clases-list');
@@ -29,6 +36,8 @@
   }
 
   function attachDeleteHandlers() {
+    // Los mentores pueden solicitar la eliminacion desde el listado, pero el
+    // backend vuelve a validar que sean propietarios de la clase.
     box.querySelectorAll('.delete-clase-btn').forEach((button) => {
       button.addEventListener('click', async function () {
         const classId = this.getAttribute('data-id');
@@ -37,7 +46,7 @@
 
         try {
           this.disabled = true;
-          await MentoriasApi.deleteClase(classId, { mentorId: user.id });
+          await MentoriasApi.eliminarClase(classId, { mentorId: user.id });
           clases = clases.filter((item) => String(item.id) !== String(classId));
           applyFilter();
         } catch (error) {
@@ -49,6 +58,8 @@
   }
 
   function attachEnrollmentHandlers() {
+    // La inscripcion se ejecuta desde la UI y luego se vuelve a consultar el
+    // estado para reflejar la respuesta real del sistema.
     box.querySelectorAll('.enroll-clase-btn').forEach((button) => {
       button.addEventListener('click', async function () {
         const classId = Number(this.getAttribute('data-id'));
@@ -100,10 +111,12 @@
   }
 
   try {
+    // Se cargan en paralelo las clases y, cuando corresponde, las inscripciones
+    // del estudiante para mostrar estados coherentes desde el primer render.
     const [response, inscripcionesResponse] = await Promise.all([
       user && user.rol === 'mentor'
-        ? MentoriasApi.getClases({ id_mentor: user.id })
-        : MentoriasApi.getClases(),
+        ? MentoriasApi.obtenerClases({ id_mentor: user.id })
+        : MentoriasApi.obtenerClases(),
       user && user.rol === 'estudiante'
         ? MentoriasApi.getInscripcionesUsuario(user.id)
         : Promise.resolve({ data: [] }),

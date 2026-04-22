@@ -1,9 +1,17 @@
-const { toClase } = require('../models/clase.model');
+const { mapearClase } = require('../models/clase.model');
 
-function createClaseRepository({ pool }) {
+/**
+ * Repository de clases.
+ *
+ * Esta capa encapsula el acceso a MySQL. Los services no conocen sentencias SQL
+ * ni detalles de tablas; solamente invocan operaciones de persistencia con
+ * nombres del dominio.
+ */
+function crearRepositorioClase({ pool }) {
   /**
-   * Este SELECT base ya trae datos de la clase, del mentor y de la materia.
-   * Centralizarlo permite reutilizar la misma estructura en varias consultas.
+   * Consulta base reutilizable para obtener clases con informacion del mentor
+   * y de la materia. Centralizarla evita inconsistencias entre listados y
+   * busquedas puntuales.
    */
   const baseSelect = `
     SELECT
@@ -25,7 +33,9 @@ function createClaseRepository({ pool }) {
   `;
 
   return {
-    async createClase({ titulo, descripcion, fecha, modalidad, id_mentor, id_materia, precio, ubicacion }) {
+    async crearClase({ titulo, descripcion, fecha, modalidad, id_mentor, id_materia, precio, ubicacion }) {
+      // Inserta la clase y luego vuelve a buscarla para devolver el objeto con
+      // el mismo formato que usan las demas consultas.
       const [result] = await pool.query(
         `
           INSERT INTO clases (titulo, descripcion, fecha, modalidad, id_mentor, id_materia, precio, ubicacion)
@@ -34,20 +44,22 @@ function createClaseRepository({ pool }) {
         [titulo, descripcion, fecha, modalidad, id_mentor, id_materia, precio, ubicacion]
       );
 
-      return this.findById(result.insertId);
+      return this.buscarPorId(result.insertId);
     },
 
-    async findAll() {
-      // Se priorizan las clases proximas para que el listado sea mas util.
+    async buscarTodas() {
+      // Se priorizan las clases proximas para que el listado resulte mas util
+      // para estudiantes y mentores.
       const [rows] = await pool.query(`
         ${baseSelect}
         ORDER BY c.fecha ASC, c.id_clase ASC
       `);
 
-      return rows.map(toClase);
+      return rows.map(mapearClase);
     },
 
-    async findById(id) {
+    async buscarPorId(id) {
+      // LIMIT 1 expresa que el identificador de clase es unico en la tabla.
       const [rows] = await pool.query(
         `
           ${baseSelect}
@@ -57,10 +69,11 @@ function createClaseRepository({ pool }) {
         [Number(id)]
       );
 
-      return rows.length ? toClase(rows[0]) : null;
+      return rows.length ? mapearClase(rows[0]) : null;
     },
 
-    async findByMentor(id_mentor) {
+    async buscarPorMentor(id_mentor) {
+      // Permite obtener el tablero de clases correspondiente a un mentor.
       const [rows] = await pool.query(
         `
           ${baseSelect}
@@ -70,10 +83,10 @@ function createClaseRepository({ pool }) {
         [Number(id_mentor)]
       );
 
-      return rows.map(toClase);
+      return rows.map(mapearClase);
     },
 
-    async updateClase(id, { titulo, descripcion, fecha, modalidad, id_materia, precio, ubicacion }) {
+    async actualizarClase(id, { titulo, descripcion, fecha, modalidad, id_materia, precio, ubicacion }) {
       // Luego de actualizar, se vuelve a leer el registro para devolverlo
       // normalizado y listo para consumir desde otras capas.
       await pool.query(
@@ -85,11 +98,13 @@ function createClaseRepository({ pool }) {
         [titulo, descripcion, fecha, modalidad, id_materia, precio, ubicacion, Number(id)]
       );
 
-      return this.findById(id);
+      return this.buscarPorId(id);
     },
 
-    async deleteClase(id) {
-      const clase = await this.findById(id);
+    async eliminarClase(id) {
+      // Se recupera la clase antes de eliminarla para poder responder con el
+      // recurso que fue removido.
+      const clase = await this.buscarPorId(id);
       if (!clase) return null;
 
       await pool.query('DELETE FROM clases WHERE id_clase = ?', [Number(id)]);
@@ -99,5 +114,5 @@ function createClaseRepository({ pool }) {
 }
 
 module.exports = {
-  createClaseRepository,
+  crearRepositorioClase,
 };

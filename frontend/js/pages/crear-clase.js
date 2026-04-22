@@ -1,187 +1,227 @@
 (async function () {
+  /**
+   * Pantalla de alta y edicion de clases.
+   *
+   * Desde la capa de interfaz, este modulo recopila los datos ingresados por
+   * el mentor, realiza validaciones preventivas y delega la persistencia a la
+   * API. Las reglas de negocio definitivas permanecen en el backend, para
+   * conservar la separacion de responsabilidades propia de una arquitectura en
+   * capas.
+   */
   if (!MentoriasAuth.requireAuth()) return;
   await MentoriasUI.mountNavbar();
 
-  const user = MentoriasAuth.getUser();
-  if (!user || user.rol !== 'mentor') {
+  // La publicacion de clases pertenece al rol mentor; por eso se bloquea el
+  // acceso temprano a otros perfiles antes de habilitar el formulario.
+  const usuario = MentoriasAuth.getUser();
+  if (!usuario || usuario.rol !== 'mentor') {
     window.location.href = '/index.html';
     return;
   }
 
-  const params = new URLSearchParams(window.location.search);
-  const classId = params.get('id');
-  const isEdit = Boolean(classId);
+  const parametros = new URLSearchParams(window.location.search);
+  const idClase = parametros.get('id');
+  const esEdicion = Boolean(idClase);
 
-  const form = document.getElementById('form-clase');
-  const msg = document.getElementById('form-msg');
-  const saveButton = document.getElementById('btn-guardar');
-  const deleteButton = document.getElementById('btn-delete');
-  const pageTitle = document.getElementById('page-title');
-  const materiaSelect = document.getElementById('materia');
-  const materiaHelp = document.getElementById('materia-help');
-  const modalidadSelect = document.getElementById('modalidad');
-  const precioInput = document.getElementById('precio');
-  const ubicacionWrapper = document.getElementById('ubicacion-wrapper');
-  const ubicacionInput = document.getElementById('ubicacion');
+  const formulario = document.getElementById('form-clase');
+  const mensaje = document.getElementById('form-msg');
+  const botonGuardar = document.getElementById('btn-guardar');
+  const botonEliminar = document.getElementById('btn-delete');
+  const tituloPagina = document.getElementById('page-title');
+  const selectorMateria = document.getElementById('materia');
+  const ayudaMateria = document.getElementById('materia-help');
+  const selectorModalidad = document.getElementById('modalidad');
+  const inputPrecio = document.getElementById('precio');
+  const contenedorUbicacion = document.getElementById('ubicacion-wrapper');
+  const inputUbicacion = document.getElementById('ubicacion');
 
-  function showMessage(type, text) {
-    msg.className = `alert alert-${type}`;
-    msg.textContent = text;
-    msg.classList.remove('d-none');
+  /**
+   * Centraliza los mensajes del formulario para comunicar errores, avances y
+   * confirmaciones sin duplicar manipulacion directa del DOM.
+   */
+  function mostrarMensaje(tipo, texto) {
+    mensaje.className = `alert alert-${tipo}`;
+    mensaje.textContent = texto;
+    mensaje.classList.remove('d-none');
   }
 
-  function toggleFormAvailability(enabled) {
-    Array.from(form.elements).forEach((element) => {
-      if (element === deleteButton) return;
-      element.disabled = !enabled;
+  /**
+   * Activa o desactiva los campos cuando no existen materias disponibles para
+   * el mentor. Esta restriccion mejora la experiencia y anticipa una regla que
+   * tambien sera validada por la capa de servicios.
+   */
+  function alternarDisponibilidadFormulario(habilitado) {
+    Array.from(formulario.elements).forEach((element) => {
+      if (element === botonEliminar) return;
+      element.disabled = !habilitado;
     });
   }
 
-  function syncUbicacionField() {
-    const isPresencial = modalidadSelect && modalidadSelect.value === 'presencial';
-    ubicacionWrapper?.classList.toggle('d-none', !isPresencial);
-    if (ubicacionInput) {
-      ubicacionInput.required = isPresencial;
-      if (!isPresencial) {
-        ubicacionInput.value = '';
+  /**
+   * Sincroniza el campo ubicacion con la modalidad seleccionada. En el dominio
+   * del sistema, una clase presencial requiere lugar fisico y una virtual no.
+   */
+  function sincronizarCampoUbicacion() {
+    const esPresencial = selectorModalidad && selectorModalidad.value === 'presencial';
+    contenedorUbicacion?.classList.toggle('d-none', !esPresencial);
+    if (inputUbicacion) {
+      inputUbicacion.required = esPresencial;
+      if (!esPresencial) {
+        inputUbicacion.value = '';
       }
     }
   }
 
-  function renderMaterias(items, selectedId) {
-    if (!materiaSelect) return;
+  /**
+   * Renderiza las materias asociadas al mentor autenticado. No se muestran
+   * materias ajenas para evitar que la interfaz permita combinaciones no
+   * validas desde el punto de vista academico y funcional.
+   */
+  function renderizarMaterias(items, idSeleccionado) {
+    if (!selectorMateria) return;
 
     if (!items.length) {
-      materiaSelect.innerHTML = '<option value="">No tienes materias registradas</option>';
-      toggleFormAvailability(false);
-      if (materiaHelp) {
-        materiaHelp.textContent = 'Primero debes registrarte como mentor con al menos una materia.';
+      selectorMateria.innerHTML = '<option value="">No tienes materias registradas</option>';
+      alternarDisponibilidadFormulario(false);
+      if (ayudaMateria) {
+        ayudaMateria.textContent = 'Primero debes registrarte como mentor con al menos una materia.';
       }
       return;
     }
 
-    materiaSelect.innerHTML = items
-      .map((item) => `<option value="${item.materiaId || item.id}" ${Number(selectedId) === Number(item.materiaId || item.id) ? 'selected' : ''}>${item.materiaNombre || item.nombre}</option>`)
+    selectorMateria.innerHTML = items
+      .map((item) => `<option value="${item.materiaId || item.id}" ${Number(idSeleccionado) === Number(item.materiaId || item.id) ? 'selected' : ''}>${item.materiaNombre || item.nombre}</option>`)
       .join('');
 
-    toggleFormAvailability(true);
+    alternarDisponibilidadFormulario(true);
   }
 
   let materiasMentor = [];
-  let currentClase = null;
+  let claseActual = null;
 
   try {
-    const materiasResponse = await MentoriasApi.getMentorMaterias(user.id);
-    materiasMentor = Array.isArray(materiasResponse.data) ? materiasResponse.data : [];
+    // La carga inicial obtiene las materias del mentor y, si corresponde,
+    // tambien recupera la clase existente para completar el formulario.
+    const respuestaMaterias = await MentoriasApi.getMentorMaterias(usuario.id);
+    materiasMentor = Array.isArray(respuestaMaterias.data) ? respuestaMaterias.data : [];
 
-    if (isEdit) {
-      pageTitle.textContent = 'Editar clase';
-      saveButton.textContent = 'Guardar cambios';
-      deleteButton.classList.remove('d-none');
+    if (esEdicion) {
+      // En edicion se verifica la autoria antes de permitir modificar datos,
+      // manteniendo coherencia con la validacion posterior del backend.
+      tituloPagina.textContent = 'Editar clase';
+      botonGuardar.textContent = 'Guardar cambios';
+      botonEliminar.classList.remove('d-none');
 
-      const { data } = await MentoriasApi.getClase(classId);
-      if (Number(data.mentorId) !== Number(user.id)) {
+      const { data: datosClase } = await MentoriasApi.obtenerClase(idClase);
+      if (Number(datosClase.mentorId) !== Number(usuario.id)) {
         window.location.href = '/pages/clases.html';
         return;
       }
 
-      currentClase = data;
-      document.getElementById('titulo').value = data.titulo || '';
-      document.getElementById('descripcion').value = data.descripcion || '';
-      document.getElementById('modalidad').value = data.modalidad || 'virtual';
-      document.getElementById('precio').value = data.precio != null ? data.precio : '';
-      document.getElementById('ubicacion').value = data.ubicacion || '';
-      if (data.fecha) {
-        const date = new Date(data.fecha);
-        const offset = date.getTimezoneOffset();
-        const localDate = new Date(date.getTime() - offset * 60000).toISOString().slice(0, 16);
-        document.getElementById('fecha').value = localDate;
+      claseActual = datosClase;
+      document.getElementById('titulo').value = datosClase.titulo || '';
+      document.getElementById('descripcion').value = datosClase.descripcion || '';
+      document.getElementById('modalidad').value = datosClase.modalidad || 'virtual';
+      document.getElementById('precio').value = datosClase.precio != null ? datosClase.precio : '';
+      document.getElementById('ubicacion').value = datosClase.ubicacion || '';
+      if (datosClase.fecha) {
+        const fechaClase = new Date(datosClase.fecha);
+        const diferenciaHoraria = fechaClase.getTimezoneOffset();
+        const fechaLocal = new Date(fechaClase.getTime() - diferenciaHoraria * 60000).toISOString().slice(0, 16);
+        document.getElementById('fecha').value = fechaLocal;
       }
     }
 
-    renderMaterias(materiasMentor, currentClase?.materiaId);
-    syncUbicacionField();
+    renderizarMaterias(materiasMentor, claseActual?.materiaId);
+    sincronizarCampoUbicacion();
   } catch (error) {
-    showMessage('danger', error.message);
-    toggleFormAvailability(false);
+    mostrarMensaje('danger', error.message);
+    alternarDisponibilidadFormulario(false);
     return;
   }
 
-  if (modalidadSelect) {
-    modalidadSelect.addEventListener('change', syncUbicacionField);
+  if (selectorModalidad) {
+    selectorModalidad.addEventListener('change', sincronizarCampoUbicacion);
   }
 
-  form.addEventListener('submit', async function (event) {
+  /**
+   * Construye el objeto de clase que viaja hacia la API. Las validaciones de
+   * esta pantalla son inmediatas, pero no reemplazan las comprobaciones del
+   * service, que es la autoridad de negocio en el backend.
+   */
+  formulario.addEventListener('submit', async function (event) {
     event.preventDefault();
 
-    const fechaValue = document.getElementById('fecha').value;
-    if (!fechaValue) {
-      showMessage('danger', 'Debes indicar una fecha valida.');
+    const valorFecha = document.getElementById('fecha').value;
+    if (!valorFecha) {
+      mostrarMensaje('danger', 'Debes indicar una fecha valida.');
       return;
     }
 
-    const precio = Number(precioInput.value);
+    const precio = Number(inputPrecio.value);
     const modalidad = document.getElementById('modalidad').value;
-    const ubicacion = ubicacionInput.value.trim();
+    const ubicacion = inputUbicacion.value.trim();
 
     if (!Number.isFinite(precio) || precio < 0) {
-      showMessage('danger', 'Debes ingresar un precio valido.');
+      mostrarMensaje('danger', 'Debes ingresar un precio valido.');
       return;
     }
 
     if (modalidad === 'presencial' && !ubicacion) {
-      showMessage('danger', 'Debes ingresar una ubicacion para una clase presencial.');
+      mostrarMensaje('danger', 'Debes ingresar una ubicacion para una clase presencial.');
       return;
     }
 
-    const payload = {
+    const datosClase = {
       titulo: document.getElementById('titulo').value,
       descripcion: document.getElementById('descripcion').value,
-      fecha: new Date(fechaValue).toISOString().slice(0, 19).replace('T', ' '),
+      fecha: new Date(valorFecha).toISOString().slice(0, 19).replace('T', ' '),
       modalidad,
-      materiaId: Number(materiaSelect.value),
+      materiaId: Number(selectorMateria.value),
       precio,
       ubicacion: modalidad === 'presencial' ? ubicacion : null,
-      mentorId: user.id,
+      mentorId: usuario.id,
     };
 
     try {
-      saveButton.disabled = true;
-      showMessage('info', isEdit ? 'Guardando cambios...' : 'Creando clase...');
+      botonGuardar.disabled = true;
+      mostrarMensaje('info', esEdicion ? 'Guardando cambios...' : 'Creando clase...');
 
-      if (isEdit) {
-        await MentoriasApi.updateClase(classId, payload);
+      if (esEdicion) {
+        await MentoriasApi.actualizarClase(idClase, datosClase);
       } else {
-        await MentoriasApi.createClase(payload);
+        await MentoriasApi.crearClase(datosClase);
       }
 
-      showMessage('success', isEdit ? 'Clase actualizada.' : 'Clase creada.');
+      mostrarMensaje('success', esEdicion ? 'Clase actualizada.' : 'Clase creada.');
       setTimeout(() => {
         window.location.href = '/pages/clases.html';
       }, 600);
     } catch (error) {
-      showMessage('danger', error.message);
+      mostrarMensaje('danger', error.message);
     } finally {
-      saveButton.disabled = false;
+      botonGuardar.disabled = false;
     }
   });
 
-  if (deleteButton) {
-    deleteButton.addEventListener('click', async function () {
-      if (!isEdit) return;
+  if (botonEliminar) {
+    // La eliminacion se expone solamente en modo edicion y envia el mentorId
+    // para que el backend pueda corroborar la propiedad de la clase.
+    botonEliminar.addEventListener('click', async function () {
+      if (!esEdicion) return;
       if (!window.confirm('Seguro que quieres eliminar esta clase?')) return;
 
       try {
-        deleteButton.disabled = true;
-        showMessage('warning', 'Eliminando clase...');
-        await MentoriasApi.deleteClase(classId, { mentorId: user.id });
-        showMessage('success', 'Clase eliminada.');
+        botonEliminar.disabled = true;
+        mostrarMensaje('warning', 'Eliminando clase...');
+        await MentoriasApi.eliminarClase(idClase, { mentorId: usuario.id });
+        mostrarMensaje('success', 'Clase eliminada.');
         setTimeout(() => {
           window.location.href = '/pages/clases.html';
         }, 600);
       } catch (error) {
-        showMessage('danger', error.message);
-        deleteButton.disabled = false;
+        mostrarMensaje('danger', error.message);
+        botonEliminar.disabled = false;
       }
     });
   }

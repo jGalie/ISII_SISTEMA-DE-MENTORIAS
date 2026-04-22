@@ -1,5 +1,10 @@
 /**
  * Entidad: Clase.
+ *
+ * Este modelo documenta la forma en que la aplicacion representa una clase una
+ * vez que sale de la base de datos. Su finalidad es independizar al resto del
+ * sistema de los nombres fisicos de las columnas SQL.
+ *
  * @typedef {Object} Clase
  * @property {number} id
  * @property {string} titulo
@@ -15,7 +20,12 @@
  * @property {string} mentorEmail
  */
 
-function toClase(row) {
+/**
+ * Convierte una fila obtenida desde MySQL en un objeto de dominio. Esta funcion
+ * actua como frontera entre la estructura relacional de la base de datos y el
+ * formato que consume el frontend.
+ */
+function mapearClase(row) {
   if (!row) return null;
   return {
     id: row.id ?? row.id_clase,
@@ -33,4 +43,4 @@ function toClase(row) {
   };
 }
 
-module.exports = { toClase };
+module.exports = { mapearClase };

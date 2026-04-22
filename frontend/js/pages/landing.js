@@ -1,4 +1,11 @@
 (async function () {
+  /**
+   * Vista inicial de exploracion.
+   *
+   * Este modulo carga clases y materias para presentar un catalogo resumido.
+   * Su responsabilidad es exclusivamente visual y de filtrado local; la
+   * informacion fuente proviene de la API.
+   */
   await MentoriasUI.mountNavbar();
 
   const input = document.getElementById('busqueda');
@@ -30,6 +37,8 @@
   }
 
   function applyFilter() {
+    // El filtro se aplica en memoria sobre los datos ya obtenidos para lograr
+    // una respuesta inmediata en la interfaz.
     const q = normalize(input ? input.value : '');
     if (!q) {
       render(clases);
@@ -44,7 +53,9 @@
   }
 
   try {
-    const [cl, mat] = await Promise.all([MentoriasApi.getClases(), MentoriasApi.getMaterias()]);
+    // Clases y materias se consultan en paralelo porque no dependen una de la
+    // otra para ser solicitadas.
+    const [cl, mat] = await Promise.all([MentoriasApi.obtenerClases(), MentoriasApi.getMaterias()]);
     clases = Array.isArray(cl.data) ? cl.data : [];
     const materias = Array.isArray(mat.data) ? mat.data : [];
     materiasById = Object.fromEntries(materias.map((m) => [m.id, m]));

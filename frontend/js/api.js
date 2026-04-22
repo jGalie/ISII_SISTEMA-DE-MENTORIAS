@@ -3,11 +3,16 @@
  */
 (function (global) {
   /**
+   * En terminos de arquitectura, este modulo representa una fachada de acceso
+   * a la API. Las pantallas consumen funciones del dominio y no necesitan
+   * conocer la estructura interna de las peticiones HTTP.
+   */
+  /**
    * Este modulo cumple el rol de cliente de la API.
    * Su objetivo es que las paginas trabajen con funciones del dominio
    * y no con detalles repetidos de fetch, headers o manejo de errores.
    */
-  async function parseBody(res) {
+  async function parsearCuerpoRespuesta(res) {
     const text = await res.text();
     if (!text) return {};
     try {
@@ -17,7 +22,12 @@
     }
   }
 
-  async function apiJson(path, options = {}) {
+  /**
+   * Ejecuta una peticion HTTP y normaliza el manejo de errores. Esta decision
+   * reduce duplicacion en las paginas y permite que la interfaz se concentre
+   * en la interaccion con la persona usuaria.
+   */
+  async function pedirJson(path, options = {}) {
     // Se centraliza el tratamiento comun de todas las respuestas HTTP.
     const headers = {
       Accept: 'application/json',
@@ -26,7 +36,7 @@
     };
 
     const res = await fetch(path, { ...options, headers });
-    const body = await parseBody(res);
+    const body = await parsearCuerpoRespuesta(res);
 
     if (!res.ok) {
       const message = body && body.error ? body.error : res.statusText;
@@ -37,83 +47,87 @@
   }
 
   global.MentoriasApi = {
+    /**
+     * Operaciones publicas expuestas al resto del frontend. Las funciones de
+     * clase se nombran en espanol para respetar el vocabulario del dominio.
+     */
     // Aqui se expone una interfaz pequena pero expresiva para consumir
     // las funcionalidades principales del backend desde el frontend.
-    getClases(params = {}) {
+    obtenerClases(params = {}) {
       const search = new URLSearchParams();
       if (params.id_mentor) search.set('id_mentor', params.id_mentor);
       const suffix = search.toString() ? `?${search.toString()}` : '';
-      return apiJson(`/clases${suffix}`);
+      return pedirJson(`/clases${suffix}`);
     },
-    getClase(id) {
-      return apiJson(`/clases/${encodeURIComponent(id)}`);
+    obtenerClase(id) {
+      return pedirJson(`/clases/${encodeURIComponent(id)}`);
     },
-    createClase(payload) {
-      return apiJson('/clases', {
+    crearClase(payload) {
+      return pedirJson('/clases', {
         method: 'POST',
         body: JSON.stringify(payload),
       });
     },
-    updateClase(id, payload) {
-      return apiJson(`/clases/${encodeURIComponent(id)}`, {
+    actualizarClase(id, payload) {
+      return pedirJson(`/clases/${encodeURIComponent(id)}`, {
         method: 'PUT',
         body: JSON.stringify(payload),
       });
     },
-    deleteClase(id, payload) {
-      return apiJson(`/clases/${encodeURIComponent(id)}`, {
+    eliminarClase(id, payload) {
+      return pedirJson(`/clases/${encodeURIComponent(id)}`, {
         method: 'DELETE',
         body: JSON.stringify(payload || {}),
       });
     },
     createInscripcion(payload) {
-      return apiJson('/inscripciones', {
+      return pedirJson('/inscripciones', {
         method: 'POST',
         body: JSON.stringify(payload),
       });
     },
     getInscripcionesUsuario(idUsuario) {
-      return apiJson(`/inscripciones/usuario/${encodeURIComponent(idUsuario)}`);
+      return pedirJson(`/inscripciones/usuario/${encodeURIComponent(idUsuario)}`);
     },
     getInscripcionesMentor(idMentor) {
-      return apiJson(`/inscripciones/mentor/${encodeURIComponent(idMentor)}`);
+      return pedirJson(`/inscripciones/mentor/${encodeURIComponent(idMentor)}`);
     },
     updateEstadoInscripcion(idInscripcion, payload) {
-      return apiJson(`/inscripciones/${encodeURIComponent(idInscripcion)}/estado`, {
+      return pedirJson(`/inscripciones/${encodeURIComponent(idInscripcion)}/estado`, {
         method: 'PUT',
         body: JSON.stringify(payload),
       });
     },
     getUsuarios() {
-      return apiJson('/usuarios');
+      return pedirJson('/usuarios');
     },
     getUsuario(id) {
-      return apiJson(`/usuarios/${encodeURIComponent(id)}`);
+      return pedirJson(`/usuarios/${encodeURIComponent(id)}`);
     },
     updateUsuario(id, payload) {
-      return apiJson(`/usuarios/${encodeURIComponent(id)}`, {
+      return pedirJson(`/usuarios/${encodeURIComponent(id)}`, {
         method: 'PUT',
         body: JSON.stringify(payload),
       });
     },
     getMaterias() {
-      return apiJson('/materias');
+      return pedirJson('/materias');
     },
     getMentorMaterias(mentorId) {
-      return apiJson(`/mentor-materias?mentorId=${encodeURIComponent(mentorId)}`);
+      return pedirJson(`/mentor-materias?mentorId=${encodeURIComponent(mentorId)}`);
     },
     register(payload) {
-      return apiJson('/auth/register', {
+      return pedirJson('/auth/register', {
         method: 'POST',
         body: JSON.stringify(payload),
       });
     },
     login(payload) {
-      return apiJson('/auth/login', {
+      return pedirJson('/auth/login', {
         method: 'POST',
         body: JSON.stringify(payload),
       });
     },
-    apiJson,
+    pedirJson,
   };
 })(window);

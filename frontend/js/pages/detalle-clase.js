@@ -2,6 +2,8 @@
   /**
    * Esta pantalla muestra el detalle completo de una clase y modifica
    * las acciones disponibles segun el tipo de usuario autenticado.
+   * La logica pertenece a la capa de presentacion: organiza datos para la vista,
+   * pero no decide permisos finales ni modifica directamente la base de datos.
    */
   await MentoriasUI.mountNavbar();
 
@@ -22,7 +24,9 @@
   }
 
   try {
-    const { data } = await MentoriasApi.getClase(id);
+    // La clase se obtiene por identificador y luego se proyecta sobre los
+    // elementos visuales de la ficha.
+    const { data } = await MentoriasApi.obtenerClase(id);
 
     // La respuesta del backend se proyecta directamente sobre la ficha visual.
     document.getElementById('dc-titulo').textContent = data.titulo;
@@ -40,6 +44,8 @@
       data.modalidad === 'presencial' ? data.ubicacion || 'No informada' : 'No aplica';
 
     if (user && user.rol === 'mentor' && Number(user.id) === Number(data.mentorId)) {
+      // Solo se muestra el acceso a edicion cuando el mentor autenticado es el
+      // creador de la clase.
       editLink.href = `/pages/crear-clase.html?id=${encodeURIComponent(data.id)}`;
       editLink.classList.remove('d-none');
     }

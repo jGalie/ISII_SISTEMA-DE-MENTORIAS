@@ -1,17 +1,26 @@
 const { Router } = require('express');
 
-function createClaseRoutes({ claseController }) {
+/**
+ * Capa de rutas para el recurso clase.
+ *
+ * Su responsabilidad es vincular cada verbo HTTP con el metodo del controller
+ * correspondiente. No valida reglas de negocio ni accede a datos, porque esas
+ * tareas pertenecen a capas posteriores.
+ */
+function crearRutasClase({ claseController }) {
   const router = Router();
 
-  router.get('/', claseController.list);
-  router.get('/:id', claseController.getById);
-  router.post('/', claseController.create);
-  router.put('/:id', claseController.update);
-  router.delete('/:id', claseController.remove);
+  // Se mantiene una API REST clara: listar, obtener, crear, actualizar y borrar
+  // clases a partir del mismo recurso base /clases.
+  router.get('/', claseController.listar);
+  router.get('/:id', claseController.obtenerPorId);
+  router.post('/', claseController.crear);
+  router.put('/:id', claseController.actualizar);
+  router.delete('/:id', claseController.eliminar);
 
   return router;
 }
 
 module.exports = {
-  createClaseRoutes,
+  crearRutasClase,
 };

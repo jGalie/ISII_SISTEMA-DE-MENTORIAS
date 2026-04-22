@@ -3,6 +3,9 @@
    * Este archivo maneja la vista principal de descubrimiento de clases.
    * Su responsabilidad central es cargar informacion, filtrarla y
    * convertirla en tarjetas utiles para la persona usuaria.
+   *
+   * Como parte de la capa de presentacion, trabaja con datos ya normalizados
+   * por el backend y organiza la experiencia de busqueda e inscripcion.
    */
   const SUBJECT_CONFIG = {
     matematica: { label: 'Matematica', icon: 'bi-calculator' },
@@ -434,6 +437,8 @@
   }
 
   async function loadEnrollmentsIfNeeded() {
+    // Las inscripciones solo se necesitan para estudiantes; por eso se evita
+    // una llamada innecesaria cuando navega un mentor o una persona no logueada.
     if (!state.user || state.user.rol !== 'estudiante') return;
     const response = await MentoriasApi.getInscripcionesUsuario(state.user.id);
     const items = Array.isArray(response.data) ? response.data : [];
@@ -444,7 +449,7 @@
     // Se cargan clases y, en paralelo, las inscripciones del estudiante
     // para mostrar botones y estados correctos desde el primer render.
     try {
-      const [clasesPayload] = await Promise.all([MentoriasApi.getClases(), loadEnrollmentsIfNeeded()]);
+      const [clasesPayload] = await Promise.all([MentoriasApi.obtenerClases(), loadEnrollmentsIfNeeded()]);
 
       const clases = Array.isArray(clasesPayload.data) ? clasesPayload.data : [];
       state.classes = clases;

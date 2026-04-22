@@ -1,5 +1,15 @@
 const materialRepository = require('../repositories/material.repository');
-const claseRepository = require('../repositories/clase.repository');
+const { pool } = require('../config/db');
+const { crearRepositorioClase } = require('../repositories/clase.repository');
+
+/**
+ * Servicio de materiales.
+ *
+ * Aunque este modulo es mas simple que el flujo de clases, tambien conserva la
+ * idea de capas: antes de crear un material valida que la clase asociada exista
+ * y luego delega la persistencia al repository correspondiente.
+ */
+const claseRepository = crearRepositorioClase({ pool });
 
 function requireFields(body, fields) {
   for (const f of fields) {
@@ -13,9 +23,10 @@ function listar() {
   return materialRepository.findAll();
 }
 
-function crear(body) {
+async function crear(body) {
   requireFields(body, ['claseId', 'titulo']);
-  const clase = claseRepository.findById(body.claseId);
+  // El material no debe existir aislado: siempre se vincula a una clase valida.
+  const clase = await claseRepository.buscarPorId(body.claseId);
   if (!clase) throw new Error('claseId no válido');
   return materialRepository.create(body);
 }

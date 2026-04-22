@@ -24,7 +24,9 @@ function createInscripcionService({ inscripcionRepository, claseRepository, usua
         throw createAppError('Solo un estudiante puede solicitar una inscripción.', 'VALIDATION_ERROR');
       }
 
-      const clase = await claseRepository.findById(id_clase);
+      // Se consulta la clase mediante el repository inyectado para confirmar
+      // que el recurso exista antes de crear la relacion de inscripcion.
+      const clase = await claseRepository.buscarPorId(id_clase);
       if (!clase) {
         throw createAppError('La clase indicada no existe.', 'NOT_FOUND');
       }
