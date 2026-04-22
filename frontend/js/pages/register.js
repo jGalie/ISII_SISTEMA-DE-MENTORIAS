@@ -9,6 +9,7 @@
   const rolEl = document.getElementById('rol');
   const passEl = document.getElementById('password');
   const passConfirmEl = document.getElementById('password-confirm');
+  const studentFields = document.getElementById('student-fields');
   const mentorFields = document.getElementById('mentor-fields');
   const materiasContainer = document.getElementById('materias-container');
   const materiasSearchEl = document.getElementById('materias-search');
@@ -81,7 +82,10 @@
   }
 
   function getSelectedLevels() {
-    return Array.from(document.querySelectorAll('input[name="nivel-educativo"]:checked')).map((input) => input.value);
+    const role = String(rolEl?.value || 'estudiante');
+    const selector =
+      role === 'mentor' ? 'input[name="nivel-educativo"]:checked' : 'input[name="nivel-estudiante"]:checked';
+    return Array.from(document.querySelectorAll(selector)).map((input) => input.value);
   }
 
   function updateChipStates() {
@@ -181,8 +185,9 @@
     return ok;
   }
 
-  function updateMentorFields() {
+  function updateRoleFields() {
     const isMentor = rolEl && rolEl.value === 'mentor';
+    studentFields?.classList.toggle('d-none', isMentor);
     mentorFields?.classList.toggle('d-none', !isMentor);
   }
 
@@ -233,7 +238,7 @@
   if (passEl) passEl.addEventListener('input', updateChecklist);
   if (passConfirmEl) passConfirmEl.addEventListener('input', updateChecklist);
   if (emailEl) emailEl.addEventListener('input', updateEmailValidity);
-  if (rolEl) rolEl.addEventListener('change', updateMentorFields);
+  if (rolEl) rolEl.addEventListener('change', updateRoleFields);
   if (materiasSearchEl) {
     materiasSearchEl.addEventListener('input', renderMaterias);
   }
@@ -257,13 +262,18 @@
   }
   document.addEventListener('change', function (event) {
     const input = event.target;
-    if (!(input instanceof HTMLInputElement) || input.name !== 'nivel-educativo') return;
+    if (
+      !(input instanceof HTMLInputElement) ||
+      (input.name !== 'nivel-educativo' && input.name !== 'nivel-estudiante')
+    ) {
+      return;
+    }
     updateChipStates();
   });
 
   bindPasswordToggles();
   updateChecklist();
-  updateMentorFields();
+  updateRoleFields();
   await loadMaterias();
   updateChipStates();
 
@@ -315,6 +325,9 @@
         showError('Selecciona al menos un nivel educativo para el mentor.');
         return;
       }
+    } else if (nivelesEducativos.length === 0) {
+      showError('Selecciona al menos un nivel educativo de interes para el estudiante.');
+      return;
     }
 
     try {

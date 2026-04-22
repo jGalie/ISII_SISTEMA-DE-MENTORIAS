@@ -107,6 +107,12 @@ function createAuthService({ usuarioRepository }) {
       if (!PASSWORD_LETTER_REGEX.test(password) || !PASSWORD_NUMBER_REGEX.test(password)) {
         throw createAppError('La contrasena debe contener letras y numeros.', 'VALIDATION_ERROR');
       }
+      if (rol === 'estudiante' && nivelesEducativos.length === 0) {
+        throw createAppError(
+          'Debes seleccionar al menos un nivel educativo de interes si te registras como estudiante.',
+          'VALIDATION_ERROR'
+        );
+      }
       if (rol === 'mentor' && mentorSubjects.length === 0) {
         throw createAppError('Debes indicar al menos una materia si te registras como mentor.', 'VALIDATION_ERROR');
       }
@@ -131,7 +137,7 @@ function createAuthService({ usuarioRepository }) {
             email,
             password_hash,
             rol,
-            niveles_educativos: rol === 'mentor' ? JSON.stringify(nivelesEducativos) : null,
+            niveles_educativos: nivelesEducativos.length ? JSON.stringify(nivelesEducativos) : null,
           },
           connection
         );
