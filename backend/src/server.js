@@ -3,6 +3,10 @@ const { ensureDatabaseSchema, pool } = require('./config/db');
 
 const PORT = Number(process.env.PORT) || 3000;
 
+/**
+ * Antes de escuchar peticiones, el sistema verifica que la base
+ * este disponible y que el esquema minimo exista.
+ */
 async function startServer() {
   try {
     await ensureDatabaseSchema();

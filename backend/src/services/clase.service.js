@@ -5,6 +5,11 @@ function createAppError(message, code) {
 }
 
 function validateClasePayload(data) {
+  /**
+   * Crear y editar una clase comparten el mismo criterio de validacion.
+   * Por eso esta funcion centraliza los requisitos funcionales minimos
+   * que debe cumplir una publicacion.
+   */
   const titulo = String(data?.titulo || '').trim();
   const descripcion = String(data?.descripcion || '').trim();
   const fecha = String(data?.fecha || '').trim();
@@ -47,6 +52,8 @@ function validateClasePayload(data) {
 function createClaseService({ claseRepository, usuarioRepository, mentorMateriaRepository }) {
   return {
     async crearClase(data) {
+      // Solo un mentor valido puede publicar, y ademas la materia elegida
+      // debe pertenecer a su perfil academico.
       const payload = validateClasePayload(data);
       const id_mentor = Number(data?.id_mentor || data?.mentorId);
 
@@ -88,6 +95,7 @@ function createClaseService({ claseRepository, usuarioRepository, mentorMateriaR
     },
 
     async actualizarClase(id, data) {
+      // Se preserva la autoria: solo el mentor creador puede modificar la clase.
       const payload = validateClasePayload(data);
       const actorId = Number(data?.id_mentor || data?.mentorId);
       const clase = await claseRepository.findById(id);
@@ -108,6 +116,7 @@ function createClaseService({ claseRepository, usuarioRepository, mentorMateriaR
     },
 
     async eliminarClase(id, data) {
+      // El mismo control de propiedad se aplica al borrado.
       const actorId = Number(data?.id_mentor || data?.mentorId);
       const clase = await claseRepository.findById(id);
 

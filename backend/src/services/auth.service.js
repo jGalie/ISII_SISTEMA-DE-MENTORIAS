@@ -64,6 +64,8 @@ function parseEducationalLevels(data) {
   );
 }
 
+// Esta salida devuelve solo informacion util para el cliente
+// y evita exponer campos sensibles como el password hash.
 function buildUserResponse(user, extra = {}) {
   return {
     id: user.id,
@@ -78,6 +80,14 @@ function buildUserResponse(user, extra = {}) {
 function createAuthService({ usuarioRepository }) {
   return {
     async register(data) {
+      /**
+       * El registro concentra reglas de negocio importantes:
+       * validaciones, diferencias entre roles y asociacion de materias
+       * para el caso particular de mentores.
+       *
+       * Ademas se usa una transaccion para que el alta del usuario y sus
+       * relaciones academicas se confirmen juntas o no se guarden.
+       */
       const nombre = String(data?.nombre || '').trim();
       const email = String(data?.email || '').trim().toLowerCase();
       const password = String(data?.password || '');
@@ -159,6 +169,8 @@ function createAuthService({ usuarioRepository }) {
     },
 
     async login(data) {
+      // El login autentica al usuario y recompone su contexto
+      // devolviendo tambien materias si el rol es mentor.
       const email = String(data?.email || '').trim().toLowerCase();
       const password = String(data?.password || '');
 

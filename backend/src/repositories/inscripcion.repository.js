@@ -15,6 +15,8 @@ function createInscripcionRepository({ pool }) {
     },
 
     async getById(id) {
+      // Esta consulta recompone toda la informacion de contexto
+      // necesaria para mostrar una inscripcion en las interfaces.
       const [rows] = await pool.query(
         `
           SELECT
@@ -70,6 +72,8 @@ function createInscripcionRepository({ pool }) {
     },
 
     async getByMentor(idMentor) {
+      // El orden prioriza pendientes para ayudar al mentor a resolver primero
+      // las solicitudes que aun requieren accion.
       const [rows] = await pool.query(
         `
           SELECT

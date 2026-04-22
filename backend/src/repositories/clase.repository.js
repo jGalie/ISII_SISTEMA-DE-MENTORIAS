@@ -1,6 +1,10 @@
 const { toClase } = require('../models/clase.model');
 
 function createClaseRepository({ pool }) {
+  /**
+   * Este SELECT base ya trae datos de la clase, del mentor y de la materia.
+   * Centralizarlo permite reutilizar la misma estructura en varias consultas.
+   */
   const baseSelect = `
     SELECT
       c.id_clase,
@@ -34,6 +38,7 @@ function createClaseRepository({ pool }) {
     },
 
     async findAll() {
+      // Se priorizan las clases proximas para que el listado sea mas util.
       const [rows] = await pool.query(`
         ${baseSelect}
         ORDER BY c.fecha ASC, c.id_clase ASC
@@ -69,6 +74,8 @@ function createClaseRepository({ pool }) {
     },
 
     async updateClase(id, { titulo, descripcion, fecha, modalidad, id_materia, precio, ubicacion }) {
+      // Luego de actualizar, se vuelve a leer el registro para devolverlo
+      // normalizado y listo para consumir desde otras capas.
       await pool.query(
         `
           UPDATE clases

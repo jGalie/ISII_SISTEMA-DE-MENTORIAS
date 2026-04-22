@@ -1,4 +1,8 @@
 (async function () {
+  /**
+   * Esta pantalla muestra el detalle completo de una clase y modifica
+   * las acciones disponibles segun el tipo de usuario autenticado.
+   */
   await MentoriasUI.mountNavbar();
 
   const params = new URLSearchParams(window.location.search);
@@ -20,6 +24,7 @@
   try {
     const { data } = await MentoriasApi.getClase(id);
 
+    // La respuesta del backend se proyecta directamente sobre la ficha visual.
     document.getElementById('dc-titulo').textContent = data.titulo;
     document.getElementById('dc-desc').textContent = data.descripcion || 'Sin descripción.';
     document.getElementById('dc-id').textContent = String(data.id);
@@ -40,6 +45,7 @@
     }
 
     if (user && user.rol === 'estudiante') {
+      // Si ya existe una solicitud previa, no se vuelve a ofrecer la misma accion.
       const inscripcionesResponse = await MentoriasApi.getInscripcionesUsuario(user.id);
       const inscripciones = Array.isArray(inscripcionesResponse.data) ? inscripcionesResponse.data : [];
       const existing = inscripciones.find((item) => Number(item.claseId) === Number(data.id));

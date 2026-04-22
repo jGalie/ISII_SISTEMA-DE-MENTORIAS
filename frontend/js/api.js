@@ -2,6 +2,11 @@
  * Cliente HTTP mínimo para la API Express (misma origen).
  */
 (function (global) {
+  /**
+   * Este modulo cumple el rol de cliente de la API.
+   * Su objetivo es que las paginas trabajen con funciones del dominio
+   * y no con detalles repetidos de fetch, headers o manejo de errores.
+   */
   async function parseBody(res) {
     const text = await res.text();
     if (!text) return {};
@@ -13,6 +18,7 @@
   }
 
   async function apiJson(path, options = {}) {
+    // Se centraliza el tratamiento comun de todas las respuestas HTTP.
     const headers = {
       Accept: 'application/json',
       ...(options.body ? { 'Content-Type': 'application/json' } : {}),
@@ -31,6 +37,8 @@
   }
 
   global.MentoriasApi = {
+    // Aqui se expone una interfaz pequena pero expresiva para consumir
+    // las funcionalidades principales del backend desde el frontend.
     getClases(params = {}) {
       const search = new URLSearchParams();
       if (params.id_mentor) search.set('id_mentor', params.id_mentor);

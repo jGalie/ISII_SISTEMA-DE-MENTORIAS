@@ -13,6 +13,10 @@ const dbConfig = {
 
 const pool = mysql.createPool(dbConfig);
 
+/**
+ * Estas utilidades permiten que el backend revise si faltan columnas
+ * y adapte el esquema durante el arranque del proyecto.
+ */
 async function hasColumn(tableName, columnName) {
   const [rows] = await pool.query(
     `
@@ -36,6 +40,7 @@ async function ensureColumn(tableName, columnName, sql) {
 }
 
 async function seedSubjects() {
+  // Se cargan materias base para contar con datos iniciales del dominio.
   const subjects = [
     ['Matematica', 'MAT'],
     ['Fisica', 'FIS'],
@@ -69,6 +74,11 @@ async function seedSubjects() {
 }
 
 async function ensureDatabaseSchema() {
+  /**
+   * Esta funcion prepara la base de datos completa del MVP:
+   * crea la base, crea tablas, incorpora nuevas columnas y
+   * deja datos de ejemplo para probar el flujo funcional.
+   */
   const bootstrapPool = mysql.createPool({
     host: dbConfig.host,
     port: dbConfig.port,
@@ -164,6 +174,7 @@ async function ensureDatabaseSchema() {
 
   await seedSubjects();
 
+  // Se crea un mentor demo para facilitar pruebas y presentaciones.
   const mentorHash = '$2a$10$nbSbLJy8ssc6yeBDeJznTOo/8r03KSWi9h.zDSPsxM0SVVDod9aFu';
 
   await pool.query(

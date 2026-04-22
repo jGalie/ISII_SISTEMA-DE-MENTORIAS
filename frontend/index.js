@@ -1,4 +1,9 @@
 (function () {
+  /**
+   * Este archivo maneja la vista principal de descubrimiento de clases.
+   * Su responsabilidad central es cargar informacion, filtrarla y
+   * convertirla en tarjetas utiles para la persona usuaria.
+   */
   const SUBJECT_CONFIG = {
     matematica: { label: 'Matematica', icon: 'bi-calculator' },
     ingles: { label: 'Ingles', icon: 'bi-globe2' },
@@ -55,6 +60,8 @@
   ];
 
   const state = {
+    // El estado local permite recalcular la vista sin framework
+    // cada vez que se modifican filtros o inscripciones.
     classes: [],
     filteredClasses: [],
     activeSubject: '',
@@ -104,6 +111,8 @@
   }
 
   function getSubjectMeta(clase) {
+    // Aun si los datos llegan de formas distintas, se intenta mapear
+    // cada clase a una categoria visual coherente.
     const rawSubject = clase.materiaNombre || clase.titulo || clase.descripcion || '';
     const subjectKey = getSubjectFromText(rawSubject);
     const subject = SUBJECT_CONFIG[subjectKey] || SUBJECT_CONFIG.default;
@@ -225,6 +234,7 @@
   }
 
   function buildActionArea(clase) {
+    // La accion disponible depende del rol y del historial de inscripcion.
     const user = state.user;
     if (!user) {
       return `<a class="btn btn-soft" href="/pages/login.html">Iniciar sesion</a>`;
@@ -312,6 +322,8 @@
   }
 
   function renderSubjects() {
+    // Los filtros visibles se renderizan dinamicamente segun las materias
+    // disponibles y el estado activo en ese momento.
     subjectsTrack.innerHTML = state.subjects
       .map((subject) => {
         const meta = SUBJECT_CONFIG[subject.key] || SUBJECT_CONFIG.default;
@@ -374,6 +386,7 @@
   }
 
   function applyFilters() {
+    // Esta funcion resume la logica de busqueda del catalogo.
     const query = normalize(state.query);
     state.filteredClasses = state.classes.filter((clase) => {
       const subject = getSubjectMeta(clase);
@@ -428,6 +441,8 @@
   }
 
   async function loadData() {
+    // Se cargan clases y, en paralelo, las inscripciones del estudiante
+    // para mostrar botones y estados correctos desde el primer render.
     try {
       const [clasesPayload] = await Promise.all([MentoriasApi.getClases(), loadEnrollmentsIfNeeded()]);
 

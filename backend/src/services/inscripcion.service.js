@@ -7,6 +7,11 @@ function createAppError(message, code) {
 function createInscripcionService({ inscripcionRepository, claseRepository, usuarioRepository }) {
   return {
     async solicitarInscripcion(data) {
+      /**
+       * Este es el flujo central para estudiantes:
+       * solicitar una clase sin duplicar registros ni permitir
+       * inconsistencias como inscribirse en la propia publicacion.
+       */
       const id_usuario = Number(data?.id_usuario || data?.idUsuario);
       const id_clase = Number(data?.id_clase || data?.idClase);
 
@@ -52,6 +57,8 @@ function createInscripcionService({ inscripcionRepository, claseRepository, usua
     },
 
     async cambiarEstadoInscripcion(idInscripcion, data) {
+      // Esta operacion representa la decision del mentor sobre una solicitud
+      // y valida que realmente tenga permiso sobre esa clase.
       const estado = String(data?.estado || '').trim();
       const mentorId = Number(data?.mentorId || data?.id_mentor);
       const validStates = new Set(['pendiente', 'aceptada', 'rechazada']);

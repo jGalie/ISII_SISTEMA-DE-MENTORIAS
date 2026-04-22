@@ -50,9 +50,18 @@ const authController = createAuthController({ authService });
 
 const app = express();
 
+/**
+ * En este archivo se concentra el ensamblado principal del backend.
+ * Aqui se conectan repositories, services, controllers y routes,
+ * siguiendo una arquitectura en capas.
+ *
+ * La logica puntual de negocio no vive en este modulo: su responsabilidad
+ * es dejar preparadas todas las dependencias y exponer la API.
+ */
 app.use(cors());
 app.use(express.json());
 
+// Cada prefijo delega el procesamiento a su modulo especializado.
 app.use('/auth', createAuthRoutes({ authController }));
 app.use('/usuarios', createUsuarioRoutes({ usuarioController }));
 app.use('/clases', createClaseRoutes({ claseController }));
@@ -64,6 +73,9 @@ app.use('/mensajes', mensajeRoutes);
 app.use('/mentor-materias', mentorMateriaRoutes);
 
 const frontendRoot = path.join(__dirname, '..', '..', 'frontend');
+
+// El servidor tambien publica el frontend estatico para simplificar
+// la ejecucion del MVP en un unico entorno.
 app.use(express.static(frontendRoot));
 
 app.get('/health', (req, res) => {

@@ -1,4 +1,9 @@
 (async function () {
+  /**
+   * El dashboard representa la operacion principal del sistema luego del login.
+   * Segun el rol, muestra seguimiento de solicitudes o herramientas de gestion
+   * para que el mentor pueda responder inscripciones.
+   */
   if (!MentoriasAuth.requireAuth()) return;
 
   if (window.MentoriasUI && typeof MentoriasUI.mountNavbar === 'function') {
@@ -76,6 +81,7 @@
   }
 
   function buildStudentCard(item) {
+    // Resume el estado de una solicitud desde la perspectiva estudiantil.
     return `
       <article class="item-card p-3">
         <div class="d-flex justify-content-between align-items-start gap-3 mb-2">
@@ -96,6 +102,7 @@
   }
 
   function buildMentorCard(item) {
+    // Combina informacion de contexto con acciones de decision para el mentor.
     const pending = item.estado === 'pendiente';
     return `
       <article class="item-card p-3">
@@ -175,6 +182,7 @@
   }
 
   function updateMetrics(items) {
+    // Ofrece una lectura sintetica del panel mediante contadores por estado.
     const counts = items.reduce(
       (acc, item) => {
         acc[item.estado] = (acc[item.estado] || 0) + 1;
@@ -189,6 +197,7 @@
   }
 
   async function loadStudentDashboard() {
+    // Se separan las inscripciones por estado para ordenar mejor el seguimiento.
     if (studentDashboard) studentDashboard.classList.remove('d-none');
 
     const response = await MentoriasApi.getInscripcionesUsuario(user.id);
@@ -209,6 +218,7 @@
   }
 
   function attachMentorActions() {
+    // Despues de una accion, se recarga la informacion para mantener sincronizada la vista.
     if (!mentorList) return;
 
     mentorList.querySelectorAll('[data-action]').forEach((button) => {
@@ -257,6 +267,7 @@
   }
 
   async function loadMentorDashboard() {
+    // Este flujo construye el espacio de trabajo del mentor.
     if (mentorDashboard) mentorDashboard.classList.remove('d-none');
 
     const response = await MentoriasApi.getInscripcionesMentor(user.id);
