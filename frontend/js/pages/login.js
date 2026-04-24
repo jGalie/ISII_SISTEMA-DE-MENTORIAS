@@ -4,6 +4,9 @@
   const btn = document.getElementById('btn-login');
   const passwordInput = document.getElementById('password');
   const togglePasswordButton = document.getElementById('toggle-password');
+  const emailInput = document.getElementById('email');
+  const emailError = document.getElementById('email-error');
+  const passwordError = document.getElementById('password-error');
 
   function getStoredUser(store) {
     if (!store) return null;
@@ -45,6 +48,47 @@
     alertBox.classList.add('d-none');
   }
 
+  function setFieldError(input, box, message) {
+    if (!input || !box) return;
+    input.classList.add('is-invalid');
+    box.textContent = message;
+    box.classList.remove('d-none');
+  }
+
+  function clearFieldError(input, box) {
+    if (!input || !box) return;
+    input.classList.remove('is-invalid');
+    box.classList.add('d-none');
+  }
+
+  function isValidEmail(value) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || '').trim());
+  }
+
+  function validateForm() {
+    let ok = true;
+    const email = emailInput?.value.trim() || '';
+    const password = passwordInput?.value || '';
+
+    clearFieldError(emailInput, emailError);
+    clearFieldError(passwordInput, passwordError);
+
+    if (!email) {
+      setFieldError(emailInput, emailError, 'Ingresa tu email.');
+      ok = false;
+    } else if (!isValidEmail(email)) {
+      setFieldError(emailInput, emailError, 'Ingresa un email valido.');
+      ok = false;
+    }
+
+    if (!password) {
+      setFieldError(passwordInput, passwordError, 'Ingresa tu contrasena.');
+      ok = false;
+    }
+
+    return ok;
+  }
+
   if (!form) return;
 
   if (togglePasswordButton && passwordInput) {
@@ -65,14 +109,16 @@
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     hideError();
+    if (!validateForm()) return;
 
     const payload = {
-      email: (document.getElementById('email') || {}).value,
-      password: (document.getElementById('password') || {}).value,
+      email: emailInput.value,
+      password: passwordInput.value,
     };
 
     try {
       if (btn) btn.disabled = true;
+      if (btn) btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>Ingresando...';
       const { data } = await MentoriasApi.login(payload);
       MentoriasAuth.setUser(data);
       const params = new URLSearchParams(window.location.search);
@@ -81,7 +127,10 @@
     } catch (err) {
       showError(err.message);
     } finally {
-      if (btn) btn.disabled = false;
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = 'Iniciar Sesion';
+      }
     }
   });
 })();

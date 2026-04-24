@@ -34,6 +34,8 @@
   const inputPrecio = document.getElementById('precio');
   const contenedorUbicacion = document.getElementById('ubicacion-wrapper');
   const inputUbicacion = document.getElementById('ubicacion');
+  let formDirty = false;
+  let allowNavigation = false;
 
   /**
    * Centraliza los mensajes del formulario para comunicar errores, avances y
@@ -43,6 +45,73 @@
     mensaje.className = `alert alert-${tipo}`;
     mensaje.textContent = texto;
     mensaje.classList.remove('d-none');
+  }
+
+  function setFieldError(input, message) {
+    if (!input) return;
+    const errorBox = document.getElementById(`${input.id}-error`);
+    input.classList.add('is-invalid');
+    if (errorBox) {
+      errorBox.textContent = message;
+      errorBox.classList.remove('d-none');
+    }
+  }
+
+  function clearFieldError(input) {
+    if (!input) return;
+    const errorBox = document.getElementById(`${input.id}-error`);
+    input.classList.remove('is-invalid');
+    if (errorBox) errorBox.classList.add('d-none');
+  }
+
+  function clearValidationErrors() {
+    ['materia', 'titulo', 'descripcion', 'fecha', 'precio', 'ubicacion'].forEach((id) => {
+      clearFieldError(document.getElementById(id));
+    });
+  }
+
+  function confirmLeave() {
+    return !formDirty || window.confirm('Tenes cambios sin guardar. Queres salir sin guardar?');
+  }
+
+  function validateClassForm() {
+    clearValidationErrors();
+    let ok = true;
+
+    const titulo = document.getElementById('titulo');
+    const descripcion = document.getElementById('descripcion');
+    const fecha = document.getElementById('fecha');
+    const precioValue = Number(inputPrecio.value);
+    const modalidad = selectorModalidad.value;
+    const ubicacion = inputUbicacion.value.trim();
+
+    if (!selectorMateria.value) {
+      setFieldError(selectorMateria, 'Selecciona una materia.');
+      ok = false;
+    }
+    if (!titulo.value.trim()) {
+      setFieldError(titulo, 'Ingresa un titulo para la clase.');
+      ok = false;
+    }
+    if (!descripcion.value.trim()) {
+      setFieldError(descripcion, 'Ingresa una descripcion.');
+      ok = false;
+    }
+    if (!fecha.value || Number.isNaN(new Date(fecha.value).getTime())) {
+      setFieldError(fecha, 'Ingresa una fecha y hora validas.');
+      ok = false;
+    }
+    if (!Number.isFinite(precioValue) || precioValue < 0) {
+      setFieldError(inputPrecio, 'Ingresa un precio valido.');
+      ok = false;
+    }
+    if (modalidad === 'presencial' && !ubicacion) {
+      setFieldError(inputUbicacion, 'Ingresa una ubicacion para clases presenciales.');
+      ok = false;
+    }
+
+    if (!ok) mostrarMensaje('danger', 'Debes completar correctamente los campos marcados.');
+    return ok;
   }
 
   /**
@@ -144,6 +213,27 @@
     selectorModalidad.addEventListener('change', sincronizarCampoUbicacion);
   }
 
+  formulario.addEventListener('input', () => {
+    formDirty = true;
+  });
+  formulario.addEventListener('change', () => {
+    formDirty = true;
+  });
+
+  window.addEventListener('beforeunload', (event) => {
+    if (!formDirty || allowNavigation) return;
+    event.preventDefault();
+    event.returnValue = '';
+  });
+
+  document.addEventListener('click', (event) => {
+    const link = event.target.closest('a[href]');
+    if (!link || allowNavigation) return;
+    const href = link.getAttribute('href') || '';
+    if (href.startsWith('#') || link.target === '_blank') return;
+    if (!confirmLeave()) event.preventDefault();
+  });
+
   /**
    * Construye el objeto de clase que viaja hacia la API. Las validaciones de
    * esta pantalla son inmediatas, pero no reemplazan las comprobaciones del
@@ -151,6 +241,8 @@
    */
   formulario.addEventListener('submit', async function (event) {
     event.preventDefault();
+
+    if (!validateClassForm()) return;
 
     const valorFecha = document.getElementById('fecha').value;
     if (!valorFecha) {
@@ -193,7 +285,9 @@
         await MentoriasApi.crearClase(datosClase);
       }
 
-      mostrarMensaje('success', esEdicion ? 'Clase actualizada.' : 'Clase creada.');
+      formDirty = false;
+      allowNavigation = true;
+      mostrarMensaje('success', esEdicion ? 'Clase actualizada correctamente.' : 'Clase creada correctamente.');
       setTimeout(() => {
         window.location.href = '/pages/clases.html';
       }, 600);
@@ -209,12 +303,14 @@
     // para que el backend pueda corroborar la propiedad de la clase.
     botonEliminar.addEventListener('click', async function () {
       if (!esEdicion) return;
-      if (!window.confirm('Seguro que quieres eliminar esta clase?')) return;
+      if (!window.confirm('Estas seguro de realizar esta accion?')) return;
 
       try {
         botonEliminar.disabled = true;
         mostrarMensaje('warning', 'Eliminando clase...');
         await MentoriasApi.eliminarClase(idClase, { mentorId: usuario.id });
+        formDirty = false;
+        allowNavigation = true;
         mostrarMensaje('success', 'Clase eliminada.');
         setTimeout(() => {
           window.location.href = '/pages/clases.html';

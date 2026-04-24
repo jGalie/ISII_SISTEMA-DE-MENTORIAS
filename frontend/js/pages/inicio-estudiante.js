@@ -26,6 +26,7 @@
 
   if (logoutButton) {
     logoutButton.addEventListener('click', function () {
+      if (!window.confirm('Estas seguro de realizar esta accion?')) return;
       MentoriasAuth.logout();
       window.location.href = '/index.html';
     });

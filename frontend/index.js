@@ -167,6 +167,7 @@
     const logoutButton = document.getElementById('home-logout');
     if (logoutButton) {
       logoutButton.addEventListener('click', () => {
+        if (!window.confirm('Estas seguro de realizar esta accion?')) return;
         if (window.MentoriasAuth && typeof window.MentoriasAuth.logout === 'function') {
           window.MentoriasAuth.logout();
         }
@@ -459,7 +460,7 @@
             id_clase: classId,
           });
           state.enrollmentByClassId[classId] = data;
-          clearError();
+          setSuccess('Tu solicitud fue enviada al mentor.');
           applyFilters();
         } catch (error) {
           setError(error.message);
@@ -501,12 +502,23 @@
 
   function setError(message) {
     errorAlert.textContent = message;
+    errorAlert.classList.remove('alert-success');
+    errorAlert.classList.add('alert-danger');
+    errorAlert.classList.remove('d-none');
+  }
+
+  function setSuccess(message) {
+    errorAlert.textContent = message;
+    errorAlert.classList.remove('alert-danger');
+    errorAlert.classList.add('alert-success');
     errorAlert.classList.remove('d-none');
   }
 
   function clearError() {
     errorAlert.classList.add('d-none');
     errorAlert.textContent = '';
+    errorAlert.classList.remove('alert-success');
+    errorAlert.classList.add('alert-danger');
   }
 
   function buildSubjectsFromClasses(classes) {

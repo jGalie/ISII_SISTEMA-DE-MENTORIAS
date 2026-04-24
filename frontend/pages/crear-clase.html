@@ -42,6 +42,7 @@
                     <i class="bi bi-journal-bookmark me-2"></i>
                     <select class="form-select" id="materia" name="materia" required></select>
                   </div>
+                  <div id="materia-error" class="invalid-feedback d-none">Selecciona una materia.</div>
                   <div id="materia-help" class="form-text">La materia se toma de las que definiste al registrarte como mentor.</div>
                 </div>
 
@@ -51,6 +52,7 @@
                     <i class="bi bi-book me-2"></i>
                     <input class="form-control" type="text" id="titulo" name="titulo" required maxlength="100" placeholder="Ej. Introduccion a Node.js" />
                   </div>
+                  <div id="titulo-error" class="invalid-feedback d-none">Ingresa un titulo para la clase.</div>
                 </div>
 
                 <div class="mb-4">
@@ -58,6 +60,7 @@
                   <div class="textarea-shell">
                     <textarea class="form-control" id="descripcion" name="descripcion" rows="5" required placeholder="Conta que van a aprender en esta clase."></textarea>
                   </div>
+                  <div id="descripcion-error" class="invalid-feedback d-none">Ingresa una descripcion.</div>
                 </div>
 
                 <div class="mb-4">
@@ -66,6 +69,7 @@
                     <i class="bi bi-calendar-event me-2"></i>
                     <input class="form-control" type="datetime-local" id="fecha" name="fecha" required />
                   </div>
+                  <div id="fecha-error" class="invalid-feedback d-none">Ingresa una fecha y hora validas.</div>
                 </div>
 
                 <div class="mb-4">
@@ -85,6 +89,7 @@
                     <i class="bi bi-cash-coin me-2"></i>
                     <input class="form-control" type="number" id="precio" name="precio" min="0" step="0.01" required placeholder="Ej. 12000" />
                   </div>
+                  <div id="precio-error" class="invalid-feedback d-none">Ingresa un precio valido.</div>
                 </div>
 
                 <div id="ubicacion-wrapper" class="mb-4 d-none">
@@ -93,6 +98,7 @@
                     <i class="bi bi-geo-alt me-2"></i>
                     <input class="form-control" type="text" id="ubicacion" name="ubicacion" maxlength="255" placeholder="Ej. Aula 204, Sede Centro" />
                   </div>
+                  <div id="ubicacion-error" class="invalid-feedback d-none">Ingresa una ubicacion para clases presenciales.</div>
                 </div>
 
                 <div class="d-flex gap-3 flex-wrap">

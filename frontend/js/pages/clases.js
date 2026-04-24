@@ -6,6 +6,7 @@
    * propias del rol autenticado. Desde la interfaz se decide que botones mostrar,
    * mientras que las autorizaciones definitivas quedan en el backend.
    */
+  if (!MentoriasAuth.requireAuth()) return;
   await MentoriasUI.mountNavbar();
 
   const box = document.getElementById('clases-list');
@@ -24,11 +25,22 @@
 
   function showError(message) {
     err.textContent = message;
+    err.classList.remove('alert-success');
+    err.classList.add('alert-danger');
+    err.classList.remove('d-none');
+  }
+
+  function showSuccess(message) {
+    err.textContent = message;
+    err.classList.remove('alert-danger');
+    err.classList.add('alert-success');
     err.classList.remove('d-none');
   }
 
   function hideError() {
     err.classList.add('d-none');
+    err.classList.remove('alert-success');
+    err.classList.add('alert-danger');
   }
 
   function normalize(value) {
@@ -74,7 +86,7 @@
           const response = await MentoriasApi.getInscripcionesUsuario(user.id);
           const items = Array.isArray(response.data) ? response.data : [];
           inscripcionesPorClase = Object.fromEntries(items.map((item) => [item.claseId, item]));
-          hideError();
+          showSuccess('Tu solicitud fue enviada al mentor.');
           applyFilter();
         } catch (error) {
           showError(error.message);

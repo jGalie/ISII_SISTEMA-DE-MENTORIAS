@@ -36,6 +36,7 @@
 
   if (logoutButton) {
     logoutButton.addEventListener('click', function () {
+      if (!window.confirm('Estas seguro de realizar esta accion?')) return;
       MentoriasAuth.logout();
       window.location.href = '/pages/login.html';
     });
@@ -209,12 +210,34 @@
     `;
   }
 
+  function renderEmptyWithAction(container, message, actionLabel, href) {
+    if (!container) return;
+    container.innerHTML = `
+      <div class="item-card p-3 text-muted text-center">
+        <p class="mb-3">${escapeHtml(message)}</p>
+        <a class="btn btn-outline-dark btn-sm rounded-pill px-3" href="${href}">${escapeHtml(actionLabel)}</a>
+      </div>
+    `;
+  }
+
   function renderEmptyGrid(container, message) {
     if (!container) return;
     container.innerHTML = `
       <div class="col-12">
         <div class="item-card p-3 text-muted text-center">
           ${escapeHtml(message)}
+        </div>
+      </div>
+    `;
+  }
+
+  function renderEmptyGridWithAction(container, message, actionLabel, href) {
+    if (!container) return;
+    container.innerHTML = `
+      <div class="col-12">
+        <div class="item-card p-3 text-muted text-center">
+          <p class="mb-3">${escapeHtml(message)}</p>
+          <a class="btn btn-outline-dark btn-sm rounded-pill px-3" href="${href}">${escapeHtml(actionLabel)}</a>
         </div>
       </div>
     `;
@@ -251,8 +274,8 @@
     if (acceptedList) acceptedList.innerHTML = accepted.length ? accepted.map(buildStudentCard).join('') : '';
     if (rejectedList) rejectedList.innerHTML = rejected.length ? rejected.map(buildStudentCard).join('') : '';
 
-    if (!pending.length) renderEmpty(pendingList, 'No tienes solicitudes pendientes.');
-    if (!accepted.length) renderEmpty(acceptedList, 'Todavía no tienes clases aceptadas.');
+    if (!pending.length) renderEmptyWithAction(pendingList, 'No tenes inscripciones pendientes.', 'Explorar clases', '/pages/clases.html');
+    if (!accepted.length) renderEmptyWithAction(acceptedList, 'Todavia no tenes clases aceptadas.', 'Explorar clases', '/pages/clases.html');
     if (!rejected.length) renderEmpty(rejectedList, 'No hay solicitudes rechazadas.');
   }
 
@@ -265,6 +288,7 @@
         const id = Number(this.getAttribute('data-id'));
         const estado = this.getAttribute('data-action');
         if (!id || !estado) return;
+        if (!window.confirm('Estas seguro de realizar esta accion?')) return;
 
         this.disabled = true;
         clearError();
@@ -294,7 +318,7 @@
       );
 
       if (!clasesMentor.length) {
-        renderEmptyGrid(mentorClassesList, 'Aún no tienes clases programadas.');
+        renderEmptyGridWithAction(mentorClassesList, 'Todavia no publicaste clases.', 'Crear clase', '/pages/crear-clase.html');
         return;
       }
 

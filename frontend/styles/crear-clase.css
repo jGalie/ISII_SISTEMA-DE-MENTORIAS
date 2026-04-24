@@ -53,6 +53,11 @@ body {
   box-shadow: none;
 }
 
+.input-shell:has(.is-invalid),
+.textarea-shell:has(.is-invalid) {
+  border-color: #dc3545;
+}
+
 .btn-brand {
   min-height: 3.5rem;
   border: 0;

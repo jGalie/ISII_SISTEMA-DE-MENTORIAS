@@ -10,11 +10,34 @@
   const materiasContainer = document.getElementById('profile-materias-container');
   const otrasMateriasEl = document.getElementById('profile-otras-materias');
   const subtitle = document.getElementById('profile-subtitle');
+  let formDirty = false;
+  let allowNavigation = false;
 
   function showMessage(type, text) {
     msg.className = `alert alert-${type}`;
     msg.textContent = text;
     msg.classList.remove('d-none');
+  }
+
+  function confirmLeave() {
+    return !formDirty || window.confirm('Tenes cambios sin guardar. Queres salir sin guardar?');
+  }
+
+  function setFieldError(inputId, message) {
+    const input = document.getElementById(inputId);
+    const box = document.getElementById(`${inputId}-error`);
+    if (input) input.classList.add('is-invalid');
+    if (box) {
+      box.textContent = message;
+      box.classList.remove('d-none');
+    }
+  }
+
+  function clearFieldError(inputId) {
+    const input = document.getElementById(inputId);
+    const box = document.getElementById(`${inputId}-error`);
+    if (input) input.classList.remove('is-invalid');
+    if (box) box.classList.add('d-none');
   }
 
   function renderMaterias(materias, selectedNames = []) {
@@ -92,15 +115,26 @@
     const confirmarPassword = document.getElementById('profile-confirm-password').value;
 
     if (passwordActual || nuevaPassword || confirmarPassword) {
+      clearFieldError('profile-current-password');
+      clearFieldError('profile-new-password');
+      clearFieldError('profile-confirm-password');
+      if (!passwordActual) {
+        setFieldError('profile-current-password', 'Ingresa tu contrasena actual.');
+        showMessage('danger', 'Debes completar todos los campos de seguridad.');
+        return;
+      }
       if (nuevaPassword.length < 8) {
+        setFieldError('profile-new-password', 'La nueva contrasena debe tener al menos 8 caracteres.');
         showMessage('danger', 'La nueva contrasena debe tener al menos 8 caracteres.');
         return;
       }
       if (!/[A-Za-z]/.test(nuevaPassword) || !/\d/.test(nuevaPassword)) {
+        setFieldError('profile-new-password', 'La nueva contrasena debe contener letras y numeros.');
         showMessage('danger', 'La nueva contrasena debe contener letras y numeros.');
         return;
       }
       if (nuevaPassword !== confirmarPassword) {
+        setFieldError('profile-confirm-password', 'La confirmacion de contrasena no coincide.');
         showMessage('danger', 'La confirmacion de contrasena no coincide.');
         return;
       }
@@ -124,6 +158,7 @@
       const response = await MentoriasApi.updateUsuario(user.id, payload);
       const updatedUser = response.data;
       MentoriasAuth.setUser(updatedUser);
+      formDirty = false;
       document.getElementById('profile-current-password').value = '';
       document.getElementById('profile-new-password').value = '';
       document.getElementById('profile-confirm-password').value = '';
@@ -133,5 +168,30 @@
     } finally {
       saveButton.disabled = false;
     }
+  });
+
+  form.addEventListener('input', () => {
+    formDirty = true;
+  });
+  form.addEventListener('change', () => {
+    formDirty = true;
+  });
+
+  window.addEventListener('beforeunload', (event) => {
+    if (!formDirty || allowNavigation) return;
+    event.preventDefault();
+    event.returnValue = '';
+  });
+
+  document.addEventListener('click', (event) => {
+    const link = event.target.closest('a[href]');
+    if (!link || allowNavigation) return;
+    const href = link.getAttribute('href') || '';
+    if (href.startsWith('#') || link.target === '_blank') return;
+    if (confirmLeave()) {
+      allowNavigation = true;
+      return;
+    }
+    event.preventDefault();
   });
 })();

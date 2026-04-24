@@ -150,6 +150,7 @@
     const logoutButton = document.getElementById('btn-logout');
     if (logoutButton) {
       logoutButton.addEventListener('click', () => {
+        if (!window.confirm('Estas seguro de realizar esta accion?')) return;
         global.MentoriasAuth.logout();
         window.location.href = '/index.html';
       });

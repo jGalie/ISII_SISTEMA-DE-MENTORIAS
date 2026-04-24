@@ -17,6 +17,7 @@
   const materiasEmptyEl = document.getElementById('materias-empty');
   const otrasMateriasEl = document.getElementById('otras-materias');
   const emailFeedback = document.getElementById('email-feedback');
+  const nombreFeedback = document.getElementById('nombre-error');
   const passwordMatchFeedback = document.getElementById('password-match-feedback');
 
   const chkLen = document.getElementById('chk-len');
@@ -185,6 +186,18 @@
     return ok;
   }
 
+  function updateRequiredInput(input, feedback, message) {
+    if (!input) return true;
+    const ok = normalize(input.value) !== '';
+    input.classList.toggle('is-invalid', !ok);
+    input.classList.toggle('is-valid', ok);
+    if (feedback) {
+      feedback.textContent = message;
+      feedback.classList.toggle('is-visible', !ok);
+    }
+    return ok;
+  }
+
   function updateRoleFields() {
     const isMentor = rolEl && rolEl.value === 'mentor';
     studentFields?.classList.toggle('d-none', isMentor);
@@ -238,6 +251,7 @@
   if (passEl) passEl.addEventListener('input', updateChecklist);
   if (passConfirmEl) passConfirmEl.addEventListener('input', updateChecklist);
   if (emailEl) emailEl.addEventListener('input', updateEmailValidity);
+  if (nombreEl) nombreEl.addEventListener('input', () => updateRequiredInput(nombreEl, nombreFeedback, 'Ingresa tu nombre.'));
   if (rolEl) rolEl.addEventListener('change', updateRoleFields);
   if (materiasSearchEl) {
     materiasSearchEl.addEventListener('input', renderMaterias);
@@ -283,11 +297,16 @@
     e.preventDefault();
 
     const emailOk = updateEmailValidity();
+    const nombreOk = updateRequiredInput(nombreEl, nombreFeedback, 'Ingresa tu nombre.');
     const passPolicy = updateChecklist();
     const rol = String(rolEl?.value || 'estudiante');
     const materias = getSelectedMaterias();
     const nivelesEducativos = getSelectedLevels();
 
+    if (!nombreOk) {
+      showError('Debes completar todos los campos obligatorios.');
+      return;
+    }
     if (!emailOk) {
       showError('Email invalido.');
       return;
@@ -332,6 +351,7 @@
 
     try {
       if (btn) btn.disabled = true;
+      if (btn) btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>Registrando...';
       await MentoriasApi.register(payload);
       showOk('Registro exitoso. Ahora puedes iniciar sesion.');
       setTimeout(() => {
@@ -340,7 +360,10 @@
     } catch (err) {
       showError(err.message);
     } finally {
-      if (btn) btn.disabled = false;
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = 'Registrarme';
+      }
     }
   });
 })();
