@@ -72,7 +72,7 @@
     query: '',
     subjects: DEFAULT_SUBJECTS,
     enrollmentByClassId: {},
-    user: window.MentoriasAuth ? window.MentoriasAuth.getUser() : null,
+    user: getAuthenticatedUser(),
   };
 
   const searchForm = document.getElementById('search-form');
@@ -84,6 +84,96 @@
   const subjectsNext = document.getElementById('subjects-next');
   const errorAlert = document.getElementById('error-alert');
   const modalityButtons = document.querySelectorAll('[data-modalidad]');
+  const homeNavActions = document.getElementById('home-nav-actions');
+
+  function getStoredUser(store) {
+    if (!store) return null;
+    try {
+      const user = JSON.parse(store.getItem('usuarioLogueado') || 'null');
+      return user && user.id && user.email ? user : null;
+    } catch {
+      return null;
+    }
+  }
+
+  function getAuthenticatedUser() {
+    if (window.MentoriasAuth && typeof window.MentoriasAuth.getUser === 'function') {
+      const user = window.MentoriasAuth.getUser();
+      if (user && user.id && user.email) return user;
+    }
+
+    return getStoredUser(window.localStorage) || getStoredUser(window.sessionStorage);
+  }
+
+  function getRoleHomePath(user) {
+    if (!user) return '/index.html';
+    if (user.rol === 'mentor') return '/pages/dashboard.html';
+    if (user.rol === 'estudiante') return '/pages/clases.html';
+    return '/index.html';
+  }
+
+  function renderHomeNavbar() {
+    if (!homeNavActions) return;
+
+    const user = getAuthenticatedUser();
+    state.user = user;
+
+    if (!user) {
+      homeNavActions.innerHTML = `
+        <a class="btn btn-soft" href="/pages/register.html">Dar clases</a>
+        <a class="btn btn-brand px-4 py-2" href="/pages/login.html">Iniciar sesion</a>
+      `;
+      return;
+    }
+
+    const firstName = escapeHtml(String(user.nombre || user.email || 'Usuario').split(' ')[0]);
+    const roleLabel = user.rol === 'mentor' ? 'Mentor' : 'Estudiante';
+    const roleIcon = user.rol === 'mentor' ? 'bi-person-workspace' : 'bi-person-badge';
+    const homePath = getRoleHomePath(user);
+    const roleNav =
+      user.rol === 'mentor'
+        ? `
+          <a class="btn btn-soft" href="/pages/dashboard.html">Mis mentorias</a>
+          <a class="btn btn-soft" href="/pages/crear-clase.html">Crear clase</a>
+        `
+        : `
+          <a class="btn btn-soft" href="/pages/dashboard.html">Mis inscripciones</a>
+        `;
+
+    homeNavActions.innerHTML = `
+      ${roleNav}
+      <div class="dropdown">
+        <button
+          class="btn btn-brand px-4 py-2 dropdown-toggle d-inline-flex align-items-center gap-2"
+          id="home-user-menu"
+          type="button"
+          data-bs-toggle="dropdown"
+          aria-expanded="false"
+        >
+          <i class="bi ${roleIcon}"></i>
+          <span>${firstName}</span>
+          <span class="role-pill">${escapeHtml(roleLabel)}</span>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="home-user-menu">
+          <li><h6 class="dropdown-header">${escapeHtml(user.email || roleLabel)}</h6></li>
+          <li><a class="dropdown-item" href="/pages/perfil.html"><i class="bi bi-person-gear me-2"></i>Modificar perfil</a></li>
+          <li><hr class="dropdown-divider"></li>
+          <li><button id="home-logout" class="dropdown-item" type="button"><i class="bi bi-box-arrow-right me-2"></i>Cerrar sesion</button></li>
+        </ul>
+      </div>
+    `;
+
+    const logoutButton = document.getElementById('home-logout');
+    if (logoutButton) {
+      logoutButton.addEventListener('click', () => {
+        if (window.MentoriasAuth && typeof window.MentoriasAuth.logout === 'function') {
+          window.MentoriasAuth.logout();
+        }
+        window.sessionStorage.removeItem('usuarioLogueado');
+        window.location.href = '/index.html';
+      });
+    }
+  }
 
   function normalize(value) {
     return String(value || '')
@@ -498,6 +588,7 @@
     });
   }
 
+  renderHomeNavbar();
   renderSubjects();
   loadData();
 })();

@@ -88,7 +88,6 @@
     </button>
     <div class="collapse navbar-collapse" id="navMain">
       <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-3">
-        <li class="nav-item"><a class="nav-link fw-semibold ${activeKey === 'inicio' ? 'active' : ''}" href="${homePath}">Inicio</a></li>
         <li class="nav-item"><a class="nav-link fw-semibold ${activeKey === 'dashboard' ? 'active' : ''}" href="/pages/dashboard.html">Mis inscripciones</a></li>
         <li class="nav-item dropdown">
           <button class="btn btn-brand px-4 py-2 dropdown-toggle d-inline-flex align-items-center gap-2" id="user-menu" type="button" data-bs-toggle="dropdown" aria-expanded="false">

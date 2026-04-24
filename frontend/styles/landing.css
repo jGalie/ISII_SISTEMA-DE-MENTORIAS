@@ -68,6 +68,17 @@ body {
   color: var(--text-main);
 }
 
+.role-pill {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  background: #dff7e8;
+  color: #0f6b35;
+  padding: 0.15rem 0.65rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
 .hero-section {
   background: var(--hero-bg);
 }

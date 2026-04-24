@@ -5,6 +5,35 @@
   const passwordInput = document.getElementById('password');
   const togglePasswordButton = document.getElementById('toggle-password');
 
+  function getStoredUser(store) {
+    if (!store) return null;
+    try {
+      const user = JSON.parse(store.getItem('usuarioLogueado') || 'null');
+      return user && user.id && user.email ? user : null;
+    } catch {
+      return null;
+    }
+  }
+
+  function getAuthenticatedUser() {
+    const user = MentoriasAuth.getUser();
+    return (user && user.id && user.email) || null
+      ? user
+      : getStoredUser(window.sessionStorage);
+  }
+
+  function getLoggedHomePath(user) {
+    if (user.rol === 'mentor') return '/pages/dashboard.html';
+    if (user.rol === 'estudiante') return '/pages/clases.html';
+    return '/index.html';
+  }
+
+  const currentUser = getAuthenticatedUser();
+  if (currentUser) {
+    window.location.href = getLoggedHomePath(currentUser);
+    return;
+  }
+
   function showError(message) {
     if (!alertBox) return;
     alertBox.textContent = message;
@@ -48,7 +77,7 @@
       MentoriasAuth.setUser(data);
       const params = new URLSearchParams(window.location.search);
       const next = params.get('next');
-      window.location.href = next || MentoriasAuth.getHomePath(data);
+      window.location.href = next || getLoggedHomePath(data);
     } catch (err) {
       showError(err.message);
     } finally {
