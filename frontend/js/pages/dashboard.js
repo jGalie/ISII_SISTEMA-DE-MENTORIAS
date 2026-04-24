@@ -20,6 +20,7 @@
   const acceptedList = document.getElementById('accepted-list');
   const rejectedList = document.getElementById('rejected-list');
   const mentorList = document.getElementById('mentor-list');
+  const mentorHistoryList = document.getElementById('mentor-history-list');
   const mentorClassesList = document.getElementById('mentor-classes-list');
 
   const metricPendiente = document.getElementById('metric-pendiente');
@@ -101,9 +102,8 @@
     `;
   }
 
-  function buildMentorCard(item) {
+  function buildMentorPendingCard(item) {
     // Combina informacion de contexto con acciones de decision para el mentor.
-    const pending = item.estado === 'pendiente';
     return `
       <article class="item-card p-3">
         <div class="d-flex justify-content-between align-items-start gap-3 mb-2 flex-wrap">
@@ -116,11 +116,36 @@
         </div>
         <p class="text-muted small mb-3">${escapeHtml(item.claseDescripcion || '')}</p>
         <div class="mentor-actions d-flex gap-2 flex-wrap">
-          <button class="btn btn-success ${pending ? '' : 'disabled'}" data-action="aceptada" data-id="${item.id}" type="button">
+          <button class="btn btn-success" data-action="aceptada" data-id="${item.id}" type="button">
             Aceptar
           </button>
-          <button class="btn btn-outline-danger ${pending ? '' : 'disabled'}" data-action="rechazada" data-id="${item.id}" type="button">
+          <button class="btn btn-outline-danger" data-action="rechazada" data-id="${item.id}" type="button">
             Rechazar
+          </button>
+        </div>
+      </article>
+    `;
+  }
+
+  function buildMentorHistoryCard(item) {
+    const nextStatus = item.estado === 'aceptada' ? 'rechazada' : 'aceptada';
+    const actionLabel = item.estado === 'aceptada' ? 'Cambiar a rechazada' : 'Cambiar a aceptada';
+    const actionClass = item.estado === 'aceptada' ? 'btn-outline-danger' : 'btn-success';
+
+    return `
+      <article class="item-card p-3">
+        <div class="d-flex justify-content-between align-items-start gap-3 mb-2 flex-wrap">
+          <div>
+            <h3 class="h6 fw-bold mb-1">${escapeHtml(item.claseTitulo || 'Clase')}</h3>
+            <p class="text-muted mb-1">${escapeHtml(item.usuarioNombre || item.usuarioEmail || 'Estudiante')}</p>
+            <p class="text-muted small mb-0">${escapeHtml(formatDate(item.fechaSolicitud))}</p>
+          </div>
+          <span class="status-badge ${statusClass(item.estado)}">${escapeHtml(item.estado)}</span>
+        </div>
+        <p class="text-muted small mb-3">${escapeHtml(item.claseDescripcion || '')}</p>
+        <div class="mentor-actions d-flex gap-2 flex-wrap">
+          <button class="btn ${actionClass}" data-action="${nextStatus}" data-id="${item.id}" type="button">
+            ${actionLabel}
           </button>
         </div>
       </article>
@@ -217,11 +242,11 @@
     if (!rejected.length) renderEmpty(rejectedList, 'No hay solicitudes rechazadas.');
   }
 
-  function attachMentorActions() {
+  function attachMentorActions(container) {
     // Despues de una accion, se recarga la informacion para mantener sincronizada la vista.
-    if (!mentorList) return;
+    if (!container) return;
 
-    mentorList.querySelectorAll('[data-action]').forEach((button) => {
+    container.querySelectorAll('[data-action]').forEach((button) => {
       button.addEventListener('click', async function () {
         const id = Number(this.getAttribute('data-id'));
         const estado = this.getAttribute('data-action');
@@ -274,11 +299,21 @@
     const items = Array.isArray(response.data) ? response.data : [];
     updateMetrics(items);
 
-    if (!items.length) {
-      renderEmpty(mentorList, 'Aún no tienes solicitudes de inscripción.');
+    const pendingItems = items.filter((item) => item.estado === 'pendiente');
+    const managedItems = items.filter((item) => item.estado === 'aceptada' || item.estado === 'rechazada');
+
+    if (!pendingItems.length) {
+      renderEmpty(mentorList, 'No tienes solicitudes pendientes.');
     } else {
-      if (mentorList) mentorList.innerHTML = items.map(buildMentorCard).join('');
-      attachMentorActions();
+      if (mentorList) mentorList.innerHTML = pendingItems.map(buildMentorPendingCard).join('');
+      attachMentorActions(mentorList);
+    }
+
+    if (!managedItems.length) {
+      renderEmpty(mentorHistoryList, 'Todavia no hay solicitudes gestionadas.');
+    } else {
+      if (mentorHistoryList) mentorHistoryList.innerHTML = managedItems.map(buildMentorHistoryCard).join('');
+      attachMentorActions(mentorHistoryList);
     }
 
     await loadMentorClasses();
