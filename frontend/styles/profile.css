@@ -57,6 +57,12 @@ body {
   padding: 1rem;
 }
 
+.security-panel {
+  border-radius: 1rem;
+  background: #f7f7fa;
+  padding: 1.25rem;
+}
+
 .chips-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));

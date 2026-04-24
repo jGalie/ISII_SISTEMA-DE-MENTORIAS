@@ -107,6 +107,31 @@ async function ensureDatabaseSchema() {
     'niveles_educativos',
     'ALTER TABLE usuarios ADD COLUMN niveles_educativos TEXT NULL AFTER rol'
   );
+  await ensureColumn(
+    'usuarios',
+    'ubicacion',
+    'ALTER TABLE usuarios ADD COLUMN ubicacion VARCHAR(120) NULL AFTER niveles_educativos'
+  );
+  await ensureColumn(
+    'usuarios',
+    'telefono',
+    'ALTER TABLE usuarios ADD COLUMN telefono VARCHAR(40) NULL AFTER ubicacion'
+  );
+  await ensureColumn(
+    'usuarios',
+    'mentor_bio',
+    'ALTER TABLE usuarios ADD COLUMN mentor_bio TEXT NULL AFTER telefono'
+  );
+  await ensureColumn(
+    'usuarios',
+    'mentor_experiencia',
+    'ALTER TABLE usuarios ADD COLUMN mentor_experiencia VARCHAR(120) NULL AFTER mentor_bio'
+  );
+  await ensureColumn(
+    'usuarios',
+    'mentor_link',
+    'ALTER TABLE usuarios ADD COLUMN mentor_link VARCHAR(255) NULL AFTER mentor_experiencia'
+  );
 
   await pool.query(`
     CREATE TABLE IF NOT EXISTS materias (

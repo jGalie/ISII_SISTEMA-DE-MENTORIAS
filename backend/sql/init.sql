@@ -18,7 +18,12 @@ CREATE TABLE usuarios (
   email VARCHAR(100) NOT NULL UNIQUE,
   password_hash VARCHAR(255) NOT NULL,
   rol ENUM('mentor', 'estudiante') NOT NULL DEFAULT 'estudiante',
-  niveles_educativos TEXT NULL
+  niveles_educativos TEXT NULL,
+  ubicacion VARCHAR(120) NULL,
+  telefono VARCHAR(40) NULL,
+  mentor_bio TEXT NULL,
+  mentor_experiencia VARCHAR(120) NULL,
+  mentor_link VARCHAR(255) NULL
 );
 
 CREATE TABLE materias (

@@ -72,6 +72,11 @@ function buildUserResponse(user, extra = {}) {
     nombre: user.nombre,
     email: user.email,
     rol: user.rol,
+    ubicacion: user.ubicacion || '',
+    telefono: user.telefono || '',
+    mentorBio: user.mentorBio || '',
+    mentorExperiencia: user.mentorExperiencia || '',
+    mentorLink: user.mentorLink || '',
     nivelesEducativos: user.nivelesEducativos || [],
     ...extra,
   };

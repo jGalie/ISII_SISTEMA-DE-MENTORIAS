@@ -25,6 +25,11 @@ function toUsuario(row) {
     nombre: row.nombre,
     email: row.email,
     rol: row.rol,
+    ubicacion: row.ubicacion || '',
+    telefono: row.telefono || '',
+    mentorBio: row.mentor_bio || '',
+    mentorExperiencia: row.mentor_experiencia || '',
+    mentorLink: row.mentor_link || '',
     nivelesEducativos,
   };
 }

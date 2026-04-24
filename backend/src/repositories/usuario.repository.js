@@ -4,14 +4,14 @@ function createUsuarioRepository({ pool }) {
   return {
     async findAll() {
       const [rows] = await pool.query(
-        'SELECT id_usuario, nombre, email, rol, niveles_educativos FROM usuarios ORDER BY id_usuario ASC'
+        'SELECT id_usuario, nombre, email, rol, niveles_educativos, ubicacion, telefono, mentor_bio, mentor_experiencia, mentor_link FROM usuarios ORDER BY id_usuario ASC'
       );
       return rows.map(toUsuario);
     },
 
     async findById(id) {
       const [rows] = await pool.query(
-        'SELECT id_usuario, nombre, email, rol, niveles_educativos FROM usuarios WHERE id_usuario = ? LIMIT 1',
+        'SELECT id_usuario, nombre, email, rol, niveles_educativos, ubicacion, telefono, mentor_bio, mentor_experiencia, mentor_link FROM usuarios WHERE id_usuario = ? LIMIT 1',
         [Number(id)]
       );
       return rows.length ? toUsuario(rows[0]) : null;
@@ -19,7 +19,7 @@ function createUsuarioRepository({ pool }) {
 
     async findByEmail(email) {
       const [rows] = await pool.query(
-        'SELECT id_usuario, nombre, email, password_hash, rol, niveles_educativos FROM usuarios WHERE email = ? LIMIT 1',
+        'SELECT id_usuario, nombre, email, password_hash, rol, niveles_educativos, ubicacion, telefono, mentor_bio, mentor_experiencia, mentor_link FROM usuarios WHERE email = ? LIMIT 1',
         [email]
       );
       return rows.length ? toUsuarioConPassword(rows[0]) : null;
@@ -47,17 +47,40 @@ function createUsuarioRepository({ pool }) {
       return this.createUser(data);
     },
 
-    async updateUser(id, { nombre, email, niveles_educativos }, executor = pool) {
+    async updateUser(
+      id,
+      { nombre, email, niveles_educativos, ubicacion, telefono, mentor_bio, mentor_experiencia, mentor_link, password_hash },
+      executor = pool
+    ) {
+      const passwordSql = password_hash ? ', password_hash = ?' : '';
+      const params = [
+        nombre,
+        email,
+        niveles_educativos || null,
+        ubicacion || null,
+        telefono || null,
+        mentor_bio || null,
+        mentor_experiencia || null,
+        mentor_link || null,
+      ];
+      if (password_hash) params.push(password_hash);
+      params.push(Number(id));
+
       await executor.query(
         `
           UPDATE usuarios
-          SET nombre = ?, email = ?, niveles_educativos = ?
+          SET nombre = ?, email = ?, niveles_educativos = ?, ubicacion = ?, telefono = ?,
+              mentor_bio = ?, mentor_experiencia = ?, mentor_link = ?${passwordSql}
           WHERE id_usuario = ?
         `,
-        [nombre, email, niveles_educativos || null, Number(id)]
+        params
       );
 
-      return this.findById(id);
+      const [rows] = await executor.query(
+        'SELECT id_usuario, nombre, email, rol, niveles_educativos, ubicacion, telefono, mentor_bio, mentor_experiencia, mentor_link FROM usuarios WHERE id_usuario = ? LIMIT 1',
+        [Number(id)]
+      );
+      return rows.length ? toUsuario(rows[0]) : null;
     },
   };
 }

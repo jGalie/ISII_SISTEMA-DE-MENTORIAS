@@ -52,10 +52,15 @@
 
     document.getElementById('profile-nombre').value = profile.nombre || '';
     document.getElementById('profile-email').value = profile.email || '';
+    document.getElementById('profile-ubicacion').value = profile.ubicacion || '';
+    document.getElementById('profile-telefono').value = profile.telefono || '';
 
     if (profile.rol === 'mentor') {
       mentorFields.classList.remove('d-none');
       subtitle.textContent = 'Actualiza tus datos, materias y niveles educativos.';
+      document.getElementById('profile-mentor-bio').value = profile.mentorBio || '';
+      document.getElementById('profile-mentor-experiencia').value = profile.mentorExperiencia || '';
+      document.getElementById('profile-mentor-link').value = profile.mentorLink || '';
 
       const selectedNames = Array.isArray(profile.materias) ? profile.materias.map((item) => item.nombre) : [];
       renderMaterias(materias, selectedNames);
@@ -78,12 +83,39 @@
       actorId: user.id,
       nombre: document.getElementById('profile-nombre').value.trim(),
       email: document.getElementById('profile-email').value.trim(),
+      ubicacion: document.getElementById('profile-ubicacion').value.trim(),
+      telefono: document.getElementById('profile-telefono').value.trim(),
     };
+
+    const passwordActual = document.getElementById('profile-current-password').value;
+    const nuevaPassword = document.getElementById('profile-new-password').value;
+    const confirmarPassword = document.getElementById('profile-confirm-password').value;
+
+    if (passwordActual || nuevaPassword || confirmarPassword) {
+      if (nuevaPassword.length < 8) {
+        showMessage('danger', 'La nueva contrasena debe tener al menos 8 caracteres.');
+        return;
+      }
+      if (!/[A-Za-z]/.test(nuevaPassword) || !/\d/.test(nuevaPassword)) {
+        showMessage('danger', 'La nueva contrasena debe contener letras y numeros.');
+        return;
+      }
+      if (nuevaPassword !== confirmarPassword) {
+        showMessage('danger', 'La confirmacion de contrasena no coincide.');
+        return;
+      }
+
+      payload.passwordActual = passwordActual;
+      payload.nuevaPassword = nuevaPassword;
+    }
 
     if (user.rol === 'mentor') {
       payload.materias = getSelectedMaterias();
       payload.otrasMaterias = otrasMateriasEl.value.trim();
       payload.nivelesEducativos = getSelectedLevels();
+      payload.mentorBio = document.getElementById('profile-mentor-bio').value.trim();
+      payload.mentorExperiencia = document.getElementById('profile-mentor-experiencia').value.trim();
+      payload.mentorLink = document.getElementById('profile-mentor-link').value.trim();
     }
 
     try {
@@ -92,6 +124,9 @@
       const response = await MentoriasApi.updateUsuario(user.id, payload);
       const updatedUser = response.data;
       MentoriasAuth.setUser(updatedUser);
+      document.getElementById('profile-current-password').value = '';
+      document.getElementById('profile-new-password').value = '';
+      document.getElementById('profile-confirm-password').value = '';
       showMessage('success', 'Perfil actualizado correctamente.');
     } catch (error) {
       showMessage('danger', error.message);

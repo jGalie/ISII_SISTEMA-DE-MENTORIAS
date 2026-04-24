@@ -83,6 +83,18 @@
 
   function buildStudentCard(item) {
     // Resume el estado de una solicitud desde la perspectiva estudiantil.
+    const statusMessages = {
+      pendiente: 'Tu solicitud esta siendo evaluada por el mentor',
+      rechazada: item.motivoRechazo || 'El mentor no aprobo tu solicitud',
+    };
+    const acceptedAction =
+      item.estado === 'aceptada'
+        ? `<a class="btn btn-outline-dark btn-sm rounded-pill px-3 mt-3" href="/pages/detalle-clase.html?id=${encodeURIComponent(item.claseId)}">Ver clase</a>`
+        : '';
+    const helperText = statusMessages[item.estado]
+      ? `<p class="text-muted small mb-0 mt-2">${escapeHtml(statusMessages[item.estado])}</p>`
+      : '';
+
     return `
       <article class="item-card p-3">
         <div class="d-flex justify-content-between align-items-start gap-3 mb-2">
@@ -92,12 +104,14 @@
           </div>
           <span class="status-badge ${statusClass(item.estado)}">${escapeHtml(item.estado)}</span>
         </div>
+        ${helperText}
         <p class="text-muted small mb-1">
           <i class="bi bi-calendar-event me-1"></i>${escapeHtml(formatDate(item.claseFecha))}
         </p>
         <p class="text-muted small mb-0">
           <i class="bi bi-clock-history me-1"></i>Solicitada: ${escapeHtml(formatDate(item.fechaSolicitud))}
         </p>
+        ${acceptedAction}
       </article>
     `;
   }

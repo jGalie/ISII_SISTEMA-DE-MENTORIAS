@@ -1,8 +1,12 @@
+const bcrypt = require('bcryptjs');
+
 const { pool } = require('../config/db');
 const materiaRepository = require('../repositories/materia.repository');
 const mentorMateriaRepository = require('../repositories/mentor-materia.repository');
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const PASSWORD_LETTER_REGEX = /[A-Za-z]/;
+const PASSWORD_NUMBER_REGEX = /\d/;
 const EDUCATIONAL_LEVELS = new Set([
   'primaria',
   'secundaria',
@@ -59,6 +63,11 @@ function buildProfileResponse(user, materias = []) {
     nombre: user.nombre,
     email: user.email,
     rol: user.rol,
+    ubicacion: user.ubicacion || '',
+    telefono: user.telefono || '',
+    mentorBio: user.mentorBio || '',
+    mentorExperiencia: user.mentorExperiencia || '',
+    mentorLink: user.mentorLink || '',
     nivelesEducativos: user.nivelesEducativos || [],
     materias,
   };
@@ -115,6 +124,13 @@ function createUsuarioService({ usuarioRepository }) {
 
       const nombre = String(body?.nombre || '').trim();
       const email = String(body?.email || '').trim().toLowerCase();
+      const ubicacion = String(body?.ubicacion || '').trim();
+      const telefono = String(body?.telefono || '').trim();
+      const mentorBio = String(body?.mentorBio || '').trim();
+      const mentorExperiencia = String(body?.mentorExperiencia || '').trim();
+      const mentorLink = String(body?.mentorLink || '').trim();
+      const passwordActual = String(body?.passwordActual || '');
+      const nuevaPassword = String(body?.nuevaPassword || '');
       const nivelesEducativos = parseEducationalLevels(body);
       const mentorSubjects = parseMentorSubjects(body);
 
@@ -136,6 +152,27 @@ function createUsuarioService({ usuarioRepository }) {
         throw createAppError('Ya existe un usuario registrado con ese email.', 'DUPLICATE_USER');
       }
 
+      let password_hash = null;
+      if (passwordActual || nuevaPassword) {
+        if (!passwordActual) {
+          throw createAppError('Debes indicar la contrasena actual.', 'VALIDATION_ERROR');
+        }
+        if (nuevaPassword.length < 8) {
+          throw createAppError('La nueva contrasena debe tener al menos 8 caracteres.', 'VALIDATION_ERROR');
+        }
+        if (!PASSWORD_LETTER_REGEX.test(nuevaPassword) || !PASSWORD_NUMBER_REGEX.test(nuevaPassword)) {
+          throw createAppError('La nueva contrasena debe contener letras y numeros.', 'VALIDATION_ERROR');
+        }
+
+        const userWithPassword = await usuarioRepository.findByEmail(existingUser.email);
+        const passwordMatches = await bcrypt.compare(passwordActual, userWithPassword.password_hash);
+        if (!passwordMatches) {
+          throw createAppError('La contrasena actual no es correcta.', 'VALIDATION_ERROR');
+        }
+
+        password_hash = await bcrypt.hash(nuevaPassword, 10);
+      }
+
       const connection = await pool.getConnection();
       try {
         await connection.beginTransaction();
@@ -145,6 +182,12 @@ function createUsuarioService({ usuarioRepository }) {
           {
             nombre,
             email,
+            ubicacion,
+            telefono,
+            mentor_bio: existingUser.rol === 'mentor' ? mentorBio : null,
+            mentor_experiencia: existingUser.rol === 'mentor' ? mentorExperiencia : null,
+            mentor_link: existingUser.rol === 'mentor' ? mentorLink : null,
+            password_hash,
             niveles_educativos:
               existingUser.rol === 'mentor' ? JSON.stringify(nivelesEducativos) : null,
           },

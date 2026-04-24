@@ -51,9 +51,67 @@
                       <input class="form-control" type="email" id="profile-email" required />
                     </div>
                   </div>
+                  <div class="col-12 col-md-6">
+                    <label class="form-label fw-semibold" for="profile-ubicacion">Ubicacion</label>
+                    <div class="input-shell">
+                      <i class="bi bi-geo-alt me-2"></i>
+                      <input class="form-control" type="text" id="profile-ubicacion" maxlength="120" placeholder="Ciudad, Pais" />
+                    </div>
+                  </div>
+                  <div class="col-12 col-md-6">
+                    <label class="form-label fw-semibold" for="profile-telefono">Telefono <span class="text-muted fw-normal">(opcional)</span></label>
+                    <div class="input-shell">
+                      <i class="bi bi-telephone me-2"></i>
+                      <input class="form-control" type="text" id="profile-telefono" maxlength="40" />
+                    </div>
+                  </div>
                 </div>
 
                 <div id="mentor-profile-fields" class="d-none mt-4">
+                  <div class="mentor-panel mb-4">
+                    <div class="fw-semibold mb-3">Perfil profesional</div>
+                    <div class="row g-4">
+                      <div class="col-12">
+                        <label class="form-label fw-semibold" for="profile-mentor-bio">Presentacion</label>
+                        <div class="textarea-shell">
+                          <textarea
+                            id="profile-mentor-bio"
+                            class="form-control"
+                            rows="4"
+                            maxlength="800"
+                            placeholder="Conta brevemente tu enfoque como mentor, experiencia academica y forma de trabajo."
+                          ></textarea>
+                        </div>
+                      </div>
+                      <div class="col-12 col-md-6">
+                        <label class="form-label fw-semibold" for="profile-mentor-experiencia">Experiencia</label>
+                        <div class="input-shell">
+                          <i class="bi bi-award me-2"></i>
+                          <input
+                            class="form-control"
+                            type="text"
+                            id="profile-mentor-experiencia"
+                            maxlength="120"
+                            placeholder="Ej. 5 anos dictando clases"
+                          />
+                        </div>
+                      </div>
+                      <div class="col-12 col-md-6">
+                        <label class="form-label fw-semibold" for="profile-mentor-link">Enlace profesional</label>
+                        <div class="input-shell">
+                          <i class="bi bi-link-45deg me-2"></i>
+                          <input
+                            class="form-control"
+                            type="url"
+                            id="profile-mentor-link"
+                            maxlength="255"
+                            placeholder="LinkedIn, portfolio o sitio personal"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
                   <div class="mentor-panel mb-4">
                     <div class="fw-semibold mb-3">Materias que dictas</div>
                     <div id="profile-materias-container" class="chips-grid"></div>
@@ -78,8 +136,41 @@
                   </div>
                 </div>
 
+                <section class="security-panel mt-4">
+                  <div class="mb-3">
+                    <h2 class="h5 fw-bold mb-1">Seguridad</h2>
+                    <p class="text-muted mb-0">Completa estos campos solo si quieres cambiar tu contrasena.</p>
+                  </div>
+
+                  <div class="row g-4">
+                    <div class="col-12 col-md-4">
+                      <label class="form-label fw-semibold" for="profile-current-password">Contrasena actual</label>
+                      <div class="input-shell">
+                        <i class="bi bi-lock me-2"></i>
+                        <input class="form-control" type="password" id="profile-current-password" autocomplete="current-password" />
+                      </div>
+                    </div>
+                    <div class="col-12 col-md-4">
+                      <label class="form-label fw-semibold" for="profile-new-password">Nueva contrasena</label>
+                      <div class="input-shell">
+                        <i class="bi bi-shield-lock me-2"></i>
+                        <input class="form-control" type="password" id="profile-new-password" autocomplete="new-password" />
+                      </div>
+                      <div class="form-text">Minimo 8 caracteres, con letras y numeros.</div>
+                    </div>
+                    <div class="col-12 col-md-4">
+                      <label class="form-label fw-semibold" for="profile-confirm-password">Confirmar contrasena</label>
+                      <div class="input-shell">
+                        <i class="bi bi-check2-circle me-2"></i>
+                        <input class="form-control" type="password" id="profile-confirm-password" autocomplete="new-password" />
+                      </div>
+                    </div>
+                  </div>
+                </section>
+
                 <div class="mt-4 d-flex gap-3 flex-wrap">
                   <button id="btn-save-profile" class="btn btn-brand px-4" type="submit">Guardar cambios</button>
+                  <a class="btn btn-outline-dark rounded-pill px-4 d-inline-flex align-items-center" href="/pages/dashboard.html">Cancelar</a>
                 </div>
               </form>
             </div>
