@@ -1,20 +1,124 @@
 /**
- * Componentes UI ligeros (sin bundler): navbar remoto + tarjetas de clase.
+ * Componentes UI ligeros (sin bundler): navbar remoto, footer remoto + tarjetas de clase.
  */
 (function (global) {
   const NAVBAR_SELECTOR = '[data-component="navbar"]';
+  const FOOTER_SELECTOR = '#footer';
+
+  function componentPath(fileName) {
+    const fromPages = window.location.pathname.includes('/pages/');
+    return `${fromPages ? '../' : ''}components/${fileName}`;
+  }
 
   async function mountNavbar() {
     const host = document.querySelector(NAVBAR_SELECTOR);
     if (!host) return;
     try {
-      const res = await fetch('/components/navbar.html', { cache: 'no-store' });
+      const res = await fetch(componentPath('navbar.html'), { cache: 'no-store' });
       if (!res.ok) throw new Error('No se pudo cargar navbar');
       host.innerHTML = await res.text();
       highlightActiveLink();
     } catch (e) {
       host.innerHTML = `<p class="alert alert--error" role="alert">${e.message}</p>`;
     }
+  }
+
+  async function mountFooter() {
+    const host = document.querySelector(FOOTER_SELECTOR);
+    if (!host) return;
+    try {
+      const res = await fetch(componentPath('footer.html'), { cache: 'no-store' });
+      if (!res.ok) throw new Error('No se pudo cargar footer');
+      host.innerHTML = await res.text();
+      attachFooterClassLink(host);
+    } catch (e) {
+      host.innerHTML = `<p class="alert alert-danger m-0" role="alert">${e.message}</p>`;
+    }
+  }
+
+  function getStoredUser() {
+    if (global.MentoriasAuth && typeof global.MentoriasAuth.getUser === 'function') {
+      return global.MentoriasAuth.getUser();
+    }
+
+    const keys = ['usuarioLogueado'];
+    const stores = [global.localStorage, global.sessionStorage].filter(Boolean);
+
+    for (const store of stores) {
+      for (const key of keys) {
+        try {
+          const user = JSON.parse(store.getItem(key) || 'null');
+          if (user && user.id && user.email) return user;
+        } catch {
+          // Ignora valores corruptos sin modificar la sesion del usuario.
+        }
+      }
+    }
+
+    return null;
+  }
+
+  function isAuthenticated() {
+    if (global.MentoriasAuth && typeof global.MentoriasAuth.isAuthenticated === 'function') {
+      return global.MentoriasAuth.isAuthenticated();
+    }
+
+    const user = getStoredUser();
+    return Boolean(user && user.id && user.email);
+  }
+
+  function attachFooterClassLink(scope) {
+    const link = scope.querySelector('[data-footer-clases]');
+    if (!link) return;
+
+    link.addEventListener('click', (event) => {
+      event.preventDefault();
+
+      if (isAuthenticated()) {
+        global.location.href = '/pages/clases.html';
+        return;
+      }
+
+      showClassesAuthNotice();
+    });
+  }
+
+  function showClassesAuthNotice() {
+    const existing = document.getElementById('classes-auth-notice');
+    if (existing) existing.remove();
+
+    const markup = `
+<div class="modal fade" id="classes-auth-notice" tabindex="-1" aria-labelledby="classes-auth-notice-title" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow">
+      <div class="modal-header border-0 pb-0">
+        <h2 class="modal-title h5 fw-bold" id="classes-auth-notice-title">Acceso a clases</h2>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        <p class="mb-0">Para acceder a las clases deb&eacute;s iniciar sesi&oacute;n o registrarte como estudiante o mentor.</p>
+      </div>
+      <div class="modal-footer border-0 pt-0 justify-content-center justify-content-sm-end">
+        <a class="btn btn-outline-dark rounded-pill px-4" href="/pages/login.html">Iniciar sesi&oacute;n</a>
+        <a class="btn btn-dark rounded-pill px-4" href="/pages/register.html">Registrarse</a>
+      </div>
+    </div>
+  </div>
+</div>`;
+
+    document.body.insertAdjacentHTML('beforeend', markup);
+    const notice = document.getElementById('classes-auth-notice');
+
+    if (global.bootstrap && global.bootstrap.Modal) {
+      const modal = new global.bootstrap.Modal(notice);
+      notice.addEventListener('hidden.bs.modal', () => notice.remove(), { once: true });
+      modal.show();
+      return;
+    }
+
+    notice.classList.add('show');
+    notice.style.display = 'block';
+    notice.removeAttribute('aria-hidden');
   }
 
   function highlightActiveLink() {
@@ -74,6 +178,13 @@
 
   global.MentoriasUi = {
     mountNavbar,
+    mountFooter,
     renderClaseCards,
   };
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', mountFooter);
+  } else {
+    mountFooter();
+  }
 })(window);
