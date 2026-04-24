@@ -88,11 +88,13 @@
     </button>
     <div class="collapse navbar-collapse" id="navMain">
       <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-3">
+        <li class="nav-item"><a class="nav-link fw-semibold ${activeKey === 'inicio' || activeKey === 'clases' ? 'active' : ''}" href="${homePath}">Clases</a></li>
         <li class="nav-item"><a class="nav-link fw-semibold ${activeKey === 'dashboard' ? 'active' : ''}" href="/pages/dashboard.html">Mis inscripciones</a></li>
         <li class="nav-item dropdown">
           <button class="btn btn-brand px-4 py-2 dropdown-toggle d-inline-flex align-items-center gap-2" id="user-menu" type="button" data-bs-toggle="dropdown" aria-expanded="false">
             <i class="bi ${roleIcon}"></i>
             <span>${firstName}</span>
+            <span class="role-pill">${roleLabel}</span>
           </button>
           <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="user-menu">
             <li><h6 class="dropdown-header">${esc(user.email || roleLabel)}</h6></li>

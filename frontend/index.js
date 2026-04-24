@@ -137,6 +137,7 @@
           <a class="btn btn-soft" href="/pages/crear-clase.html">Crear clase</a>
         `
         : `
+          <a class="btn btn-soft" href="/pages/clases.html">Clases</a>
           <a class="btn btn-soft" href="/pages/dashboard.html">Mis inscripciones</a>
         `;
 
