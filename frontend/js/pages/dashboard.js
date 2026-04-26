@@ -35,8 +35,14 @@
   }
 
   if (logoutButton) {
-    logoutButton.addEventListener('click', function () {
-      if (!window.confirm('Estas seguro de realizar esta accion?')) return;
+    logoutButton.addEventListener('click', async function () {
+      const confirmarSalida = await MentoriasUI.showConfirmDialog({
+        title: 'Cerrar sesion',
+        message: 'Queres cerrar tu sesion en Mentorix?',
+        confirmText: 'Cerrar sesion',
+        cancelText: 'Cancelar',
+      });
+      if (!confirmarSalida) return;
       MentoriasAuth.logout();
       window.location.href = '/pages/login.html';
     });
@@ -288,7 +294,17 @@
         const id = Number(this.getAttribute('data-id'));
         const estado = this.getAttribute('data-action');
         if (!id || !estado) return;
-        if (!window.confirm('Estas seguro de realizar esta accion?')) return;
+        const esAceptacion = estado === 'aceptada';
+        const confirmarCambio = await MentoriasUI.showConfirmDialog({
+          title: esAceptacion ? 'Aceptar solicitud' : 'Rechazar solicitud',
+          message: esAceptacion
+            ? 'La solicitud pasara a estar aceptada para el estudiante.'
+            : 'La solicitud pasara a estar rechazada para el estudiante.',
+          confirmText: esAceptacion ? 'Aceptar' : 'Rechazar',
+          cancelText: 'Cancelar',
+          tone: esAceptacion ? 'success' : 'danger',
+        });
+        if (!confirmarCambio) return;
 
         this.disabled = true;
         clearError();

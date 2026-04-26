@@ -84,6 +84,11 @@
   background: #fff0f0;
 }
 
+.mentorix-confirm__icon--success {
+  color: #198754;
+  background: #edf9f2;
+}
+
 .mentorix-confirm__content h2 {
   margin: 0 0 0.35rem;
   color: #182235;

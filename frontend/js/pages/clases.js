@@ -54,7 +54,14 @@
       button.addEventListener('click', async function () {
         const classId = this.getAttribute('data-id');
         if (!classId || !user) return;
-        if (!window.confirm('¿Seguro que quieres eliminar esta clase?')) return;
+        const confirmarEliminacion = await MentoriasUI.showConfirmDialog({
+          title: 'Eliminar clase',
+          message: 'Esta accion no se puede deshacer. Queres eliminar la clase?',
+          confirmText: 'Eliminar',
+          cancelText: 'Cancelar',
+          tone: 'danger',
+        });
+        if (!confirmarEliminacion) return;
 
         try {
           this.disabled = true;

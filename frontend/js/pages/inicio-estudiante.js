@@ -1,4 +1,4 @@
-(function () {
+(async function () {
   if (!MentoriasAuth.requireAuth()) return;
 
   const user = MentoriasAuth.getUser();
@@ -25,8 +25,14 @@
   }
 
   if (logoutButton) {
-    logoutButton.addEventListener('click', function () {
-      if (!window.confirm('Estas seguro de realizar esta accion?')) return;
+    logoutButton.addEventListener('click', async function () {
+      const confirmarSalida = await MentoriasUI.showConfirmDialog({
+        title: 'Cerrar sesion',
+        message: 'Queres cerrar tu sesion en Mentorix?',
+        confirmText: 'Cerrar sesion',
+        cancelText: 'Cancelar',
+      });
+      if (!confirmarSalida) return;
       MentoriasAuth.logout();
       window.location.href = '/index.html';
     });

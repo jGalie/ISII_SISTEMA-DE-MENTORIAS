@@ -206,8 +206,14 @@
 
     const logoutButton = document.getElementById('btn-logout');
     if (logoutButton) {
-      logoutButton.addEventListener('click', () => {
-        if (!window.confirm('Estas seguro de realizar esta accion?')) return;
+      logoutButton.addEventListener('click', async () => {
+        const confirmarSalida = await showConfirmDialog({
+          title: 'Cerrar sesion',
+          message: 'Queres cerrar tu sesion en Mentorix?',
+          confirmText: 'Cerrar sesion',
+          cancelText: 'Cancelar',
+        });
+        if (!confirmarSalida) return;
         global.MentoriasAuth.logout();
         window.location.href = '/index.html';
       });
