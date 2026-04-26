@@ -14,13 +14,22 @@
   const q = document.getElementById('q');
   const count = document.getElementById('clases-count');
   const createButton = document.getElementById('btn-crear-clase');
+  const filterButtons = document.querySelectorAll('[data-filter]');
+  const eyebrow = document.getElementById('clases-eyebrow');
+  const title = document.getElementById('clases-title');
+  const subtitle = document.getElementById('clases-subtitle');
   const user = MentoriasAuth.getUser();
 
   let clases = [];
   let inscripcionesPorClase = {};
+  let activeFilter = 'todas';
 
   if (user && user.rol === 'mentor') {
     createButton.classList.remove('d-none');
+    eyebrow.textContent = 'Gestión de mentorías';
+    title.textContent = 'Mis clases publicadas';
+    subtitle.textContent = 'Administra tus mentorías, fechas, modalidad y publicaciones.';
+    q.placeholder = 'Buscar por título, descripción o materia';
   }
 
   function showError(message) {
@@ -45,6 +54,98 @@
 
   function normalize(value) {
     return String(value || '').toLowerCase().trim();
+  }
+
+  function escapeHtml(value) {
+    return String(value == null ? '' : value)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  function formatDate(value) {
+    if (!value) return 'Fecha a definir';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return 'Fecha a definir';
+    return date.toLocaleString('es-AR', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  }
+
+  function modalityLabel(value) {
+    return value === 'presencial' ? 'Presencial' : 'Virtual';
+  }
+
+  function buildClassCard(clase) {
+    const canManage =
+      user &&
+      user.rol === 'mentor' &&
+      Number(user.id) === Number(clase.mentorId);
+    const canEnroll =
+      user &&
+      user.rol === 'estudiante' &&
+      Number(user.id) !== Number(clase.mentorId);
+    const enrollment = inscripcionesPorClase[clase.id];
+    const enrollmentLabels = {
+      pendiente: 'Solicitud pendiente',
+      aceptada: 'Inscripcion aceptada',
+      rechazada: 'Solicitud rechazada',
+    };
+    const enrollmentAction = enrollment
+      ? `<button class="btn btn-outline-secondary btn-sm px-3" type="button" disabled>${escapeHtml(enrollmentLabels[enrollment.estado] || 'Inscripcion registrada')}</button>`
+      : '';
+    const enrollButton =
+      canEnroll && !enrollment
+        ? `<button class="btn btn-detail btn-sm px-3 enroll-clase-btn" data-id="${encodeURIComponent(clase.id)}" type="button">Inscribirse</button>`
+        : enrollmentAction;
+
+    return `
+      <article class="class-card">
+        <div class="class-card__header">
+          <h2 class="class-card__title">${escapeHtml(clase.titulo || 'Clase sin titulo')}</h2>
+          <span class="class-date">${escapeHtml(formatDate(clase.fecha))}</span>
+        </div>
+
+        <div class="class-meta">
+          <div class="class-meta__item">
+            <i class="bi bi-person-circle"></i>
+            <span>${escapeHtml(clase.mentorNombre || 'Mentor')}</span>
+          </div>
+          <div class="class-meta__item">
+            <i class="bi bi-journal-bookmark"></i>
+            <span>${escapeHtml(clase.materiaNombre || 'Materia a definir')}</span>
+          </div>
+          <div class="class-meta__item">
+            <i class="bi ${clase.modalidad === 'presencial' ? 'bi-geo-alt' : 'bi-camera-video'}"></i>
+            <span>${escapeHtml(modalityLabel(clase.modalidad))}</span>
+          </div>
+          <div class="class-meta__item">
+            <i class="bi bi-cash-coin"></i>
+            <span>${escapeHtml(clase.precio != null ? `$${Number(clase.precio).toLocaleString('es-AR')}` : 'Precio a coordinar')}</span>
+          </div>
+          ${
+            clase.modalidad === 'presencial' && clase.ubicacion
+              ? `<div class="class-meta__item"><i class="bi bi-pin-map"></i><span>${escapeHtml(clase.ubicacion)}</span></div>`
+              : ''
+          }
+        </div>
+
+        <p class="class-card__description">${escapeHtml(clase.descripcion || 'Sin descripcion.')}</p>
+
+        <div class="class-card__actions">
+          <a class="btn btn-detail btn-sm px-3" href="/pages/detalle-clase.html?id=${encodeURIComponent(clase.id)}">Ver detalle</a>
+          ${enrollButton}
+          ${canManage ? `<a class="btn btn-edit btn-sm px-3" href="/pages/crear-clase.html?id=${encodeURIComponent(clase.id)}">Editar</a>` : ''}
+          ${canManage ? `<button class="btn btn-danger-soft btn-sm px-3 delete-clase-btn" data-id="${encodeURIComponent(clase.id)}" type="button">Eliminar</button>` : ''}
+        </div>
+      </article>
+    `;
   }
 
   function attachDeleteHandlers() {
@@ -104,28 +205,28 @@
   }
 
   function render(list) {
-    MentoriasUI.renderClasesCards(box, list, {
-      showMentorActions: true,
-      showStudentEnrollment: true,
-      currentUser: user,
-      enrollmentByClassId: inscripcionesPorClase,
-    });
+    if (!Array.isArray(list) || !list.length) {
+      box.innerHTML = '<div class="classes-empty">No hay clases que coincidan con tu busqueda.</div>';
+      count.textContent = user?.rol === 'mentor' ? '0 clases publicadas' : '0 clases';
+      return;
+    }
+
+    box.innerHTML = `<div class="classes-grid">${list.map(buildClassCard).join('')}</div>`;
     attachDeleteHandlers();
     attachEnrollmentHandlers();
-    count.textContent = `${list.length} clase(s)`;
+    const label = `${list.length} clase${list.length === 1 ? '' : 's'}`;
+    count.textContent = user?.rol === 'mentor' ? `${label} publicada${list.length === 1 ? '' : 's'}` : label;
   }
 
   function applyFilter() {
     const term = normalize(q.value);
-    if (!term) {
-      render(clases);
-      return;
-    }
-
     const filtered = clases.filter((clase) => {
       const searchable = [clase.titulo, clase.descripcion, clase.mentorNombre, clase.materiaNombre].map(normalize).join(' ');
-      return searchable.includes(term);
+      const matchesSearch = !term || searchable.includes(term);
+      const matchesModality = activeFilter === 'todas' || normalize(clase.modalidad) === activeFilter;
+      return matchesSearch && matchesModality;
     });
+
     render(filtered);
   }
 
@@ -152,4 +253,11 @@
   }
 
   q.addEventListener('input', applyFilter);
+  filterButtons.forEach((button) => {
+    button.addEventListener('click', function () {
+      activeFilter = this.getAttribute('data-filter') || 'todas';
+      filterButtons.forEach((item) => item.classList.toggle('is-active', item === this));
+      applyFilter();
+    });
+  });
 })();
