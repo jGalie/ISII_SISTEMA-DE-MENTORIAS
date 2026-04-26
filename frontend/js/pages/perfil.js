@@ -194,6 +194,14 @@
     if (!link || allowNavigation) return;
     const href = link.getAttribute('href') || '';
     if (href.startsWith('#') || link.target === '_blank') return;
+    if (link.hasAttribute('data-back-link')) {
+      event.preventDefault();
+      if (!formDirty || (await confirmLeave())) {
+        allowNavigation = true;
+        MentoriasUI.goBackOrHome(href);
+      }
+      return;
+    }
     if (!formDirty) return;
     event.preventDefault();
     if (await confirmLeave()) {

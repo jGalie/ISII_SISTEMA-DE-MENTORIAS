@@ -49,12 +49,13 @@ body {
   border: 1px solid #e5e0ee;
   border-radius: 999px;
   background: #fff;
-  transition: border-color 160ms ease, box-shadow 160ms ease;
+  transition: border-color 220ms ease, box-shadow 220ms ease, background-color 220ms ease;
 }
 
 .search-shell:focus-within {
-  border-color: rgba(123, 44, 255, 0.35);
-  box-shadow: 0 0 0 0.25rem rgba(123, 44, 255, 0.08);
+  border-color: rgba(123, 44, 255, 0.42);
+  background: #fff;
+  box-shadow: 0 0 0 0.22rem rgba(123, 44, 255, 0.09), 0 8px 22px rgba(32, 42, 68, 0.06);
 }
 
 .search-shell i {
@@ -82,13 +83,24 @@ body {
   background: #fff;
   color: var(--text-main);
   font-weight: 700;
-  transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease, transform 160ms ease;
+  transition: background-color 180ms ease, border-color 180ms ease, color 180ms ease, transform 180ms ease, box-shadow 180ms ease;
+  will-change: transform;
 }
 
 .filter-chip:hover {
   transform: translateY(-1px);
   border-color: rgba(123, 44, 255, 0.35);
   color: var(--brand-dark);
+  box-shadow: 0 8px 18px rgba(32, 42, 68, 0.07);
+}
+
+.filter-chip:active {
+  transform: translateY(0);
+}
+
+.filter-chip:focus-visible {
+  outline: 0;
+  box-shadow: 0 0 0 0.22rem rgba(123, 44, 255, 0.12);
 }
 
 .filter-chip.is-active {
@@ -121,13 +133,14 @@ body {
   border-radius: 1.35rem;
   background: var(--surface);
   box-shadow: 0 14px 34px rgba(32, 42, 68, 0.08);
-  transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+  transition: transform 240ms ease, box-shadow 240ms ease, border-color 240ms ease;
+  will-change: transform;
 }
 
 .class-card:hover {
-  transform: translateY(-3px);
+  transform: translateY(-4px);
   border-color: rgba(123, 44, 255, 0.22);
-  box-shadow: 0 20px 46px rgba(32, 42, 68, 0.12);
+  box-shadow: 0 22px 48px rgba(32, 42, 68, 0.13);
 }
 
 .class-card__header {
@@ -193,11 +206,23 @@ body {
 .class-card__actions .btn {
   border-radius: 999px;
   font-weight: 700;
-  transition: transform 160ms ease, box-shadow 160ms ease, background-color 160ms ease, border-color 160ms ease;
+  transition: transform 180ms ease, box-shadow 180ms ease, background-color 180ms ease, border-color 180ms ease, color 180ms ease;
+  will-change: transform;
 }
 
 .class-card__actions .btn:hover {
   transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(32, 42, 68, 0.08);
+}
+
+.class-card__actions .btn:active {
+  transform: translateY(0);
+}
+
+.class-card__actions .btn:focus-visible,
+#btn-crear-clase:focus-visible {
+  outline: 0;
+  box-shadow: 0 0 0 0.22rem rgba(123, 44, 255, 0.14);
 }
 
 .class-card__actions .btn-detail {
@@ -242,6 +267,37 @@ body {
   background: rgba(255, 255, 255, 0.72);
   color: var(--text-muted);
   text-align: center;
+}
+
+#btn-crear-clase {
+  transition: transform 180ms ease, box-shadow 180ms ease, background-color 180ms ease, border-color 180ms ease;
+  will-change: transform;
+}
+
+#btn-crear-clase:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 22px rgba(32, 42, 68, 0.12);
+}
+
+#btn-crear-clase:active {
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .search-shell,
+  .filter-chip,
+  .class-card,
+  .class-card__actions .btn,
+  #btn-crear-clase {
+    transition: none;
+  }
+
+  .filter-chip:hover,
+  .class-card:hover,
+  .class-card__actions .btn:hover,
+  #btn-crear-clase:hover {
+    transform: none;
+  }
 }
 
 @media (max-width: 991.98px) {

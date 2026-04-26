@@ -8,6 +8,7 @@
    */
   if (!MentoriasAuth.requireAuth()) return;
   await MentoriasUI.mountNavbar();
+  MentoriasUI.bindBackButtons();
 
   const box = document.getElementById('clases-list');
   const err = document.getElementById('clases-error');

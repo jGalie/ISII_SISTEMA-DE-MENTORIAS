@@ -6,6 +6,7 @@
    * pero no decide permisos finales ni modifica directamente la base de datos.
    */
   await MentoriasUI.mountNavbar();
+  MentoriasUI.bindBackButtons();
 
   const params = new URLSearchParams(window.location.search);
   const id = params.get('id');

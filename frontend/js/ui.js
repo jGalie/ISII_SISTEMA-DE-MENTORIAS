@@ -96,6 +96,29 @@
     return value === 'presencial' ? 'Presencial' : 'Virtual';
   }
 
+  function goBackOrHome(fallbackPath) {
+    const user = global.MentoriasAuth ? global.MentoriasAuth.getUser() : null;
+    const fallback =
+      fallbackPath ||
+      (user && global.MentoriasAuth ? global.MentoriasAuth.getHomePath(user) : '/index.html');
+
+    if (window.history.length > 1) {
+      window.history.back();
+      return;
+    }
+
+    window.location.href = fallback;
+  }
+
+  function bindBackButtons(root = document) {
+    root.querySelectorAll('[data-back-link]').forEach((button) => {
+      button.addEventListener('click', (event) => {
+        event.preventDefault();
+        goBackOrHome(button.getAttribute('href'));
+      });
+    });
+  }
+
   function navbarHtml({ user, activeKey }) {
     const homePath =
       user && global.MentoriasAuth ? global.MentoriasAuth.getHomePath(user) : '/index.html';
@@ -297,5 +320,7 @@
     renderClasesCards,
     formatDate,
     showConfirmDialog,
+    goBackOrHome,
+    bindBackButtons,
   };
 })(window);
