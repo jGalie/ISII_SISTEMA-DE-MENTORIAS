@@ -97,6 +97,16 @@ body {
   box-shadow: 0 0 0 0.25rem rgba(123, 44, 255, 0.08);
 }
 
+.input-shell.is-invalid,
+.input-shell:has(.is-invalid) {
+  border-color: #dc3545;
+  background: #fff7f7;
+}
+
+.invalid-feedback.is-visible {
+  display: block;
+}
+
 .input-shell i {
   color: #8a95a8;
 }

@@ -22,6 +22,7 @@
   const parametros = new URLSearchParams(window.location.search);
   const idClase = parametros.get('id');
   const esEdicion = Boolean(idClase);
+  const rutaVolverMentor = '/pages/dashboard.html';
 
   const formulario = document.getElementById('form-clase');
   const mensaje = document.getElementById('form-msg');
@@ -71,7 +72,13 @@
   }
 
   function confirmLeave() {
-    return !formDirty || window.confirm('Tenes cambios sin guardar. Queres salir sin guardar?');
+    if (!formDirty) return Promise.resolve(true);
+    return MentoriasUI.showConfirmDialog({
+      title: 'Cambios sin guardar',
+      message: 'Tenes cambios sin guardar. Queres salir sin guardar?',
+      confirmText: 'Salir sin guardar',
+      cancelText: 'Seguir editando',
+    });
   }
 
   function validateClassForm() {
@@ -226,12 +233,17 @@
     event.returnValue = '';
   });
 
-  document.addEventListener('click', (event) => {
+  document.addEventListener('click', async (event) => {
     const link = event.target.closest('a[href]');
     if (!link || allowNavigation) return;
     const href = link.getAttribute('href') || '';
     if (href.startsWith('#') || link.target === '_blank') return;
-    if (!confirmLeave()) event.preventDefault();
+    if (!formDirty) return;
+    event.preventDefault();
+    if (await confirmLeave()) {
+      allowNavigation = true;
+      window.location.href = href;
+    }
   });
 
   /**
@@ -289,7 +301,7 @@
       allowNavigation = true;
       mostrarMensaje('success', esEdicion ? 'Clase actualizada correctamente.' : 'Clase creada correctamente.');
       setTimeout(() => {
-        window.location.href = '/pages/clases.html';
+        window.location.href = rutaVolverMentor;
       }, 600);
     } catch (error) {
       mostrarMensaje('danger', error.message);
@@ -303,7 +315,14 @@
     // para que el backend pueda corroborar la propiedad de la clase.
     botonEliminar.addEventListener('click', async function () {
       if (!esEdicion) return;
-      if (!window.confirm('Estas seguro de realizar esta accion?')) return;
+      const confirmarEliminacion = await MentoriasUI.showConfirmDialog({
+        title: 'Eliminar clase',
+        message: 'Esta accion no se puede deshacer. Queres eliminar la clase?',
+        confirmText: 'Eliminar',
+        cancelText: 'Cancelar',
+        tone: 'danger',
+      });
+      if (!confirmarEliminacion) return;
 
       try {
         botonEliminar.disabled = true;

@@ -51,14 +51,18 @@
   function setFieldError(input, box, message) {
     if (!input || !box) return;
     input.classList.add('is-invalid');
+    input.closest('.input-shell')?.classList.add('is-invalid');
     box.textContent = message;
     box.classList.remove('d-none');
+    box.classList.add('is-visible');
   }
 
   function clearFieldError(input, box) {
     if (!input || !box) return;
     input.classList.remove('is-invalid');
+    input.closest('.input-shell')?.classList.remove('is-invalid');
     box.classList.add('d-none');
+    box.classList.remove('is-visible');
   }
 
   function isValidEmail(value) {

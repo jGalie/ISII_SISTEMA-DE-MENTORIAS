@@ -20,7 +20,13 @@
   }
 
   function confirmLeave() {
-    return !formDirty || window.confirm('Tenes cambios sin guardar. Queres salir sin guardar?');
+    if (!formDirty) return Promise.resolve(true);
+    return MentoriasUI.showConfirmDialog({
+      title: 'Cambios sin guardar',
+      message: 'Tenes cambios sin guardar. Queres salir sin guardar?',
+      confirmText: 'Salir sin guardar',
+      cancelText: 'Seguir editando',
+    });
   }
 
   function setFieldError(inputId, message) {
@@ -183,15 +189,17 @@
     event.returnValue = '';
   });
 
-  document.addEventListener('click', (event) => {
+  document.addEventListener('click', async (event) => {
     const link = event.target.closest('a[href]');
     if (!link || allowNavigation) return;
     const href = link.getAttribute('href') || '';
     if (href.startsWith('#') || link.target === '_blank') return;
-    if (confirmLeave()) {
+    if (!formDirty) return;
+    event.preventDefault();
+    if (await confirmLeave()) {
       allowNavigation = true;
+      window.location.href = href;
       return;
     }
-    event.preventDefault();
   });
 })();

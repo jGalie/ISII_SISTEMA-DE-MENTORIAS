@@ -18,7 +18,11 @@
   const otrasMateriasEl = document.getElementById('otras-materias');
   const emailFeedback = document.getElementById('email-feedback');
   const nombreFeedback = document.getElementById('nombre-error');
+  const passwordFeedback = document.getElementById('password-error');
   const passwordMatchFeedback = document.getElementById('password-match-feedback');
+  const studentLevelsFeedback = document.getElementById('student-levels-error');
+  const mentorLevelsFeedback = document.getElementById('mentor-levels-error');
+  const materiasFeedback = document.getElementById('materias-error');
 
   const chkLen = document.getElementById('chk-len');
   const chkLetter = document.getElementById('chk-letter');
@@ -170,6 +174,21 @@
     return { ok: minLen && hasLetter && hasNumber && matches };
   }
 
+  function updatePasswordFields(force = false) {
+    const password = String(passEl?.value || '');
+    const passwordConfirm = String(passConfirmEl?.value || '');
+    const hasPasswordError = force && !/^(?=.*[A-Za-z])(?=.*\d).{8,}$/.test(password);
+    const hasConfirmError = force && (!passwordConfirm || password !== passwordConfirm);
+
+    passEl?.classList.toggle('is-invalid', hasPasswordError);
+    passEl?.closest('.input-shell')?.classList.toggle('is-invalid', hasPasswordError);
+    passConfirmEl?.classList.toggle('is-invalid', hasConfirmError);
+    passConfirmEl?.closest('.input-shell')?.classList.toggle('is-invalid', hasConfirmError);
+
+    passwordFeedback?.classList.toggle('is-visible', hasPasswordError);
+    passwordMatchFeedback?.classList.toggle('is-visible', hasConfirmError);
+  }
+
   function updateEmailValidity() {
     if (!emailEl) return true;
     const value = normalize(emailEl.value);
@@ -178,6 +197,7 @@
 
     emailEl.classList.toggle('is-invalid', shouldShow && !ok);
     emailEl.classList.toggle('is-valid', shouldShow && ok);
+    emailEl.closest('.input-shell')?.classList.toggle('is-invalid', shouldShow && !ok);
 
     if (emailFeedback) {
       emailFeedback.classList.toggle('is-visible', shouldShow && !ok);
@@ -191,6 +211,7 @@
     const ok = normalize(input.value) !== '';
     input.classList.toggle('is-invalid', !ok);
     input.classList.toggle('is-valid', ok);
+    input.closest('.input-shell')?.classList.toggle('is-invalid', !ok);
     if (feedback) {
       feedback.textContent = message;
       feedback.classList.toggle('is-visible', !ok);
@@ -198,10 +219,21 @@
     return ok;
   }
 
+  function updateGroupValidation(panel, feedback, ok) {
+    panel?.classList.toggle('is-invalid', !ok);
+    feedback?.classList.toggle('is-visible', !ok);
+    return ok;
+  }
+
   function updateRoleFields() {
     const isMentor = rolEl && rolEl.value === 'mentor';
     studentFields?.classList.toggle('d-none', isMentor);
     mentorFields?.classList.toggle('d-none', !isMentor);
+    studentFields?.querySelector('.mentor-panel')?.classList.remove('is-invalid');
+    mentorFields?.querySelectorAll('.mentor-panel').forEach((panel) => panel.classList.remove('is-invalid'));
+    studentLevelsFeedback?.classList.remove('is-visible');
+    mentorLevelsFeedback?.classList.remove('is-visible');
+    materiasFeedback?.classList.remove('is-visible');
   }
 
   function bindPasswordToggles() {
@@ -232,6 +264,7 @@
 
     renderSelectedMaterias();
     updateChipStates();
+    updateGroupValidation(mentorFields?.querySelectorAll('.mentor-panel')[0], materiasFeedback, getSelectedMaterias().length > 0 || normalize(otrasMateriasEl?.value) !== '');
   }
 
   async function loadMaterias() {
@@ -248,13 +281,24 @@
     }
   }
 
-  if (passEl) passEl.addEventListener('input', updateChecklist);
-  if (passConfirmEl) passConfirmEl.addEventListener('input', updateChecklist);
+  if (passEl) passEl.addEventListener('input', () => {
+    updateChecklist();
+    updatePasswordFields(false);
+  });
+  if (passConfirmEl) passConfirmEl.addEventListener('input', () => {
+    updateChecklist();
+    updatePasswordFields(false);
+  });
   if (emailEl) emailEl.addEventListener('input', updateEmailValidity);
   if (nombreEl) nombreEl.addEventListener('input', () => updateRequiredInput(nombreEl, nombreFeedback, 'Ingresa tu nombre.'));
   if (rolEl) rolEl.addEventListener('change', updateRoleFields);
   if (materiasSearchEl) {
     materiasSearchEl.addEventListener('input', renderMaterias);
+  }
+  if (otrasMateriasEl) {
+    otrasMateriasEl.addEventListener('input', () => {
+      updateGroupValidation(mentorFields?.querySelectorAll('.mentor-panel')[0], materiasFeedback, getSelectedMaterias().length > 0 || normalize(otrasMateriasEl.value) !== '');
+    });
   }
   if (materiasContainer) {
     materiasContainer.addEventListener('change', function (event) {
@@ -283,6 +327,12 @@
       return;
     }
     updateChipStates();
+    const role = String(rolEl?.value || 'estudiante');
+    if (role === 'estudiante') {
+      updateGroupValidation(studentFields?.querySelector('.mentor-panel'), studentLevelsFeedback, getSelectedLevels().length > 0);
+    } else {
+      updateGroupValidation(mentorFields?.querySelectorAll('.mentor-panel')[1], mentorLevelsFeedback, getSelectedLevels().length > 0);
+    }
   });
 
   bindPasswordToggles();
@@ -299,11 +349,22 @@
     const emailOk = updateEmailValidity();
     const nombreOk = updateRequiredInput(nombreEl, nombreFeedback, 'Ingresa tu nombre.');
     const passPolicy = updateChecklist();
+    updatePasswordFields(true);
     const rol = String(rolEl?.value || 'estudiante');
     const materias = getSelectedMaterias();
     const nivelesEducativos = getSelectedLevels();
+    const customSubjects = normalize(otrasMateriasEl?.value)
+      ? normalize(otrasMateriasEl?.value).split(',').map((item) => item.trim()).filter(Boolean)
+      : [];
+    const studentLevelsOk = rol !== 'estudiante' || nivelesEducativos.length > 0;
+    const mentorSubjectsOk = rol !== 'mentor' || materias.length > 0 || customSubjects.length > 0;
+    const mentorLevelsOk = rol !== 'mentor' || nivelesEducativos.length > 0;
 
-    if (!nombreOk) {
+    updateGroupValidation(studentFields?.querySelector('.mentor-panel'), studentLevelsFeedback, studentLevelsOk);
+    updateGroupValidation(mentorFields?.querySelectorAll('.mentor-panel')[0], materiasFeedback, mentorSubjectsOk);
+    updateGroupValidation(mentorFields?.querySelectorAll('.mentor-panel')[1], mentorLevelsFeedback, mentorLevelsOk);
+
+    if (!nombreOk || !studentLevelsOk || !mentorSubjectsOk || !mentorLevelsOk) {
       showError('Debes completar todos los campos obligatorios.');
       return;
     }
@@ -332,10 +393,6 @@
     }
 
     if (rol === 'mentor') {
-      const customSubjects = payload.otrasMaterias
-        ? payload.otrasMaterias.split(',').map((item) => item.trim()).filter(Boolean)
-        : [];
-
       if (materias.length === 0 && customSubjects.length === 0) {
         showError('Selecciona o escribe al menos una materia para el mentor.');
         return;

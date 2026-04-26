@@ -23,6 +23,63 @@
     });
   }
 
+  function showConfirmDialog(options = {}) {
+    const {
+      title = 'Confirmar accion',
+      message = 'Estas seguro de continuar?',
+      confirmText = 'Salir sin guardar',
+      cancelText = 'Seguir editando',
+      tone = 'warning',
+    } = options;
+
+    return new Promise((resolve) => {
+      const previousDialog = document.querySelector('.mentorix-confirm-backdrop');
+      if (previousDialog) previousDialog.remove();
+
+      const backdrop = document.createElement('div');
+      backdrop.className = 'mentorix-confirm-backdrop';
+      backdrop.innerHTML = `
+        <div class="mentorix-confirm" role="dialog" aria-modal="true" aria-labelledby="mentorix-confirm-title">
+          <div class="mentorix-confirm__icon mentorix-confirm__icon--${esc(tone)}">
+            <i class="bi bi-exclamation-circle"></i>
+          </div>
+          <div class="mentorix-confirm__content">
+            <h2 id="mentorix-confirm-title">${esc(title)}</h2>
+            <p>${esc(message)}</p>
+          </div>
+          <div class="mentorix-confirm__actions">
+            <button type="button" class="btn btn-outline-dark rounded-pill px-4" data-confirm-cancel>${esc(cancelText)}</button>
+            <button type="button" class="btn btn-brand px-4" data-confirm-ok>${esc(confirmText)}</button>
+          </div>
+        </div>
+      `;
+
+      // Uso un modal propio para que el aviso tenga el mismo estilo que Mentorix.
+      document.body.appendChild(backdrop);
+      const cancelButton = backdrop.querySelector('[data-confirm-cancel]');
+      const okButton = backdrop.querySelector('[data-confirm-ok]');
+
+      function onKeydown(event) {
+        if (event.key !== 'Escape') return;
+        close(false);
+      }
+
+      function close(value) {
+        document.removeEventListener('keydown', onKeydown);
+        backdrop.remove();
+        resolve(value);
+      }
+
+      cancelButton?.focus();
+      cancelButton?.addEventListener('click', () => close(false));
+      okButton?.addEventListener('click', () => close(true));
+      backdrop.addEventListener('click', (event) => {
+        if (event.target === backdrop) close(false);
+      });
+      document.addEventListener('keydown', onKeydown);
+    });
+  }
+
   function activeKeyFromPath(pathname) {
     if (pathname.endsWith('/inicio-estudiante.html')) return 'inicio';
     if (pathname.endsWith('/dashboard.html')) return 'dashboard';
@@ -233,5 +290,6 @@
     mountNavbar,
     renderClasesCards,
     formatDate,
+    showConfirmDialog,
   };
 })(window);

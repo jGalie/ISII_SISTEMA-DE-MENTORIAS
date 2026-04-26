@@ -101,6 +101,16 @@ body {
   box-shadow: 0 0 0 0.25rem rgba(123, 44, 255, 0.08);
 }
 
+.input-shell.is-invalid,
+.select-shell.is-invalid,
+.textarea-shell.is-invalid,
+.input-shell:has(.is-invalid),
+.select-shell:has(.is-invalid),
+.textarea-shell:has(.is-invalid) {
+  border-color: #dc3545;
+  background: #fff7f7;
+}
+
 .input-shell i,
 .select-shell i {
   color: #8a95a8;
@@ -237,8 +247,18 @@ body {
   display: none !important;
 }
 
-.email-feedback.is-visible {
+.email-feedback.is-visible,
+.visual-feedback.is-visible {
   display: block !important;
+}
+
+.visual-feedback {
+  display: none !important;
+}
+
+.mentor-panel.is-invalid {
+  border: 1px solid #dc3545;
+  background: #fff7f7;
 }
 
 .checklist-card {
