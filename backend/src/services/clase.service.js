@@ -28,6 +28,7 @@ function validarDatosClase(data) {
   const id_materia = Number(data?.id_materia || data?.materiaId);
   const precio = Number(data?.precio);
   const ubicacion = String(data?.ubicacion || '').trim();
+  const cupo_maximo = Number(data?.cupo_maximo || data?.cupoMaximo || 1);
 
   if (!titulo || !descripcion || !fecha) {
     throw crearErrorApp('Titulo, descripcion y fecha son obligatorios.', 'VALIDATION_ERROR');
@@ -45,6 +46,10 @@ function validarDatosClase(data) {
     throw crearErrorApp('Debes ingresar un precio valido para la clase.', 'VALIDATION_ERROR');
   }
 
+  if (!Number.isInteger(cupo_maximo) || cupo_maximo < 1) {
+    throw crearErrorApp('Debes indicar un cupo maximo valido.', 'VALIDATION_ERROR');
+  }
+
   if (modalidad === 'presencial' && !ubicacion) {
     throw crearErrorApp('Debes indicar una ubicacion para una clase presencial.', 'VALIDATION_ERROR');
   }
@@ -57,6 +62,7 @@ function validarDatosClase(data) {
     id_materia,
     precio,
     ubicacion: modalidad === 'presencial' ? ubicacion : null,
+    cupo_maximo,
   };
 }
 
@@ -121,6 +127,9 @@ function crearServicioClase({ claseRepository, usuarioRepository, mentorMateriaR
       }
       if (!actorId || actorId !== clase.mentorId) {
         throw crearErrorApp('Solo el mentor creador puede editar esta clase.', 'FORBIDDEN');
+      }
+      if (payload.cupo_maximo < clase.cupoActual) {
+        throw crearErrorApp('El cupo maximo no puede ser menor al cupo actual.', 'VALIDATION_ERROR');
       }
 
       const hasSubject = await mentorMateriaRepository.exists(actorId, payload.id_materia);

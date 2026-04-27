@@ -4,6 +4,7 @@ function createUsuarioRoutes({ usuarioController }) {
   const router = Router();
 
   router.get('/', usuarioController.list);
+  router.get('/mentores/:id/publico', usuarioController.getPerfilPublicoMentor);
   router.get('/:id', usuarioController.getById);
   router.post('/', usuarioController.create);
   router.put('/:id', usuarioController.update);

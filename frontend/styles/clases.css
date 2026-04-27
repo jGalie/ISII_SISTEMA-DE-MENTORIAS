@@ -117,6 +117,29 @@ body {
   text-align: right;
 }
 
+.advanced-filters {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(130px, 1fr));
+  gap: 0.75rem;
+}
+
+.advanced-filters .form-control,
+.advanced-filters .form-select {
+  min-height: 2.8rem;
+  border-color: #e5e0ee;
+  border-radius: 999px;
+  padding-left: 1rem;
+  color: var(--text-main);
+  font-weight: 600;
+  box-shadow: none;
+}
+
+.advanced-filters .form-control:focus,
+.advanced-filters .form-select:focus {
+  border-color: rgba(123, 44, 255, 0.42);
+  box-shadow: 0 0 0 0.22rem rgba(123, 44, 255, 0.09);
+}
+
 .classes-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -187,6 +210,23 @@ body {
 .class-meta__item i {
   width: 1.1rem;
   color: #5d6881;
+}
+
+.class-status {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  padding: 0.3rem 0.65rem;
+  border-radius: 999px;
+  background: #edf9f2;
+  color: #17633a;
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.class-status.is-full {
+  background: #fff0f0;
+  color: #b02a37;
 }
 
 .class-card__description {
@@ -312,6 +352,10 @@ body {
   .classes-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+
+  .advanced-filters {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 575.98px) {
@@ -330,5 +374,9 @@ body {
 
   .class-date {
     max-width: none;
+  }
+
+  .advanced-filters {
+    grid-template-columns: 1fr;
   }
 }

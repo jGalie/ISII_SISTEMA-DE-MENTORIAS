@@ -172,6 +172,16 @@ async function ensureDatabaseSchema() {
     'ubicacion',
     'ALTER TABLE clases ADD COLUMN ubicacion VARCHAR(255) NULL AFTER precio'
   );
+  await ensureColumn(
+    'clases',
+    'cupo_maximo',
+    'ALTER TABLE clases ADD COLUMN cupo_maximo INT NOT NULL DEFAULT 1 AFTER ubicacion'
+  );
+  await ensureColumn(
+    'clases',
+    'cupo_actual',
+    'ALTER TABLE clases ADD COLUMN cupo_actual INT NOT NULL DEFAULT 0 AFTER cupo_maximo'
+  );
 
   await pool.query(`
     CREATE TABLE IF NOT EXISTS mentor_materias (
@@ -194,6 +204,33 @@ async function ensureDatabaseSchema() {
       FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario),
       FOREIGN KEY (id_clase) REFERENCES clases(id_clase),
       CONSTRAINT uq_inscripcion_usuario_clase UNIQUE (id_usuario, id_clase)
+    )
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS valoraciones (
+      id_valoracion INT AUTO_INCREMENT PRIMARY KEY,
+      id_clase INT NOT NULL,
+      id_estudiante INT NOT NULL,
+      id_mentor INT NOT NULL,
+      estrellas TINYINT NOT NULL,
+      comentario TEXT NULL,
+      fecha DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (id_clase) REFERENCES clases(id_clase),
+      FOREIGN KEY (id_estudiante) REFERENCES usuarios(id_usuario),
+      FOREIGN KEY (id_mentor) REFERENCES usuarios(id_usuario),
+      CONSTRAINT uq_valoracion_clase_estudiante UNIQUE (id_clase, id_estudiante),
+      CONSTRAINT chk_valoracion_estrellas CHECK (estrellas BETWEEN 1 AND 5)
+    )
+  `);
+
+  await pool.query(`
+    UPDATE clases c
+    SET c.cupo_actual = (
+      SELECT COUNT(*)
+      FROM inscripciones i
+      WHERE i.id_clase = c.id_clase
+        AND i.estado = 'aceptada'
     )
   `);
 
@@ -244,8 +281,8 @@ async function ensureDatabaseSchema() {
 
   await pool.query(
     `
-      INSERT INTO clases (titulo, descripcion, fecha, modalidad, id_mentor, id_materia, precio, ubicacion)
-      SELECT ?, ?, ?, ?, u.id_usuario, m.id_materia, ?, ?
+      INSERT INTO clases (titulo, descripcion, fecha, modalidad, id_mentor, id_materia, precio, ubicacion, cupo_maximo, cupo_actual)
+      SELECT ?, ?, ?, ?, u.id_usuario, m.id_materia, ?, ?, ?, 0
       FROM usuarios u
       INNER JOIN materias m ON LOWER(m.nombre) = LOWER(?)
       WHERE u.email = ?
@@ -260,6 +297,7 @@ async function ensureDatabaseSchema() {
       'virtual',
       12000,
       null,
+      6,
       'Ingenieria de Software II',
       'mentor@mentorix.com',
       'Mentoria de Arquitectura en Capas',
@@ -268,8 +306,8 @@ async function ensureDatabaseSchema() {
 
   await pool.query(
     `
-      INSERT INTO clases (titulo, descripcion, fecha, modalidad, id_mentor, id_materia, precio, ubicacion)
-      SELECT ?, ?, ?, ?, u.id_usuario, m.id_materia, ?, ?
+      INSERT INTO clases (titulo, descripcion, fecha, modalidad, id_mentor, id_materia, precio, ubicacion, cupo_maximo, cupo_actual)
+      SELECT ?, ?, ?, ?, u.id_usuario, m.id_materia, ?, ?, ?, 0
       FROM usuarios u
       INNER JOIN materias m ON LOWER(m.nombre) = LOWER(?)
       WHERE u.email = ?
@@ -284,6 +322,7 @@ async function ensureDatabaseSchema() {
       'presencial',
       15000,
       'Aula 204, Sede Centro',
+      8,
       'Bases de Datos',
       'mentor@mentorix.com',
       'API REST con Express y MySQL',

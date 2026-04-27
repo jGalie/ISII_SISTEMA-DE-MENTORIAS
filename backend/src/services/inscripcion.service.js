@@ -30,6 +30,9 @@ function createInscripcionService({ inscripcionRepository, claseRepository, usua
       if (!clase) {
         throw createAppError('La clase indicada no existe.', 'NOT_FOUND');
       }
+      if (clase.completa) {
+        throw createAppError('La clase ya no tiene cupos disponibles.', 'VALIDATION_ERROR');
+      }
       if (clase.mentorId === id_usuario) {
         throw createAppError('No puedes inscribirte en tu propia clase.', 'VALIDATION_ERROR');
       }
@@ -82,6 +85,21 @@ function createInscripcionService({ inscripcionRepository, claseRepository, usua
         if (inscripcion.mentorId !== mentorId) {
           throw createAppError('No puedes gestionar inscripciones de otra clase.', 'FORBIDDEN');
         }
+      }
+
+      if (estado === 'aceptada' && inscripcion.estado !== 'aceptada') {
+        const clase = await claseRepository.buscarPorId(inscripcion.claseId);
+        if (!clase) {
+          throw createAppError('La clase indicada no existe.', 'NOT_FOUND');
+        }
+        if (clase.completa) {
+          throw createAppError('La clase ya no tiene cupos disponibles.', 'VALIDATION_ERROR');
+        }
+        await claseRepository.incrementarCupoActual(inscripcion.claseId);
+      }
+
+      if (inscripcion.estado === 'aceptada' && estado !== 'aceptada') {
+        await claseRepository.decrementarCupoActual(inscripcion.claseId);
       }
 
       return inscripcionRepository.updateEstado(idInscripcion, estado);

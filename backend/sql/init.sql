@@ -3,6 +3,7 @@ USE mentorias_bd;
 
 SET FOREIGN_KEY_CHECKS = 0;
 DROP TABLE IF EXISTS mensajes;
+DROP TABLE IF EXISTS valoraciones;
 DROP TABLE IF EXISTS materiales;
 DROP TABLE IF EXISTS seguimientos;
 DROP TABLE IF EXISTS inscripciones;
@@ -42,6 +43,8 @@ CREATE TABLE clases (
   id_materia INT NULL,
   precio DECIMAL(10,2) NULL,
   ubicacion VARCHAR(255) NULL,
+  cupo_maximo INT NOT NULL DEFAULT 1,
+  cupo_actual INT NOT NULL DEFAULT 0,
   FOREIGN KEY (id_mentor) REFERENCES usuarios(id_usuario)
 );
 
@@ -65,6 +68,21 @@ CREATE TABLE inscripciones (
   CONSTRAINT uq_inscripcion_usuario_clase UNIQUE (id_usuario, id_clase)
 );
 
+CREATE TABLE valoraciones (
+  id_valoracion INT AUTO_INCREMENT PRIMARY KEY,
+  id_clase INT NOT NULL,
+  id_estudiante INT NOT NULL,
+  id_mentor INT NOT NULL,
+  estrellas TINYINT NOT NULL,
+  comentario TEXT NULL,
+  fecha DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (id_clase) REFERENCES clases(id_clase),
+  FOREIGN KEY (id_estudiante) REFERENCES usuarios(id_usuario),
+  FOREIGN KEY (id_mentor) REFERENCES usuarios(id_usuario),
+  CONSTRAINT uq_valoracion_clase_estudiante UNIQUE (id_clase, id_estudiante),
+  CONSTRAINT chk_valoracion_estrellas CHECK (estrellas BETWEEN 1 AND 5)
+);
+
 INSERT INTO usuarios (nombre, email, password_hash, rol, niveles_educativos) VALUES
 ('Mentor Demo', 'mentor@mentorix.com', '$2a$10$nbSbLJy8ssc6yeBDeJznTOo/8r03KSWi9h.zDSPsxM0SVVDod9aFu', 'mentor', '["secundaria","universitario"]');
 
@@ -84,7 +102,7 @@ INSERT INTO mentor_materias (id_mentor, id_materia) VALUES
 (1, 1),
 (1, 2);
 
-INSERT INTO clases (titulo, descripcion, fecha, modalidad, id_mentor, id_materia, precio, ubicacion) VALUES
+INSERT INTO clases (titulo, descripcion, fecha, modalidad, id_mentor, id_materia, precio, ubicacion, cupo_maximo, cupo_actual) VALUES
 (
   'Mentoria de Arquitectura en Capas',
   'Sesion practica para entender controllers, services y repositories en aplicaciones Node.js.',
@@ -93,7 +111,9 @@ INSERT INTO clases (titulo, descripcion, fecha, modalidad, id_mentor, id_materia
   1,
   1,
   12000,
-  NULL
+  NULL,
+  6,
+  0
 ),
 (
   'API REST con Express y MySQL',
@@ -103,5 +123,7 @@ INSERT INTO clases (titulo, descripcion, fecha, modalidad, id_mentor, id_materia
   1,
   2,
   15000,
-  'Aula 204, Sede Centro'
+  'Aula 204, Sede Centro',
+  8,
+  0
 );

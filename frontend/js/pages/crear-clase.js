@@ -33,6 +33,7 @@
   const ayudaMateria = document.getElementById('materia-help');
   const selectorModalidad = document.getElementById('modalidad');
   const inputPrecio = document.getElementById('precio');
+  const inputCupoMaximo = document.getElementById('cupo-maximo');
   const contenedorUbicacion = document.getElementById('ubicacion-wrapper');
   const inputUbicacion = document.getElementById('ubicacion');
   let formDirty = false;
@@ -66,7 +67,7 @@
   }
 
   function clearValidationErrors() {
-    ['materia', 'titulo', 'descripcion', 'fecha', 'precio', 'ubicacion'].forEach((id) => {
+    ['materia', 'titulo', 'descripcion', 'fecha', 'precio', 'cupo-maximo', 'ubicacion'].forEach((id) => {
       clearFieldError(document.getElementById(id));
     });
   }
@@ -89,6 +90,7 @@
     const descripcion = document.getElementById('descripcion');
     const fecha = document.getElementById('fecha');
     const precioValue = Number(inputPrecio.value);
+    const cupoValue = Number(inputCupoMaximo.value);
     const modalidad = selectorModalidad.value;
     const ubicacion = inputUbicacion.value.trim();
 
@@ -110,6 +112,10 @@
     }
     if (!Number.isFinite(precioValue) || precioValue < 0) {
       setFieldError(inputPrecio, 'Ingresa un precio valido.');
+      ok = false;
+    }
+    if (!Number.isInteger(cupoValue) || cupoValue < 1) {
+      setFieldError(inputCupoMaximo, 'Ingresa un cupo valido.');
       ok = false;
     }
     if (modalidad === 'presencial' && !ubicacion) {
@@ -199,6 +205,7 @@
       document.getElementById('descripcion').value = datosClase.descripcion || '';
       document.getElementById('modalidad').value = datosClase.modalidad || 'virtual';
       document.getElementById('precio').value = datosClase.precio != null ? datosClase.precio : '';
+      document.getElementById('cupo-maximo').value = datosClase.cupoMaximo || 1;
       document.getElementById('ubicacion').value = datosClase.ubicacion || '';
       if (datosClase.fecha) {
         const fechaClase = new Date(datosClase.fecha);
@@ -214,6 +221,10 @@
     mostrarMensaje('danger', error.message);
     alternarDisponibilidadFormulario(false);
     return;
+  }
+
+  if (!inputCupoMaximo.value) {
+    inputCupoMaximo.value = '1';
   }
 
   if (selectorModalidad) {
@@ -271,11 +282,16 @@
     }
 
     const precio = Number(inputPrecio.value);
+    const cupoMaximo = Number(inputCupoMaximo.value);
     const modalidad = document.getElementById('modalidad').value;
     const ubicacion = inputUbicacion.value.trim();
 
     if (!Number.isFinite(precio) || precio < 0) {
       mostrarMensaje('danger', 'Debes ingresar un precio valido.');
+      return;
+    }
+    if (!Number.isInteger(cupoMaximo) || cupoMaximo < 1) {
+      mostrarMensaje('danger', 'Debes ingresar un cupo valido.');
       return;
     }
 
@@ -291,6 +307,7 @@
       modalidad,
       materiaId: Number(selectorMateria.value),
       precio,
+      cupoMaximo,
       ubicacion: modalidad === 'presencial' ? ubicacion : null,
       mentorId: usuario.id,
     };

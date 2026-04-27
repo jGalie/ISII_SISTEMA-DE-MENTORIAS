@@ -25,6 +25,15 @@ function createUsuarioController({ usuarioService }) {
       }
     },
 
+    async getPerfilPublicoMentor(req, res) {
+      try {
+        const data = await usuarioService.obtenerPerfilPublicoMentor(req.params.id);
+        res.json({ data });
+      } catch (err) {
+        res.status(resolveStatus(err)).json({ error: err.message });
+      }
+    },
+
     async create(req, res) {
       try {
         const data = await usuarioService.crear(req.body || {});

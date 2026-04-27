@@ -51,6 +51,35 @@
 
           <div class="clases-count" id="clases-count"></div>
         </div>
+
+        <div class="advanced-filters mt-3">
+          <select id="filter-materia" class="form-select" aria-label="Filtrar por materia">
+            <option value="">Todas las materias</option>
+          </select>
+          <select id="filter-nivel" class="form-select" aria-label="Filtrar por nivel educativo">
+            <option value="">Todos los niveles</option>
+            <option value="primaria">Primaria</option>
+            <option value="secundaria">Secundaria</option>
+            <option value="terciario">Terciario</option>
+            <option value="universitario">Universitario</option>
+            <option value="posgrado">Posgrado</option>
+            <option value="adultos">Adultos</option>
+          </select>
+          <input id="filter-precio" class="form-control" type="number" min="0" step="100" placeholder="Precio máximo" />
+          <input id="filter-fecha" class="form-control" type="date" aria-label="Filtrar por día" />
+          <select id="filter-horario" class="form-select" aria-label="Filtrar por horario">
+            <option value="">Cualquier horario</option>
+            <option value="manana">Mañana</option>
+            <option value="tarde">Tarde</option>
+            <option value="noche">Noche</option>
+          </select>
+          <select id="filter-valoracion" class="form-select" aria-label="Filtrar por valoración">
+            <option value="">Cualquier valoración</option>
+            <option value="4">4+ estrellas</option>
+            <option value="3">3+ estrellas</option>
+            <option value="2">2+ estrellas</option>
+          </select>
+        </div>
       </section>
 
       <div id="clases-error" class="alert alert-danger d-none" role="alert"></div>

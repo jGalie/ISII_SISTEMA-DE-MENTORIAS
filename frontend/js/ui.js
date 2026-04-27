@@ -86,6 +86,7 @@
     if (pathname.endsWith('/clases.html')) return 'clases';
     if (pathname.endsWith('/crear-clase.html')) return 'crear';
     if (pathname.endsWith('/detalle-clase.html')) return 'clases';
+    if (pathname.endsWith('/mentor.html')) return 'clases';
     if (pathname.endsWith('/perfil.html')) return 'perfil';
     if (pathname.endsWith('/login.html')) return 'login';
     if (pathname.endsWith('/register.html')) return 'register';

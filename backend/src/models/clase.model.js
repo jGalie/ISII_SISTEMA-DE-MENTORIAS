@@ -16,6 +16,11 @@
  * @property {?string} materiaNombre
  * @property {?number} precio
  * @property {?string} ubicacion
+ * @property {number} cupoMaximo
+ * @property {number} cupoActual
+ * @property {boolean} completa
+ * @property {?number} promedioEstrellas
+ * @property {number} cantidadValoraciones
  * @property {string} mentorNombre
  * @property {string} mentorEmail
  */
@@ -27,6 +32,14 @@
  */
 function mapearClase(row) {
   if (!row) return null;
+  let mentorNivelesEducativos = [];
+  if (typeof row.mentor_niveles_educativos === 'string' && row.mentor_niveles_educativos.trim()) {
+    try {
+      mentorNivelesEducativos = JSON.parse(row.mentor_niveles_educativos);
+    } catch {
+      mentorNivelesEducativos = [];
+    }
+  }
   return {
     id: row.id ?? row.id_clase,
     titulo: row.titulo,
@@ -38,8 +51,17 @@ function mapearClase(row) {
     materiaNombre: row.materiaNombre ?? row.materia_nombre ?? null,
     precio: row.precio != null ? Number(row.precio) : null,
     ubicacion: row.ubicacion ?? null,
+    cupoMaximo: Number(row.cupoMaximo ?? row.cupo_maximo ?? 1),
+    cupoActual: Number(row.cupoActual ?? row.cupo_actual ?? 0),
+    completa: Number(row.cupoActual ?? row.cupo_actual ?? 0) >= Number(row.cupoMaximo ?? row.cupo_maximo ?? 1),
+    promedioEstrellas:
+      row.promedioEstrellas != null || row.promedio_estrellas != null
+        ? Number(row.promedioEstrellas ?? row.promedio_estrellas)
+        : null,
+    cantidadValoraciones: Number(row.cantidadValoraciones ?? row.cantidad_valoraciones ?? 0),
     mentorNombre: row.mentorNombre ?? row.mentor_nombre ?? null,
     mentorEmail: row.mentorEmail ?? row.mentor_email ?? null,
+    mentorNivelesEducativos,
   };
 }
 

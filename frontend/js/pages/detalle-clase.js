@@ -16,7 +16,44 @@
   const editLink = document.getElementById('dc-edit');
   const enrollButton = document.getElementById('dc-enroll');
   const dashboardLink = document.getElementById('dc-dashboard');
+  const reviewSection = document.getElementById('review-section');
+  const reviewsList = document.getElementById('reviews-list');
+  const reviewForm = document.getElementById('review-form');
+  const reviewStars = document.getElementById('review-stars');
+  const reviewComment = document.getElementById('review-comment');
+  const reviewSubmit = document.getElementById('review-submit');
   const user = MentoriasAuth.getUser();
+
+  function esc(value) {
+    return String(value == null ? '' : value)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  async function renderReviews(classId) {
+    const response = await MentoriasApi.getValoracionesClase(classId);
+    const reviews = Array.isArray(response.data) ? response.data : [];
+    reviewsList.innerHTML = reviews.length
+      ? reviews
+          .map(
+            (review) => `
+              <article class="review-item">
+                <div class="d-flex justify-content-between gap-3">
+                  <strong>${esc(review.estudianteNombre || 'Estudiante')}</strong>
+                  <span class="text-warning">${'★'.repeat(review.estrellas)}${'☆'.repeat(5 - review.estrellas)}</span>
+                </div>
+                <p class="mb-0 text-muted">${esc(review.comentario || 'Sin comentario.')}</p>
+              </article>
+            `
+          )
+          .join('')
+      : '<div class="text-muted">Todavia no hay valoraciones para esta clase.</div>';
+    reviewSection.classList.remove('d-none');
+    return reviews;
+  }
 
   if (!id) {
     err.classList.remove('d-none');
@@ -41,6 +78,10 @@
       data.modalidad === 'presencial' ? 'Presencial' : 'Virtual';
     document.getElementById('dc-precio').textContent =
       data.precio != null ? `$${Number(data.precio).toLocaleString('es-AR')}` : 'A coordinar';
+    document.getElementById('dc-cupos').textContent = `${data.cupoActual || 0}/${data.cupoMaximo || 1} ${data.completa ? '(completa)' : 'disponibles'}`;
+    document.getElementById('dc-rating').textContent = data.promedioEstrellas
+      ? `${Number(data.promedioEstrellas).toFixed(1)} estrellas (${data.cantidadValoraciones})`
+      : 'Sin valoraciones';
     document.getElementById('dc-ubicacion').textContent =
       data.modalidad === 'presencial' ? data.ubicacion || 'No informada' : 'No aplica';
 
@@ -62,6 +103,10 @@
         dashboardLink.classList.remove('d-none');
       } else {
         enrollButton.classList.remove('d-none');
+        if (data.completa) {
+          enrollButton.textContent = 'Clase completa';
+          enrollButton.disabled = true;
+        }
         enrollButton.addEventListener('click', async function () {
           this.disabled = true;
           err.classList.add('d-none');
@@ -84,6 +129,41 @@
           }
         });
       }
+    }
+
+    const reviews = await renderReviews(data.id);
+    const currentUserReview = reviews.find((review) => Number(review.estudianteId) === Number(user?.id));
+    if (user && user.rol === 'estudiante' && currentUserReview) {
+      reviewForm.classList.add('d-none');
+    } else if (user && user.rol === 'estudiante') {
+      const inscripcionesResponse = await MentoriasApi.getInscripcionesUsuario(user.id);
+      const inscripciones = Array.isArray(inscripcionesResponse.data) ? inscripcionesResponse.data : [];
+      const accepted = inscripciones.some((item) => Number(item.claseId) === Number(data.id) && item.estado === 'aceptada');
+      if (accepted) reviewForm.classList.remove('d-none');
+    }
+
+    if (reviewForm && user && user.rol === 'estudiante') {
+      reviewForm.addEventListener('submit', async function (event) {
+        event.preventDefault();
+        reviewSubmit.disabled = true;
+        err.classList.add('d-none');
+        try {
+          await MentoriasApi.crearValoracion({
+            claseId: data.id,
+            estudianteId: user.id,
+            estrellas: Number(reviewStars.value),
+            comentario: reviewComment.value,
+          });
+          reviewForm.classList.add('d-none');
+          success.textContent = 'Valoracion enviada correctamente.';
+          success.classList.remove('d-none');
+          await renderReviews(data.id);
+        } catch (error) {
+          err.classList.remove('d-none');
+          err.textContent = error.message;
+          reviewSubmit.disabled = false;
+        }
+      });
     }
 
     if (!user) {

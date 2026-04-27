@@ -73,7 +73,7 @@ function buildProfileResponse(user, materias = []) {
   };
 }
 
-function createUsuarioService({ usuarioRepository }) {
+function createUsuarioService({ usuarioRepository, claseRepository, valoracionRepository }) {
   return {
     async listar() {
       return usuarioRepository.findAll();
@@ -96,6 +96,42 @@ function createUsuarioService({ usuarioRepository }) {
       }
 
       return buildProfileResponse(user, materias);
+    },
+
+    async obtenerPerfilPublicoMentor(id) {
+      const mentor = await usuarioRepository.findById(id);
+      if (!mentor || mentor.rol !== 'mentor') {
+        throw createAppError('Mentor no encontrado.', 'NOT_FOUND');
+      }
+
+      const materiasLinks = await mentorMateriaRepository.findByMentorId(mentor.id);
+      const clases = claseRepository ? await claseRepository.buscarPorMentor(mentor.id) : [];
+      const valoraciones = valoracionRepository
+        ? await valoracionRepository.buscarPorMentor(mentor.id)
+        : [];
+      const resumenValoraciones = valoracionRepository
+        ? await valoracionRepository.promedioPorMentor(mentor.id)
+        : { promedio: null, cantidad: 0 };
+
+      return {
+        id: mentor.id,
+        nombre: mentor.nombre,
+        rol: mentor.rol,
+        ubicacion: mentor.ubicacion || '',
+        mentorBio: mentor.mentorBio || '',
+        mentorExperiencia: mentor.mentorExperiencia || '',
+        mentorLink: mentor.mentorLink || '',
+        nivelesEducativos: mentor.nivelesEducativos || [],
+        materias: materiasLinks.map((item) => ({
+          id: item.materiaId,
+          nombre: item.materiaNombre,
+          codigo: item.materiaCodigo,
+        })),
+        clases,
+        promedioEstrellas: resumenValoraciones.promedio,
+        cantidadValoraciones: resumenValoraciones.cantidad,
+        valoraciones,
+      };
     },
 
     async crear(body) {

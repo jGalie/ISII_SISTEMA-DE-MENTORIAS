@@ -104,6 +104,9 @@
     getUsuario(id) {
       return pedirJson(`/usuarios/${encodeURIComponent(id)}`);
     },
+    getMentorPublico(id) {
+      return pedirJson(`/usuarios/mentores/${encodeURIComponent(id)}/publico`);
+    },
     updateUsuario(id, payload) {
       return pedirJson(`/usuarios/${encodeURIComponent(id)}`, {
         method: 'PUT',
@@ -127,6 +130,18 @@
         method: 'POST',
         body: JSON.stringify(payload),
       });
+    },
+    crearValoracion(payload) {
+      return pedirJson('/valoraciones', {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      });
+    },
+    getValoracionesClase(idClase) {
+      return pedirJson(`/valoraciones/clase/${encodeURIComponent(idClase)}`);
+    },
+    getValoracionesMentor(idMentor) {
+      return pedirJson(`/valoraciones/mentor/${encodeURIComponent(idMentor)}`);
     },
     pedirJson,
   };

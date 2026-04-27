@@ -16,6 +16,12 @@
   const count = document.getElementById('clases-count');
   const createButton = document.getElementById('btn-crear-clase');
   const filterButtons = document.querySelectorAll('[data-filter]');
+  const materiaFilter = document.getElementById('filter-materia');
+  const nivelFilter = document.getElementById('filter-nivel');
+  const precioFilter = document.getElementById('filter-precio');
+  const fechaFilter = document.getElementById('filter-fecha');
+  const horarioFilter = document.getElementById('filter-horario');
+  const valoracionFilter = document.getElementById('filter-valoracion');
   const eyebrow = document.getElementById('clases-eyebrow');
   const title = document.getElementById('clases-title');
   const subtitle = document.getElementById('clases-subtitle');
@@ -79,8 +85,30 @@
     });
   }
 
+  function formatDateInput(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
   function modalityLabel(value) {
     return value === 'presencial' ? 'Presencial' : 'Virtual';
+  }
+
+  function populateMateriaFilter(items) {
+    const materias = Array.from(
+      new Map(
+        items
+          .filter((clase) => clase.materiaId && clase.materiaNombre)
+          .map((clase) => [String(clase.materiaId), clase.materiaNombre])
+      ).entries()
+    );
+
+    materiaFilter.innerHTML = '<option value="">Todas las materias</option>' +
+      materias
+        .map(([id, nombre]) => `<option value="${escapeHtml(id)}">${escapeHtml(nombre)}</option>`)
+        .join('');
   }
 
   function buildClassCard(clase) {
@@ -103,8 +131,11 @@
       : '';
     const enrollButton =
       canEnroll && !enrollment
-        ? `<button class="btn btn-detail btn-sm px-3 enroll-clase-btn" data-id="${encodeURIComponent(clase.id)}" type="button">Inscribirse</button>`
+        ? `<button class="btn btn-detail btn-sm px-3 enroll-clase-btn" data-id="${encodeURIComponent(clase.id)}" type="button" ${clase.completa ? 'disabled' : ''}>${clase.completa ? 'Completa' : 'Inscribirse'}</button>`
         : enrollmentAction;
+    const rating = clase.promedioEstrellas
+      ? `<div class="class-meta__item"><i class="bi bi-star-fill"></i><span>${Number(clase.promedioEstrellas).toFixed(1)} (${clase.cantidadValoraciones})</span></div>`
+      : '';
 
     return `
       <article class="class-card">
@@ -116,7 +147,7 @@
         <div class="class-meta">
           <div class="class-meta__item">
             <i class="bi bi-person-circle"></i>
-            <span>${escapeHtml(clase.mentorNombre || 'Mentor')}</span>
+            <a href="/pages/mentor.html?id=${encodeURIComponent(clase.mentorId)}">${escapeHtml(clase.mentorNombre || 'Mentor')}</a>
           </div>
           <div class="class-meta__item">
             <i class="bi bi-journal-bookmark"></i>
@@ -130,12 +161,21 @@
             <i class="bi bi-cash-coin"></i>
             <span>${escapeHtml(clase.precio != null ? `$${Number(clase.precio).toLocaleString('es-AR')}` : 'Precio a coordinar')}</span>
           </div>
+          <div class="class-meta__item">
+            <i class="bi bi-people"></i>
+            <span>${escapeHtml(`${clase.cupoActual || 0}/${clase.cupoMaximo || 1} cupos`)}</span>
+          </div>
+          ${rating}
           ${
             clase.modalidad === 'presencial' && clase.ubicacion
               ? `<div class="class-meta__item"><i class="bi bi-pin-map"></i><span>${escapeHtml(clase.ubicacion)}</span></div>`
               : ''
           }
         </div>
+
+        <span class="class-status ${clase.completa ? 'is-full' : ''}">
+          ${clase.completa ? 'Clase completa' : 'Cupos disponibles'}
+        </span>
 
         <p class="class-card__description">${escapeHtml(clase.descripcion || 'Sin descripcion.')}</p>
 
@@ -225,7 +265,24 @@
       const searchable = [clase.titulo, clase.descripcion, clase.mentorNombre, clase.materiaNombre].map(normalize).join(' ');
       const matchesSearch = !term || searchable.includes(term);
       const matchesModality = activeFilter === 'todas' || normalize(clase.modalidad) === activeFilter;
-      return matchesSearch && matchesModality;
+      const matchesSubject = !materiaFilter.value || String(clase.materiaId) === materiaFilter.value;
+      const mentorLevels = Array.isArray(clase.mentorNivelesEducativos) ? clase.mentorNivelesEducativos : [];
+      const matchesLevel = !nivelFilter.value || mentorLevels.includes(nivelFilter.value);
+      const maxPrice = Number(precioFilter.value);
+      const matchesPrice = !precioFilter.value || (clase.precio != null && Number(clase.precio) <= maxPrice);
+      const claseFecha = clase.fecha ? new Date(clase.fecha) : null;
+      const matchesDate =
+        !fechaFilter.value ||
+        (claseFecha && !Number.isNaN(claseFecha.getTime()) && formatDateInput(claseFecha) === fechaFilter.value);
+      const hour = claseFecha && !Number.isNaN(claseFecha.getTime()) ? claseFecha.getHours() : null;
+      const matchesSchedule =
+        !horarioFilter.value ||
+        (horarioFilter.value === 'manana' && hour != null && hour < 12) ||
+        (horarioFilter.value === 'tarde' && hour != null && hour >= 12 && hour < 19) ||
+        (horarioFilter.value === 'noche' && hour != null && hour >= 19);
+      const minRating = Number(valoracionFilter.value);
+      const matchesRating = !valoracionFilter.value || Number(clase.promedioEstrellas || 0) >= minRating;
+      return matchesSearch && matchesModality && matchesSubject && matchesLevel && matchesPrice && matchesDate && matchesSchedule && matchesRating;
     });
 
     render(filtered);
@@ -244,6 +301,7 @@
     ]);
 
     clases = Array.isArray(response.data) ? response.data : [];
+    populateMateriaFilter(clases);
     const inscripciones = Array.isArray(inscripcionesResponse.data) ? inscripcionesResponse.data : [];
     inscripcionesPorClase = Object.fromEntries(inscripciones.map((item) => [item.claseId, item]));
     hideError();
@@ -254,6 +312,10 @@
   }
 
   q.addEventListener('input', applyFilter);
+  [materiaFilter, nivelFilter, precioFilter, fechaFilter, horarioFilter, valoracionFilter].forEach((input) => {
+    input.addEventListener('input', applyFilter);
+    input.addEventListener('change', applyFilter);
+  });
   filterButtons.forEach((button) => {
     button.addEventListener('click', function () {
       activeFilter = this.getAttribute('data-filter') || 'todas';

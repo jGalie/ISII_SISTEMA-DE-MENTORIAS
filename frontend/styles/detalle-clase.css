@@ -9,3 +9,10 @@ body {
   border-radius: 1.75rem;
   box-shadow: 0 24px 60px rgba(32, 42, 68, 0.12);
 }
+
+.review-item {
+  border: 1px solid #f0e7ff;
+  border-radius: 1rem;
+  padding: 1rem;
+  background: #fff;
+}
