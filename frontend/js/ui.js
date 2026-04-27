@@ -11,9 +11,9 @@
   }
 
   function formatDate(iso) {
-    if (!iso) return '—';
+    if (!iso) return '-';
     const date = new Date(iso);
-    if (Number.isNaN(date.getTime())) return '—';
+    if (Number.isNaN(date.getTime())) return '-';
     return date.toLocaleString('es-AR', {
       day: '2-digit',
       month: 'short',
@@ -137,13 +137,13 @@
 <nav class="mentorix-navbar navbar navbar-expand-lg border-bottom sticky-top">
   <div class="container py-2">
     ${brand}
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMain" aria-controls="navMain" aria-expanded="false" aria-label="Abrir navegación">
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMain" aria-controls="navMain" aria-expanded="false" aria-label="Abrir navegacion">
       <span class="navbar-toggler-icon"></span>
     </button>
     <div class="collapse navbar-collapse" id="navMain">
       <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-2">
         <li class="nav-item"><a class="nav-link ${activeKey === 'inicio' ? 'active fw-semibold' : ''}" href="/index.html">Inicio</a></li>
-        <li class="nav-item"><a class="nav-link ${activeKey === 'login' ? 'active fw-semibold' : ''}" href="/pages/login.html">Iniciar sesión</a></li>
+        <li class="nav-item"><a class="nav-link ${activeKey === 'login' ? 'active fw-semibold' : ''}" href="/pages/login.html">Iniciar sesion</a></li>
         <li class="nav-item"><a class="btn btn-dark rounded-pill px-4" href="/pages/register.html">Registrarse</a></li>
       </ul>
     </div>
@@ -164,7 +164,7 @@
 <nav class="mentorix-navbar navbar navbar-expand-lg border-bottom sticky-top">
   <div class="container py-2">
     ${brand}
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMain" aria-controls="navMain" aria-expanded="false" aria-label="Abrir navegación">
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMain" aria-controls="navMain" aria-expanded="false" aria-label="Abrir navegacion">
       <span class="navbar-toggler-icon"></span>
     </button>
     <div class="collapse navbar-collapse" id="navMain">
@@ -181,7 +181,7 @@
             <li><h6 class="dropdown-header">${esc(user.email || roleLabel)}</h6></li>
             <li><a class="dropdown-item" href="/pages/perfil.html"><i class="bi bi-person-gear me-2"></i>Modificar perfil</a></li>
             <li><hr class="dropdown-divider"></li>
-            <li><button id="btn-logout" class="dropdown-item" type="button"><i class="bi bi-box-arrow-right me-2"></i>Cerrar sesión</button></li>
+            <li><button id="btn-logout" class="dropdown-item" type="button"><i class="bi bi-box-arrow-right me-2"></i>Cerrar sesion</button></li>
           </ul>
         </li>
       </ul>
@@ -194,7 +194,7 @@
 <nav class="mentorix-navbar navbar navbar-expand-lg border-bottom sticky-top">
   <div class="container py-2">
     ${brand}
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMain" aria-controls="navMain" aria-expanded="false" aria-label="Abrir navegación">
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMain" aria-controls="navMain" aria-expanded="false" aria-label="Abrir navegacion">
       <span class="navbar-toggler-icon"></span>
     </button>
     <div class="collapse navbar-collapse" id="navMain">
@@ -211,7 +211,7 @@
             <li><h6 class="dropdown-header">${esc(user.email || roleLabel)}</h6></li>
             <li><a class="dropdown-item" href="/pages/perfil.html"><i class="bi bi-person-gear me-2"></i>Modificar perfil</a></li>
             <li><hr class="dropdown-divider"></li>
-            <li><button id="btn-logout" class="dropdown-item" type="button"><i class="bi bi-box-arrow-right me-2"></i>Cerrar sesión</button></li>
+            <li><button id="btn-logout" class="dropdown-item" type="button"><i class="bi bi-box-arrow-right me-2"></i>Cerrar sesion</button></li>
           </ul>
         </li>
       </ul>
@@ -274,11 +274,11 @@
         const enrollment = enrollmentByClassId[clase.id];
         const enrollmentLabels = {
           pendiente: 'Solicitud pendiente',
-          aceptada: 'Inscripción aceptada',
+          aceptada: 'Inscripcion aceptada',
           rechazada: 'Solicitud rechazada',
         };
         const enrollmentAction = enrollment
-          ? `<button class="btn btn-outline-secondary btn-sm rounded-pill px-3" type="button" disabled>${esc(enrollmentLabels[enrollment.estado] || 'Inscripción registrada')}</button>`
+          ? `<button class="btn btn-outline-secondary btn-sm rounded-pill px-3" type="button" disabled>${esc(enrollmentLabels[enrollment.estado] || 'Inscripcion registrada')}</button>`
           : '';
         const enrollButton =
           canEnroll && !enrollment
@@ -300,7 +300,7 @@
         </div>
         <span class="badge rounded-pill text-bg-light border">${esc(formatDate(clase.fecha))}</span>
       </div>
-      <p class="text-muted flex-grow-1 mb-4">${esc(clase.descripcion || 'Sin descripción.')}</p>
+      <p class="text-muted flex-grow-1 mb-4">${esc(clase.descripcion || 'Sin descripcion.')}</p>
       <div class="d-flex gap-2 flex-wrap mt-auto">
         <a class="btn btn-outline-dark btn-sm rounded-pill px-3" href="/pages/detalle-clase.html?id=${encodeURIComponent(clase.id)}">Ver detalle</a>
         ${enrollButton}

@@ -95,7 +95,10 @@ function createInscripcionService({ inscripcionRepository, claseRepository, usua
         if (clase.completa) {
           throw createAppError('La clase ya no tiene cupos disponibles.', 'VALIDATION_ERROR');
         }
-        await claseRepository.incrementarCupoActual(inscripcion.claseId);
+        const claseActualizada = await claseRepository.incrementarCupoActual(inscripcion.claseId);
+        if (!claseActualizada) {
+          throw createAppError('La clase ya no tiene cupos disponibles.', 'VALIDATION_ERROR');
+        }
       }
 
       if (inscripcion.estado === 'aceptada' && estado !== 'aceptada') {

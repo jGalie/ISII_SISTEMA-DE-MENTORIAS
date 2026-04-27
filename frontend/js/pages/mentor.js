@@ -1,5 +1,4 @@
 (async function () {
-  if (!MentoriasAuth.requireAuth()) return;
   await MentoriasUI.mountNavbar();
 
   const params = new URLSearchParams(window.location.search);
@@ -18,7 +17,7 @@
 
   function stars(value) {
     const rating = Math.round(Number(value || 0));
-    return '★'.repeat(rating) + '☆'.repeat(Math.max(0, 5 - rating));
+    return '\u2605'.repeat(rating) + '\u2606'.repeat(Math.max(0, 5 - rating));
   }
 
   function renderTags(items, emptyText) {

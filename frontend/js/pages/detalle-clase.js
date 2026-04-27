@@ -43,7 +43,7 @@
               <article class="review-item">
                 <div class="d-flex justify-content-between gap-3">
                   <strong>${esc(review.estudianteNombre || 'Estudiante')}</strong>
-                  <span class="text-warning">${'★'.repeat(review.estrellas)}${'☆'.repeat(5 - review.estrellas)}</span>
+                  <span class="text-warning">${'\u2605'.repeat(review.estrellas)}${'\u2606'.repeat(5 - review.estrellas)}</span>
                 </div>
                 <p class="mb-0 text-muted">${esc(review.comentario || 'Sin comentario.')}</p>
               </article>
@@ -57,7 +57,7 @@
 
   if (!id) {
     err.classList.remove('d-none');
-    err.textContent = 'Falta el parámetro id en la URL.';
+    err.textContent = 'Falta el parametro id en la URL.';
     return;
   }
 
@@ -68,7 +68,7 @@
 
     // La respuesta del backend se proyecta directamente sobre la ficha visual.
     document.getElementById('dc-titulo').textContent = data.titulo;
-    document.getElementById('dc-desc').textContent = data.descripcion || 'Sin descripción.';
+    document.getElementById('dc-desc').textContent = data.descripcion || 'Sin descripcion.';
     document.getElementById('dc-id').textContent = String(data.id);
     document.getElementById('dc-mentor').textContent = `Mentor: ${data.mentorNombre || 'Mentorix'}`;
     document.getElementById('dc-email').textContent = data.mentorEmail || 'No disponible';
@@ -118,7 +118,7 @@
               id_clase: data.id,
             });
             this.classList.add('d-none');
-            success.textContent = 'Solicitud enviada. Quedó pendiente de aprobación del mentor.';
+            success.textContent = 'Solicitud enviada. Quedo pendiente de aprobacion del mentor.';
             success.classList.remove('d-none');
             dashboardLink.textContent = 'Ver mis inscripciones';
             dashboardLink.classList.remove('d-none');
@@ -167,7 +167,7 @@
     }
 
     if (!user) {
-      enrollButton.textContent = 'Iniciar sesión para inscribirme';
+      enrollButton.textContent = 'Iniciar sesion para inscribirme';
       enrollButton.classList.remove('d-none');
       enrollButton.addEventListener('click', function () {
         const next = encodeURIComponent(window.location.pathname + window.location.search);

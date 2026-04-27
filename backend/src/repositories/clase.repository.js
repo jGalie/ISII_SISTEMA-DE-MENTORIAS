@@ -124,7 +124,7 @@ function crearRepositorioClase({ pool }) {
     },
 
     async incrementarCupoActual(id) {
-      await pool.query(
+      const [result] = await pool.query(
         `
           UPDATE clases
           SET cupo_actual = cupo_actual + 1
@@ -134,6 +134,7 @@ function crearRepositorioClase({ pool }) {
         [Number(id)]
       );
 
+      if (result.affectedRows === 0) return null;
       return this.buscarPorId(id);
     },
 

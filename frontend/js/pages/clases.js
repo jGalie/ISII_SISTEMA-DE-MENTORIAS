@@ -33,10 +33,10 @@
 
   if (user && user.rol === 'mentor') {
     createButton.classList.remove('d-none');
-    eyebrow.textContent = 'Gestión de mentorías';
+    eyebrow.textContent = 'Gestion de mentorias';
     title.textContent = 'Mis clases publicadas';
-    subtitle.textContent = 'Administra tus mentorías, fechas, modalidad y publicaciones.';
-    q.placeholder = 'Buscar por título, descripción o materia';
+    subtitle.textContent = 'Administra tus mentorias, fechas, modalidad y publicaciones.';
+    q.placeholder = 'Buscar por titulo, descripcion o materia';
   }
 
   function showError(message) {
