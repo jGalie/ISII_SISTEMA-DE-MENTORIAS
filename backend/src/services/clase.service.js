@@ -8,6 +8,36 @@ function crearErrorApp(message, code) {
   return error;
 }
 
+function tieneValor(value) {
+  return value !== undefined && value !== null && String(value).trim() !== '';
+}
+
+function normalizarFechaClase(value) {
+  if (!tieneValor(value)) {
+    throw crearErrorApp('Titulo, descripcion y fecha son obligatorios.', 'VALIDATION_ERROR');
+  }
+
+  const fecha = new Date(value);
+  if (Number.isNaN(fecha.getTime())) {
+    throw crearErrorApp('Debes indicar una fecha valida.', 'VALIDATION_ERROR');
+  }
+
+  return fecha.toISOString().slice(0, 19).replace('T', ' ');
+}
+
+function normalizarNumero(value, message) {
+  if (!tieneValor(value)) {
+    throw crearErrorApp(message, 'VALIDATION_ERROR');
+  }
+
+  const number = Number(value);
+  if (!Number.isFinite(number)) {
+    throw crearErrorApp(message, 'VALIDATION_ERROR');
+  }
+
+  return number;
+}
+
 /**
  * Valida y normaliza los datos basicos de una clase.
  *
@@ -23,14 +53,15 @@ function validarDatosClase(data) {
    */
   const titulo = String(data?.titulo || '').trim();
   const descripcion = String(data?.descripcion || '').trim();
-  const fecha = String(data?.fecha || '').trim();
+  const fecha = normalizarFechaClase(data?.fecha);
   const modalidad = String(data?.modalidad || 'virtual').trim().toLowerCase();
   const id_materia = Number(data?.id_materia || data?.materiaId);
-  const precio = Number(data?.precio);
+  const precio = normalizarNumero(data?.precio, 'Debes ingresar un precio valido para la clase.');
   const ubicacion = String(data?.ubicacion || '').trim();
-  const cupo_maximo = Number(data?.cupo_maximo || data?.cupoMaximo || 1);
+  const cupoSource = data?.cupo_maximo ?? data?.cupoMaximo ?? 1;
+  const cupo_maximo = normalizarNumero(cupoSource, 'Debes indicar un cupo maximo valido.');
 
-  if (!titulo || !descripcion || !fecha) {
+  if (!titulo || !descripcion) {
     throw crearErrorApp('Titulo, descripcion y fecha son obligatorios.', 'VALIDATION_ERROR');
   }
 

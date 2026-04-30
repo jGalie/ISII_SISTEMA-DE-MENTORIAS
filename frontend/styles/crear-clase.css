@@ -66,3 +66,20 @@ body {
   color: #fff;
   font-weight: 700;
 }
+
+.clase-toast {
+  position: fixed;
+  top: 1.25rem;
+  left: 50%;
+  z-index: 1080;
+  transform: translateX(-50%);
+  width: min(92vw, 28rem);
+  border-radius: 1rem;
+  padding: 1rem 1.25rem;
+  color: #0f5132;
+  background: #d1e7dd;
+  border: 1px solid #badbcc;
+  box-shadow: 0 1rem 2.25rem rgba(24, 34, 53, 0.18);
+  font-weight: 700;
+  text-align: center;
+}

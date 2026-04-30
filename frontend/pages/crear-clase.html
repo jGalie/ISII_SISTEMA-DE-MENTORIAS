@@ -42,7 +42,7 @@
                   <label class="form-label fw-semibold" for="materia">Materia</label>
                   <div class="input-shell">
                     <i class="bi bi-journal-bookmark me-2"></i>
-                    <select class="form-select" id="materia" name="materia" required></select>
+                    <select class="form-select" id="materia" name="materia"></select>
                   </div>
                   <div id="materia-error" class="invalid-feedback d-none">Selecciona una materia.</div>
                   <div id="materia-help" class="form-text">La materia se toma de las que definiste al registrarte como mentor.</div>
@@ -52,7 +52,7 @@
                   <label class="form-label fw-semibold" for="titulo">Titulo</label>
                   <div class="input-shell">
                     <i class="bi bi-book me-2"></i>
-                    <input class="form-control" type="text" id="titulo" name="titulo" required maxlength="100" placeholder="Ej. Introduccion a Node.js" />
+                    <input class="form-control" type="text" id="titulo" name="titulo" placeholder="Ej. Introduccion a Node.js" />
                   </div>
                   <div id="titulo-error" class="invalid-feedback d-none">Ingresa un titulo para la clase.</div>
                 </div>
@@ -60,7 +60,7 @@
                 <div class="mb-4">
                   <label class="form-label fw-semibold" for="descripcion">Descripcion</label>
                   <div class="textarea-shell">
-                    <textarea class="form-control" id="descripcion" name="descripcion" rows="5" required placeholder="Conta que van a aprender en esta clase."></textarea>
+                    <textarea class="form-control" id="descripcion" name="descripcion" rows="5" placeholder="Conta que van a aprender en esta clase."></textarea>
                   </div>
                   <div id="descripcion-error" class="invalid-feedback d-none">Ingresa una descripcion.</div>
                 </div>
@@ -69,7 +69,7 @@
                   <label class="form-label fw-semibold" for="fecha">Fecha y hora</label>
                   <div class="input-shell">
                     <i class="bi bi-calendar-event me-2"></i>
-                    <input class="form-control" type="datetime-local" id="fecha" name="fecha" required />
+                    <input class="form-control" type="datetime-local" id="fecha" name="fecha" />
                   </div>
                   <div id="fecha-error" class="invalid-feedback d-none">Ingresa una fecha y hora validas.</div>
                 </div>
@@ -78,7 +78,7 @@
                   <label class="form-label fw-semibold" for="modalidad">Modalidad</label>
                   <div class="input-shell">
                     <i class="bi bi-laptop me-2"></i>
-                    <select class="form-select" id="modalidad" name="modalidad" required>
+                    <select class="form-select" id="modalidad" name="modalidad">
                       <option value="virtual">Virtual</option>
                       <option value="presencial">Presencial</option>
                     </select>
@@ -89,7 +89,7 @@
                   <label class="form-label fw-semibold" for="precio">Precio de la clase</label>
                   <div class="input-shell">
                     <i class="bi bi-cash-coin me-2"></i>
-                    <input class="form-control" type="number" id="precio" name="precio" min="0" step="0.01" required placeholder="Ej. 12000" />
+                    <input class="form-control" type="number" id="precio" name="precio" placeholder="Ej. 12000" />
                   </div>
                   <div id="precio-error" class="invalid-feedback d-none">Ingresa un precio valido.</div>
                 </div>
@@ -98,7 +98,7 @@
                   <label class="form-label fw-semibold" for="cupo-maximo">Cupo máximo</label>
                   <div class="input-shell">
                     <i class="bi bi-people me-2"></i>
-                    <input class="form-control" type="number" id="cupo-maximo" name="cupo-maximo" min="1" step="1" required placeholder="Ej. 6" />
+                    <input class="form-control" type="number" id="cupo-maximo" name="cupo-maximo" placeholder="Ej. 6" />
                   </div>
                   <div id="cupo-maximo-error" class="invalid-feedback d-none">Ingresa un cupo valido.</div>
                 </div>
@@ -107,7 +107,7 @@
                   <label class="form-label fw-semibold" for="ubicacion">Ubicacion</label>
                   <div class="input-shell">
                     <i class="bi bi-geo-alt me-2"></i>
-                    <input class="form-control" type="text" id="ubicacion" name="ubicacion" maxlength="255" placeholder="Ej. Aula 204, Sede Centro" />
+                    <input class="form-control" type="text" id="ubicacion" name="ubicacion" placeholder="Ej. Aula 204, Sede Centro" />
                   </div>
                   <div id="ubicacion-error" class="invalid-feedback d-none">Ingresa una ubicacion para clases presenciales.</div>
                 </div>
