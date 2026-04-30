@@ -25,7 +25,7 @@ function crearControladorClase({ claseService }) {
         const mentorId = req.query.id_mentor;
         const data = mentorId
           ? await claseService.listarClasesPorMentor(mentorId)
-          : await claseService.listarClases();
+          : await claseService.listarClases(req.query || {});
         res.json({ success: true, data });
       } catch (err) {
         res.status(resolverEstadoHttp(err)).json({ success: false, error: err.message });

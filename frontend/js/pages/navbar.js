@@ -12,7 +12,9 @@ async function loadNavbar() {
 function markActiveNav() {
   const currentPath = window.location.pathname;
 
-  if (currentPath.includes("dashboard.html")) {
+  if (currentPath.includes("inicio-estudiante.html")) {
+    document.querySelector('[data-nav="inicio"]')?.classList.add("active");
+  } else if (currentPath.includes("dashboard.html")) {
     document.querySelector('[data-nav="dashboard"]')?.classList.add("active");
   } else if (currentPath.includes("clases.html")) {
     document.querySelector('[data-nav="clases"]')?.classList.add("active");

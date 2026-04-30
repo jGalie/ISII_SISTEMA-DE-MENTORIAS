@@ -91,10 +91,10 @@ function crearServicioClase({ claseRepository, usuarioRepository, mentorMateriaR
       return claseRepository.crearClase({ ...payload, id_mentor });
     },
 
-    async listarClases() {
+    async listarClases(filtros = {}) {
       // El service conserva una interfaz simple para el controller y delega la
       // lectura concreta al repository.
-      return claseRepository.buscarTodas();
+      return claseRepository.buscarTodas(filtros);
     },
 
     async obtenerClase(id) {

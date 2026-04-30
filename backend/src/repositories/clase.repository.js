@@ -54,14 +54,50 @@ function crearRepositorioClase({ pool }) {
       return this.buscarPorId(result.insertId);
     },
 
-    async buscarTodas() {
+    async buscarTodas(filtros = {}) {
       // Se priorizan las clases proximas para que el listado resulte mas util
       // para estudiantes y mentores.
+      const condiciones = [];
+      const valores = [];
+      const busqueda = String(filtros.q || filtros.busqueda || '').trim();
+      const modalidad = String(filtros.modalidad || '').trim().toLowerCase();
+      const materia = String(filtros.materia || '').trim();
+      const idMateria = Number(filtros.id_materia || filtros.materiaId);
+
+      if (busqueda) {
+        condiciones.push(`(
+          c.titulo LIKE ?
+          OR c.descripcion LIKE ?
+          OR u.nombre LIKE ?
+          OR m.nombre LIKE ?
+        )`);
+        const patron = `%${busqueda}%`;
+        valores.push(patron, patron, patron, patron);
+      }
+
+      if (['virtual', 'online'].includes(modalidad)) {
+        condiciones.push('c.modalidad = ?');
+        valores.push('virtual');
+      } else if (['presencial', 'cerca', 'cerca de mi', 'cerca-de-mi'].includes(modalidad)) {
+        condiciones.push('c.modalidad = ?');
+        valores.push('presencial');
+      }
+
+      if (Number.isInteger(idMateria) && idMateria > 0) {
+        condiciones.push('c.id_materia = ?');
+        valores.push(idMateria);
+      } else if (materia) {
+        condiciones.push('m.nombre LIKE ?');
+        valores.push(`%${materia}%`);
+      }
+
+      const whereSql = condiciones.length ? `WHERE ${condiciones.join(' AND ')}` : '';
       const [rows] = await pool.query(`
         ${baseSelect}
+        ${whereSql}
         ${baseGroup}
         ORDER BY c.fecha ASC, c.id_clase ASC
-      `);
+      `, valores);
 
       return rows.map(mapearClase);
     },

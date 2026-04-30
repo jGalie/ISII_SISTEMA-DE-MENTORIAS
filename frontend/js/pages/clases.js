@@ -26,6 +26,7 @@
   const title = document.getElementById('clases-title');
   const subtitle = document.getElementById('clases-subtitle');
   const user = MentoriasAuth.getUser();
+  const urlParams = new URLSearchParams(window.location.search);
 
   let clases = [];
   let inscripcionesPorClase = {};
@@ -131,7 +132,9 @@
       : '';
     const enrollButton =
       canEnroll && !enrollment
-        ? `<button class="btn btn-detail btn-sm px-3 enroll-clase-btn" data-id="${encodeURIComponent(clase.id)}" type="button" ${clase.completa ? 'disabled' : ''}>${clase.completa ? 'Completa' : 'Inscribirse'}</button>`
+        ? clase.completa
+          ? '<button class="btn btn-outline-secondary btn-sm px-3" type="button" disabled>Cupo completo</button>'
+          : `<button class="btn btn-detail btn-sm px-3 enroll-clase-btn" data-id="${encodeURIComponent(clase.id)}" type="button">Inscribirse</button>`
         : enrollmentAction;
     const rating = clase.promedioEstrellas
       ? `<div class="class-meta__item"><i class="bi bi-star-fill"></i><span>${Number(clase.promedioEstrellas).toFixed(1)} (${clase.cantidadValoraciones})</span></div>`
@@ -247,7 +250,7 @@
 
   function render(list) {
     if (!Array.isArray(list) || !list.length) {
-      box.innerHTML = '<div class="classes-empty">No hay clases que coincidan con tu busqueda.</div>';
+      box.innerHTML = '<div class="classes-empty">No se encontraron clases con esos filtros.</div>';
       count.textContent = user?.rol === 'mentor' ? '0 clases publicadas' : '0 clases';
       return;
     }
@@ -294,7 +297,12 @@
     const [response, inscripcionesResponse] = await Promise.all([
       user && user.rol === 'mentor'
         ? MentoriasApi.obtenerClases({ id_mentor: user.id })
-        : MentoriasApi.obtenerClases(),
+        : MentoriasApi.obtenerClases({
+            q: urlParams.get('q') || '',
+            modalidad: urlParams.get('modalidad') || '',
+            materia: urlParams.get('materia') || '',
+            id_materia: urlParams.get('id_materia') || '',
+          }),
       user && user.rol === 'estudiante'
         ? MentoriasApi.getInscripcionesUsuario(user.id)
         : Promise.resolve({ data: [] }),
@@ -302,10 +310,18 @@
 
     clases = Array.isArray(response.data) ? response.data : [];
     populateMateriaFilter(clases);
+    q.value = urlParams.get('q') || '';
+    const modalidadInicial = urlParams.get('modalidad');
+    if (modalidadInicial) {
+      activeFilter = modalidadInicial === 'online' ? 'virtual' : modalidadInicial;
+      filterButtons.forEach((item) => item.classList.toggle('is-active', item.getAttribute('data-filter') === activeFilter));
+    }
+    const idMateriaInicial = urlParams.get('id_materia');
+    if (idMateriaInicial) materiaFilter.value = idMateriaInicial;
     const inscripciones = Array.isArray(inscripcionesResponse.data) ? inscripcionesResponse.data : [];
     inscripcionesPorClase = Object.fromEntries(inscripciones.map((item) => [item.claseId, item]));
     hideError();
-    render(clases);
+    applyFilter();
   } catch (error) {
     showError(error.message);
     render([]);

@@ -74,6 +74,7 @@
     enrollmentByClassId: {},
     user: getAuthenticatedUser(),
   };
+  const urlParams = new URLSearchParams(window.location.search);
 
   const searchForm = document.getElementById('search-form');
   const searchInput = document.getElementById('search-input');
@@ -355,6 +356,10 @@
       return `<button class="btn btn-outline-secondary" type="button" disabled>${labels[inscripcion.estado] || 'Inscripcion registrada'}</button>`;
     }
 
+    if (clase.completa) {
+      return '<button class="btn btn-outline-secondary" type="button" disabled>Cupo completo</button>';
+    }
+
     return `<button class="btn btn-brand enroll-button" type="button" data-class-id="${escapeHtml(clase.id)}">Inscribirse</button>`;
   }
 
@@ -379,7 +384,9 @@
                   <span class="teacher-meta small"><i class="bi bi-geo-alt me-1"></i>${escapeHtml(location)}</span>
                   ${getEnrollmentBadge(clase.id)}
                 </div>
-                <h3 class="h4 mb-1">${escapeHtml(mentorName)}</h3>
+                <h3 class="h4 mb-1">
+                  <a class="text-decoration-none text-reset" href="/pages/mentor.html?id=${encodeURIComponent(clase.mentorId)}">${escapeHtml(mentorName)}</a>
+                </h3>
                 <p class="teacher-meta mb-0">${escapeHtml(clase.titulo || 'Clase individual')}</p>
               </div>
               <span class="price-pill">${escapeHtml(getTeacherPrice(clase))}</span>
@@ -398,7 +405,8 @@
                 <i class="bi ${escapeHtml(subject.icon)} me-1"></i>${escapeHtml(subject.label)}
               </span>
               <div class="d-flex gap-2">
-                <a class="btn btn-soft" href="/pages/detalle-clase.html?id=${encodeURIComponent(clase.id)}">Ver perfil</a>
+                <a class="btn btn-soft" href="/pages/mentor.html?id=${encodeURIComponent(clase.mentorId)}">Ver perfil</a>
+                <a class="btn btn-soft" href="/pages/detalle-clase.html?id=${encodeURIComponent(clase.id)}">Ver clase</a>
                 ${buildActionArea(clase)}
               </div>
             </div>
@@ -558,7 +566,14 @@
     // Se cargan clases y, en paralelo, las inscripciones del estudiante
     // para mostrar botones y estados correctos desde el primer render.
     try {
-      const [clasesPayload] = await Promise.all([MentoriasApi.obtenerClases(), loadEnrollmentsIfNeeded()]);
+      const [clasesPayload] = await Promise.all([
+        MentoriasApi.obtenerClases({
+          q: state.query,
+          modalidad: state.activeModality,
+          materia: state.activeSubject,
+        }),
+        loadEnrollmentsIfNeeded(),
+      ]);
 
       const clases = Array.isArray(clasesPayload.data) ? clasesPayload.data : [];
       state.classes = clases;
@@ -579,7 +594,10 @@
   searchForm.addEventListener('submit', function (event) {
     event.preventDefault();
     state.query = searchInput.value;
-    applyFilters();
+    const destino = new URL('/pages/clases.html', window.location.origin);
+    if (state.query) destino.searchParams.set('q', state.query);
+    if (state.activeModality) destino.searchParams.set('modalidad', state.activeModality);
+    window.location.href = destino.pathname + destino.search;
   });
 
   searchInput.addEventListener('input', function () {
@@ -608,6 +626,10 @@
   }
 
   renderHomeNavbar();
+  state.query = urlParams.get('q') || '';
+  state.activeModality = urlParams.get('modalidad') || '';
+  if (searchInput) searchInput.value = state.query;
+  modalityButtons.forEach((item) => item.classList.toggle('is-active', (item.getAttribute('data-modalidad') || '') === state.activeModality));
   renderSubjects();
   loadData();
 })();

@@ -56,6 +56,12 @@
     obtenerClases(params = {}) {
       const search = new URLSearchParams();
       if (params.id_mentor) search.set('id_mentor', params.id_mentor);
+      if (params.q) search.set('q', params.q);
+      if (params.busqueda) search.set('busqueda', params.busqueda);
+      if (params.modalidad) search.set('modalidad', params.modalidad);
+      if (params.materia) search.set('materia', params.materia);
+      if (params.id_materia) search.set('id_materia', params.id_materia);
+      if (params.materiaId) search.set('materiaId', params.materiaId);
       const suffix = search.toString() ? `?${search.toString()}` : '';
       return pedirJson(`/clases${suffix}`);
     },

@@ -169,7 +169,8 @@
     </button>
     <div class="collapse navbar-collapse" id="navMain">
       <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-3">
-        <li class="nav-item"><a class="nav-link fw-semibold ${activeKey === 'inicio' || activeKey === 'clases' ? 'active' : ''}" href="${homePath}">Clases</a></li>
+        <li class="nav-item"><a class="nav-link fw-semibold ${activeKey === 'inicio' ? 'active' : ''}" href="${homePath}">Inicio</a></li>
+        <li class="nav-item"><a class="nav-link fw-semibold ${activeKey === 'clases' ? 'active' : ''}" href="/pages/clases.html">Clases</a></li>
         <li class="nav-item"><a class="nav-link fw-semibold ${activeKey === 'dashboard' ? 'active' : ''}" href="/pages/dashboard.html">Mis inscripciones</a></li>
         <li class="nav-item dropdown">
           <button class="btn btn-brand px-4 py-2 dropdown-toggle d-inline-flex align-items-center gap-2" id="user-menu" type="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -282,7 +283,9 @@
           : '';
         const enrollButton =
           canEnroll && !enrollment
-            ? `<button class="btn btn-dark btn-sm rounded-pill px-3 enroll-clase-btn" data-id="${encodeURIComponent(clase.id)}" type="button">Inscribirse</button>`
+            ? clase.completa
+              ? `<button class="btn btn-outline-secondary btn-sm rounded-pill px-3" type="button" disabled>Cupo completo</button>`
+              : `<button class="btn btn-dark btn-sm rounded-pill px-3 enroll-clase-btn" data-id="${encodeURIComponent(clase.id)}" type="button">Inscribirse</button>`
             : enrollmentAction;
 
         return `
@@ -292,7 +295,7 @@
       <div class="d-flex justify-content-between align-items-start gap-3 mb-2">
         <div>
           <h5 class="card-title fw-bold mb-1">${esc(clase.titulo)}</h5>
-          <div class="text-muted small"><i class="bi bi-person-circle me-1"></i>${esc(clase.mentorNombre || 'Mentor')}</div>
+          <div class="text-muted small"><i class="bi bi-person-circle me-1"></i><a href="/pages/mentor.html?id=${encodeURIComponent(clase.mentorId)}">${esc(clase.mentorNombre || 'Mentor')}</a></div>
           <div class="text-muted small"><i class="bi bi-journal-bookmark me-1"></i>${esc(clase.materiaNombre || 'Materia a definir')}</div>
           <div class="text-muted small"><i class="bi ${clase.modalidad === 'presencial' ? 'bi-geo-alt' : 'bi-camera-video'} me-1"></i>${esc(modalityLabel(clase.modalidad))}</div>
           <div class="text-muted small"><i class="bi bi-cash-coin me-1"></i>${esc(clase.precio != null ? `$${Number(clase.precio).toLocaleString('es-AR')}` : 'Precio a coordinar')}</div>
@@ -303,6 +306,7 @@
       <p class="text-muted flex-grow-1 mb-4">${esc(clase.descripcion || 'Sin descripcion.')}</p>
       <div class="d-flex gap-2 flex-wrap mt-auto">
         <a class="btn btn-outline-dark btn-sm rounded-pill px-3" href="/pages/detalle-clase.html?id=${encodeURIComponent(clase.id)}">Ver detalle</a>
+        <a class="btn btn-outline-dark btn-sm rounded-pill px-3" href="/pages/mentor.html?id=${encodeURIComponent(clase.mentorId)}">Ver mentor</a>
         ${enrollButton}
         ${canManage ? `<a class="btn btn-dark btn-sm rounded-pill px-3" href="/pages/crear-clase.html?id=${encodeURIComponent(clase.id)}">Editar</a>` : ''}
         ${canManage ? `<button class="btn btn-outline-danger btn-sm rounded-pill px-3 delete-clase-btn" data-id="${encodeURIComponent(clase.id)}" type="button">Eliminar</button>` : ''}
