@@ -72,7 +72,7 @@
     query: '',
     subjects: DEFAULT_SUBJECTS,
     enrollmentByClassId: {},
-    user: getAuthenticatedUser(),
+    user: obtenerUsuarioAutenticado(),
   };
   const urlParams = new URLSearchParams(window.location.search);
 
@@ -87,7 +87,7 @@
   const modalityButtons = document.querySelectorAll('[data-modalidad]');
   const homeNavActions = document.getElementById('home-nav-actions');
 
-  function getStoredUser(store) {
+  function obtenerUsuarioGuardado(store) {
     if (!store) return null;
     try {
       const user = JSON.parse(store.getItem('usuarioLogueado') || 'null');
@@ -97,26 +97,26 @@
     }
   }
 
-  function getAuthenticatedUser() {
-    if (window.MentoriasAuth && typeof window.MentoriasAuth.getUser === 'function') {
-      const user = window.MentoriasAuth.getUser();
+  function obtenerUsuarioAutenticado() {
+    if (window.MentoriasAuth && typeof window.MentoriasAuth.obtenerUsuario === 'function') {
+      const user = window.MentoriasAuth.obtenerUsuario();
       if (user && user.id && user.email) return user;
     }
 
-    return getStoredUser(window.localStorage) || getStoredUser(window.sessionStorage);
+    return obtenerUsuarioGuardado(window.localStorage) || obtenerUsuarioGuardado(window.sessionStorage);
   }
 
-  function getRoleHomePath(user) {
+  function obtenerRutaInicioPorRol(user) {
     if (!user) return '/index.html';
     if (user.rol === 'mentor') return '/pages/dashboard.html';
     if (user.rol === 'estudiante') return '/pages/clases.html';
     return '/index.html';
   }
 
-  function renderHomeNavbar() {
+  function renderizarNavbarInicio() {
     if (!homeNavActions) return;
 
-    const user = getAuthenticatedUser();
+    const user = obtenerUsuarioAutenticado();
     state.user = user;
 
     if (!user) {
@@ -127,10 +127,10 @@
       return;
     }
 
-    const firstName = escapeHtml(String(user.nombre || user.email || 'Usuario').split(' ')[0]);
+    const firstName = escaparHtml(String(user.nombre || user.email || 'Usuario').split(' ')[0]);
     const roleLabel = user.rol === 'mentor' ? 'Mentor' : 'Estudiante';
     const roleIcon = user.rol === 'mentor' ? 'bi-person-workspace' : 'bi-person-badge';
-    const homePath = getRoleHomePath(user);
+    const homePath = obtenerRutaInicioPorRol(user);
     const roleNav =
       user.rol === 'mentor'
         ? `
@@ -154,10 +154,10 @@
         >
           <i class="bi ${roleIcon}"></i>
           <span>${firstName}</span>
-          <span class="role-pill">${escapeHtml(roleLabel)}</span>
+          <span class="role-pill">${escaparHtml(roleLabel)}</span>
         </button>
         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="home-user-menu">
-          <li><h6 class="dropdown-header">${escapeHtml(user.email || roleLabel)}</h6></li>
+          <li><h6 class="dropdown-header">${escaparHtml(user.email || roleLabel)}</h6></li>
           <li><a class="dropdown-item" href="/pages/perfil.html"><i class="bi bi-person-gear me-2"></i>Modificar perfil</a></li>
           <li><hr class="dropdown-divider"></li>
           <li><button id="home-logout" class="dropdown-item" type="button"><i class="bi bi-box-arrow-right me-2"></i>Cerrar sesion</button></li>
@@ -168,15 +168,15 @@
     const logoutButton = document.getElementById('home-logout');
     if (logoutButton) {
       logoutButton.addEventListener('click', async () => {
-        const confirmarSalida = await window.MentoriasUI.showConfirmDialog({
+        const confirmarSalida = await window.MentoriasUI.mostrarDialogoConfirmacion({
           title: 'Cerrar sesion',
           message: 'Queres cerrar tu sesion en Mentorix?',
           confirmText: 'Cerrar sesion',
           cancelText: 'Cancelar',
         });
         if (!confirmarSalida) return;
-        if (window.MentoriasAuth && typeof window.MentoriasAuth.logout === 'function') {
-          window.MentoriasAuth.logout();
+        if (window.MentoriasAuth && typeof window.MentoriasAuth.cerrarSesion === 'function') {
+          window.MentoriasAuth.cerrarSesion();
         }
         window.sessionStorage.removeItem('usuarioLogueado');
         window.location.href = '/index.html';
@@ -184,7 +184,7 @@
     }
   }
 
-  function normalize(value) {
+  function normalizar(value) {
     return String(value || '')
       .normalize('NFD')
       .replace(/[\u0300-\u036f]/g, '')
@@ -192,7 +192,7 @@
       .trim();
   }
 
-  function escapeHtml(value) {
+  function escaparHtml(value) {
     return String(value || '')
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
@@ -201,22 +201,22 @@
       .replace(/'/g, '&#39;');
   }
 
-  function randomFromSeed(seed, items) {
+  function obtenerAleatorioDesdeSemilla(seed, items) {
     const number = Number(seed) || 1;
     return items[number % items.length];
   }
 
-  function getSubjectFromText(text) {
-    const haystack = normalize(text);
+  function obtenerMateriaDesdeTexto(text) {
+    const haystack = normalizar(text);
     const found = SUBJECT_ALIASES.find((subject) => subject.matches.some((match) => haystack.includes(match)));
     return found ? found.key : 'programacion';
   }
 
-  function getSubjectMeta(clase) {
+  function obtenerMetaMateria(clase) {
     // Aun si los datos llegan de formas distintas, se intenta mapear
     // cada clase a una categoria visual coherente.
     const rawSubject = clase.materiaNombre || clase.titulo || clase.descripcion || '';
-    const subjectKey = getSubjectFromText(rawSubject);
+    const subjectKey = obtenerMateriaDesdeTexto(rawSubject);
     const subject = SUBJECT_CONFIG[subjectKey] || SUBJECT_CONFIG.default;
     return {
       key: subjectKey,
@@ -225,8 +225,8 @@
     };
   }
 
-  function getTeacherLocation(clase) {
-    return randomFromSeed(clase.mentorId || clase.id, [
+  function obtenerUbicacionMentor(clase) {
+    return obtenerAleatorioDesdeSemilla(clase.mentorId || clase.id, [
       'Buenos Aires, Argentina',
       'Cordoba, Argentina',
       'Rosario, Argentina',
@@ -235,13 +235,13 @@
     ]);
   }
 
-  function getTeacherRating(clase) {
+  function obtenerValoracionMentor(clase) {
     const base = 4.6;
     const extra = ((Number(clase.id) || 0) % 4) * 0.1;
     return (base + extra).toFixed(1);
   }
 
-  function getTeacherPrice(clase) {
+  function obtenerPrecioClase(clase) {
     if (clase.precio != null) {
       return `$${Number(clase.precio).toLocaleString('es-AR')} / clase`;
     }
@@ -250,19 +250,19 @@
     return `$${(base + extra).toLocaleString('es-AR')} / clase`;
   }
 
-  function getModalityMeta(clase) {
+  function obtenerMetaModalidad(clase) {
     const modalidad = clase.modalidad === 'presencial' ? 'presencial' : 'virtual';
     return modalidad === 'presencial'
       ? { label: 'Presencial', icon: 'bi-geo-alt', className: 'modality-presencial' }
       : { label: 'Virtual', icon: 'bi-camera-video', className: 'modality-virtual' };
   }
 
-  function formatDescription(clase) {
+  function formatearDescripcion(clase) {
     const description = clase.descripcion || 'Clase personalizada para avanzar paso a paso con acompanamiento individual.';
     return description.length > 120 ? `${description.slice(0, 117)}...` : description;
   }
 
-  function formatClassDate(dateString) {
+  function formatearFechaClase(dateString) {
     const date = new Date(dateString);
     if (Number.isNaN(date.getTime())) return 'Fecha a coordinar';
     return date.toLocaleString('es-AR', {
@@ -273,7 +273,7 @@
     });
   }
 
-  function createAvatarDataUri(name, subjectKey) {
+  function crearUriDatosAvatar(name, subjectKey) {
     const palette = {
       matematica: ['#f9d6e8', '#f6eefc'],
       ingles: ['#d8efff', '#eef8ff'],
@@ -317,11 +317,11 @@
     return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
   }
 
-  function starsMarkup() {
+  function htmlEstrellas() {
     return new Array(5).fill('<i class="bi bi-star-fill"></i>').join('');
   }
 
-  function getEnrollmentBadge(claseId) {
+  function obtenerInsigniaInscripcion(claseId) {
     const inscripcion = state.enrollmentByClassId[claseId];
     if (!inscripcion) return '';
 
@@ -335,7 +335,7 @@
     return `<span class="badge rounded-pill ${config.className}">${config.label}</span>`;
   }
 
-  function buildActionArea(clase) {
+  function construirAreaAccion(clase) {
     // La accion disponible depende del rol y del historial de inscripcion.
     const user = state.user;
     if (!user) {
@@ -360,54 +360,54 @@
       return '<button class="btn btn-outline-secondary" type="button" disabled>Cupo completo</button>';
     }
 
-    return `<button class="btn btn-brand enroll-button" type="button" data-class-id="${escapeHtml(clase.id)}">Inscribirse</button>`;
+    return `<button class="btn btn-brand enroll-button" type="button" data-class-id="${escaparHtml(clase.id)}">Inscribirse</button>`;
   }
 
-  function buildTeacherCard(clase) {
-    const subject = getSubjectMeta(clase);
+  function construirTarjetaMentor(clase) {
+    const subject = obtenerMetaMateria(clase);
     const mentorName = clase.mentorNombre || `Profesor ${clase.mentorId || clase.id}`;
-    const location = getTeacherLocation(clase);
-    const rating = getTeacherRating(clase);
-    const avatar = createAvatarDataUri(mentorName, subject.key);
-    const modality = getModalityMeta(clase);
+    const location = obtenerUbicacionMentor(clase);
+    const rating = obtenerValoracionMentor(clase);
+    const avatar = crearUriDatosAvatar(mentorName, subject.key);
+    const modality = obtenerMetaModalidad(clase);
 
     return `
       <div class="col-12 col-md-6 col-xl-4">
         <article class="card teacher-card">
-          <img class="teacher-avatar" src="${avatar}" alt="${escapeHtml(mentorName)}" />
+          <img class="teacher-avatar" src="${avatar}" alt="${escaparHtml(mentorName)}" />
           <div class="card-body d-flex flex-column">
             <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
               <div>
                 <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
-                  <span class="badge rounded-pill text-bg-light border">${escapeHtml(subject.label)}</span>
-                  <span class="badge rounded-pill modality-badge ${escapeHtml(modality.className)}"><i class="bi ${escapeHtml(modality.icon)} me-1"></i>${escapeHtml(modality.label)}</span>
-                  <span class="teacher-meta small"><i class="bi bi-geo-alt me-1"></i>${escapeHtml(location)}</span>
-                  ${getEnrollmentBadge(clase.id)}
+                  <span class="badge rounded-pill text-bg-light border">${escaparHtml(subject.label)}</span>
+                  <span class="badge rounded-pill modality-badge ${escaparHtml(modality.className)}"><i class="bi ${escaparHtml(modality.icon)} me-1"></i>${escaparHtml(modality.label)}</span>
+                  <span class="teacher-meta small"><i class="bi bi-geo-alt me-1"></i>${escaparHtml(location)}</span>
+                  ${obtenerInsigniaInscripcion(clase.id)}
                 </div>
                 <h3 class="h4 mb-1">
-                  <a class="text-decoration-none text-reset" href="/pages/mentor.html?id=${encodeURIComponent(clase.mentorId)}">${escapeHtml(mentorName)}</a>
+                  <a class="text-decoration-none text-reset" href="/pages/mentor.html?id=${encodeURIComponent(clase.mentorId)}">${escaparHtml(mentorName)}</a>
                 </h3>
-                <p class="teacher-meta mb-0">${escapeHtml(clase.titulo || 'Clase individual')}</p>
+                <p class="teacher-meta mb-0">${escaparHtml(clase.titulo || 'Clase individual')}</p>
               </div>
-              <span class="price-pill">${escapeHtml(getTeacherPrice(clase))}</span>
+              <span class="price-pill">${escaparHtml(obtenerPrecioClase(clase))}</span>
             </div>
 
             <div class="d-flex align-items-center gap-2 mb-3">
-              <span class="rating-stars">${starsMarkup()}</span>
-              <span class="fw-semibold">${escapeHtml(rating)}</span>
+              <span class="rating-stars">${htmlEstrellas()}</span>
+              <span class="fw-semibold">${escaparHtml(rating)}</span>
             </div>
 
-            <p class="text-muted small mb-3"><i class="bi bi-calendar-event me-1"></i>${escapeHtml(formatClassDate(clase.fecha))}</p>
-            <p class="text-muted flex-grow-1 mb-4">${escapeHtml(formatDescription(clase))}</p>
+            <p class="text-muted small mb-3"><i class="bi bi-calendar-event me-1"></i>${escaparHtml(formatearFechaClase(clase.fecha))}</p>
+            <p class="text-muted flex-grow-1 mb-4">${escaparHtml(formatearDescripcion(clase))}</p>
 
             <div class="d-flex justify-content-between align-items-center mt-auto gap-2 flex-wrap">
               <span class="text-muted small">
-                <i class="bi ${escapeHtml(subject.icon)} me-1"></i>${escapeHtml(subject.label)}
+                <i class="bi ${escaparHtml(subject.icon)} me-1"></i>${escaparHtml(subject.label)}
               </span>
               <div class="d-flex gap-2">
                 <a class="btn btn-soft" href="/pages/mentor.html?id=${encodeURIComponent(clase.mentorId)}">Ver perfil</a>
                 <a class="btn btn-soft" href="/pages/detalle-clase.html?id=${encodeURIComponent(clase.id)}">Ver clase</a>
-                ${buildActionArea(clase)}
+                ${construirAreaAccion(clase)}
               </div>
             </div>
           </div>
@@ -416,7 +416,7 @@
     `;
   }
 
-  function buildEmptyState() {
+  function construirEstadoVacio() {
     return `
       <div class="col-12">
         <div class="card border-0 shadow-sm rounded-4">
@@ -430,7 +430,7 @@
     `;
   }
 
-  function renderSubjects() {
+  function renderizarMaterias() {
     // Los filtros visibles se renderizan dinamicamente segun las materias
     // disponibles y el estado activo en ese momento.
     subjectsTrack.innerHTML = state.subjects
@@ -440,13 +440,13 @@
           <button
             type="button"
             class="subject-chip ${subject.key === state.activeSubject ? 'is-active' : ''}"
-            data-subject="${escapeHtml(subject.key)}"
+            data-subject="${escaparHtml(subject.key)}"
             aria-pressed="${subject.key === state.activeSubject}"
           >
-            <span class="icon-wrap subject-icon-${escapeHtml(meta.key || 'default')}">
-              <i class="bi ${escapeHtml(meta.icon)}"></i>
+            <span class="icon-wrap subject-icon-${escaparHtml(meta.key || 'default')}">
+              <i class="bi ${escaparHtml(meta.icon)}"></i>
             </span>
-            <span class="subject-label">${escapeHtml(meta.label || subject.label)}</span>
+            <span class="subject-label">${escaparHtml(meta.label || subject.label)}</span>
           </button>
         `;
       })
@@ -456,12 +456,12 @@
       button.addEventListener('click', function () {
         const nextSubject = this.getAttribute('data-subject') || '';
         state.activeSubject = state.activeSubject === nextSubject ? '' : nextSubject;
-        applyFilters();
+        aplicarFiltros();
       });
     });
   }
 
-  function attachEnrollHandlers() {
+  function adjuntarManejadoresInscripcion() {
     teachersGrid.querySelectorAll('.enroll-button').forEach((button) => {
       button.addEventListener('click', async function () {
         const classId = Number(this.getAttribute('data-class-id'));
@@ -469,40 +469,40 @@
 
         this.disabled = true;
         try {
-          const { data } = await MentoriasApi.createInscripcion({
+          const { data } = await MentoriasApi.crearInscripcion({
             id_usuario: state.user.id,
             id_clase: classId,
           });
           state.enrollmentByClassId[classId] = data;
-          setSuccess('Tu solicitud fue enviada al mentor.');
-          applyFilters();
+          establecerExito('Tu solicitud fue enviada al mentor.');
+          aplicarFiltros();
         } catch (error) {
-          setError(error.message);
+          establecerError(error.message);
           this.disabled = false;
         }
       });
     });
   }
 
-  function renderTeachers() {
+  function renderizarMentores() {
     teachersGrid.innerHTML = state.filteredClasses.length
-      ? state.filteredClasses.map(buildTeacherCard).join('')
-      : buildEmptyState();
+      ? state.filteredClasses.map(construirTarjetaMentor).join('')
+      : construirEstadoVacio();
 
     const total = state.filteredClasses.length;
     resultsCount.textContent = total === 1 ? '1 clase disponible' : `${total} clases disponibles`;
-    attachEnrollHandlers();
+    adjuntarManejadoresInscripcion();
   }
 
-  function applyFilters() {
+  function aplicarFiltros() {
     // Esta funcion resume la logica de busqueda del catalogo.
-    const query = normalize(state.query);
+    const query = normalizar(state.query);
     state.filteredClasses = state.classes.filter((clase) => {
-      const subject = getSubjectMeta(clase);
+      const subject = obtenerMetaMateria(clase);
       const mentorName = clase.mentorNombre || '';
       const modalidad = clase.modalidad === 'presencial' ? 'presencial' : 'virtual';
       const searchable = [clase.titulo, clase.descripcion, clase.materiaNombre, subject.label, mentorName, modalidad]
-        .map(normalize)
+        .map(normalizar)
         .join(' ');
       const matchesSubject = !state.activeSubject || subject.key === state.activeSubject;
       const matchesModality = !state.activeModality || modalidad === state.activeModality;
@@ -510,37 +510,37 @@
       return matchesSubject && matchesModality && matchesQuery;
     });
 
-    renderSubjects();
-    renderTeachers();
+    renderizarMaterias();
+    renderizarMentores();
   }
 
-  function setError(message) {
+  function establecerError(message) {
     errorAlert.textContent = message;
     errorAlert.classList.remove('alert-success');
     errorAlert.classList.add('alert-danger');
     errorAlert.classList.remove('d-none');
   }
 
-  function setSuccess(message) {
+  function establecerExito(message) {
     errorAlert.textContent = message;
     errorAlert.classList.remove('alert-danger');
     errorAlert.classList.add('alert-success');
     errorAlert.classList.remove('d-none');
   }
 
-  function clearError() {
+  function limpiarError() {
     errorAlert.classList.add('d-none');
     errorAlert.textContent = '';
     errorAlert.classList.remove('alert-success');
     errorAlert.classList.add('alert-danger');
   }
 
-  function buildSubjectsFromClasses(classes) {
+  function construirMateriasDesdeClases(classes) {
     const dynamicSubjects = new Map();
 
     DEFAULT_SUBJECTS.forEach((subject) => dynamicSubjects.set(subject.key, subject));
     classes.forEach((clase) => {
-      const subject = getSubjectMeta(clase);
+      const subject = obtenerMetaMateria(clase);
       if (!dynamicSubjects.has(subject.key)) {
         dynamicSubjects.set(subject.key, {
           key: subject.key,
@@ -553,16 +553,16 @@
     return Array.from(dynamicSubjects.values());
   }
 
-  async function loadEnrollmentsIfNeeded() {
+  async function cargarInscripcionesSiCorresponde() {
     // Las inscripciones solo se necesitan para estudiantes; por eso se evita
     // una llamada innecesaria cuando navega un mentor o una persona no logueada.
     if (!state.user || state.user.rol !== 'estudiante') return;
-    const response = await MentoriasApi.getInscripcionesUsuario(state.user.id);
+    const response = await MentoriasApi.obtenerInscripcionesUsuario(state.user.id);
     const items = Array.isArray(response.data) ? response.data : [];
     state.enrollmentByClassId = Object.fromEntries(items.map((item) => [item.claseId, item]));
   }
 
-  async function loadData() {
+  async function cargarDatos() {
     // Se cargan clases y, en paralelo, las inscripciones del estudiante
     // para mostrar botones y estados correctos desde el primer render.
     try {
@@ -572,21 +572,21 @@
           modalidad: state.activeModality,
           materia: state.activeSubject,
         }),
-        loadEnrollmentsIfNeeded(),
+        cargarInscripcionesSiCorresponde(),
       ]);
 
       const clases = Array.isArray(clasesPayload.data) ? clasesPayload.data : [];
       state.classes = clases;
-      state.subjects = buildSubjectsFromClasses(clases);
+      state.subjects = construirMateriasDesdeClases(clases);
 
-      clearError();
-      applyFilters();
+      limpiarError();
+      aplicarFiltros();
     } catch (error) {
       state.classes = [];
       state.filteredClasses = [];
-      renderSubjects();
-      renderTeachers();
-      setError(error.message || 'No pudimos cargar las clases.');
+      renderizarMaterias();
+      renderizarMentores();
+      establecerError(error.message || 'No pudimos cargar las clases.');
       console.error(error);
     }
   }
@@ -602,14 +602,14 @@
 
   searchInput.addEventListener('input', function () {
     state.query = this.value;
-    applyFilters();
+    aplicarFiltros();
   });
 
   modalityButtons.forEach((button) => {
     button.addEventListener('click', function () {
       state.activeModality = this.getAttribute('data-modalidad') || '';
       modalityButtons.forEach((item) => item.classList.toggle('is-active', item === this));
-      applyFilters();
+      aplicarFiltros();
     });
   });
 
@@ -625,11 +625,11 @@
     });
   }
 
-  renderHomeNavbar();
+  renderizarNavbarInicio();
   state.query = urlParams.get('q') || '';
   state.activeModality = urlParams.get('modalidad') || '';
   if (searchInput) searchInput.value = state.query;
   modalityButtons.forEach((item) => item.classList.toggle('is-active', (item.getAttribute('data-modalidad') || '') === state.activeModality));
-  renderSubjects();
-  loadData();
+  renderizarMaterias();
+  cargarDatos();
 })();

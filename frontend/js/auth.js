@@ -11,7 +11,7 @@
    * sin incorporar una infraestructura mas compleja.
    */
 
-  function getUser() {
+  function obtenerUsuario() {
     try {
       return JSON.parse(localStorage.getItem(KEY) || 'null');
     } catch {
@@ -19,20 +19,20 @@
     }
   }
 
-  function setUser(user) {
+  function guardarUsuario(user) {
     localStorage.setItem(KEY, JSON.stringify(user));
   }
 
-  function logout() {
+  function cerrarSesion() {
     localStorage.removeItem(KEY);
   }
 
-  function isAuthenticated() {
-    const user = getUser();
+  function estaAutenticado() {
+    const user = obtenerUsuario();
     return Boolean(user && user.id && user.email);
   }
 
-  function getHomePath(user = getUser()) {
+  function obtenerRutaInicio(user = obtenerUsuario()) {
     // La experiencia inicial cambia segun el rol para dirigir al usuario
     // hacia el flujo mas relevante dentro de la plataforma.
     if (!user) return '/index.html';
@@ -41,9 +41,9 @@
     return '/index.html';
   }
 
-  function requireAuth({ redirectTo = '/pages/login.html' } = {}) {
+  function requerirAutenticacion({ redirectTo = '/pages/login.html' } = {}) {
     // Se conserva la ruta actual para poder retomarla despues del login.
-    if (!isAuthenticated()) {
+    if (!estaAutenticado()) {
       const next = encodeURIComponent(window.location.pathname + window.location.search);
       window.location.href = `${redirectTo}?next=${next}`;
       return false;
@@ -53,13 +53,13 @@
 
   global.MentoriasAuth = {
     KEY,
-    getUser,
-    setUser,
-    logout,
-    getHomePath,
-    isAuthenticated,
-    requireAuth,
-    clear: logout,
-    isLoggedIn: isAuthenticated,
+    obtenerUsuario,
+    guardarUsuario,
+    cerrarSesion,
+    obtenerRutaInicio,
+    estaAutenticado,
+    requerirAutenticacion,
+    limpiar: cerrarSesion,
+    estaLogueado: estaAutenticado,
   };
 })(window);

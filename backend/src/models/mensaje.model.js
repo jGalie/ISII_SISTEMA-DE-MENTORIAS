@@ -9,7 +9,7 @@
  * @property {number|null} claseId
  */
 
-function toMensaje(row) {
+function mapearMensaje(row) {
   return {
     id: row.id,
     remitenteId: row.remitenteId,
@@ -20,4 +20,4 @@ function toMensaje(row) {
   };
 }
 
-module.exports = { toMensaje };
+module.exports = { mapearMensaje };

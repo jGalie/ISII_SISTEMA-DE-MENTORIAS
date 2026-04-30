@@ -10,7 +10,7 @@
       .replace(/"/g, '&quot;');
   }
 
-  function formatDate(iso) {
+  function formatearFecha(iso) {
     if (!iso) return '-';
     const date = new Date(iso);
     if (Number.isNaN(date.getTime())) return '-';
@@ -23,7 +23,7 @@
     });
   }
 
-  function showConfirmDialog(options = {}) {
+  function mostrarDialogoConfirmacion(options = {}) {
     const {
       title = 'Confirmar accion',
       message = 'Estas seguro de continuar?',
@@ -80,7 +80,7 @@
     });
   }
 
-  function activeKeyFromPath(pathname) {
+  function claveActivaDesdeRuta(pathname) {
     if (pathname.endsWith('/inicio-estudiante.html')) return 'inicio';
     if (pathname.endsWith('/dashboard.html')) return 'dashboard';
     if (pathname.endsWith('/clases.html')) return 'clases';
@@ -93,15 +93,15 @@
     return 'inicio';
   }
 
-  function modalityLabel(value) {
+  function etiquetaModalidad(value) {
     return value === 'presencial' ? 'Presencial' : 'Virtual';
   }
 
-  function goBackOrHome(fallbackPath) {
-    const user = global.MentoriasAuth ? global.MentoriasAuth.getUser() : null;
+  function volverOAInicio(fallbackPath) {
+    const user = global.MentoriasAuth ? global.MentoriasAuth.obtenerUsuario() : null;
     const fallback =
       fallbackPath ||
-      (user && global.MentoriasAuth ? global.MentoriasAuth.getHomePath(user) : '/index.html');
+      (user && global.MentoriasAuth ? global.MentoriasAuth.obtenerRutaInicio(user) : '/index.html');
 
     if (window.history.length > 1) {
       window.history.back();
@@ -111,18 +111,18 @@
     window.location.href = fallback;
   }
 
-  function bindBackButtons(root = document) {
+  function vincularBotonesVolver(root = document) {
     root.querySelectorAll('[data-back-link]').forEach((button) => {
       button.addEventListener('click', (event) => {
         event.preventDefault();
-        goBackOrHome(button.getAttribute('href'));
+        volverOAInicio(button.getAttribute('href'));
       });
     });
   }
 
-  function navbarHtml({ user, activeKey }) {
+  function htmlNavbar({ user, activeKey }) {
     const homePath =
-      user && global.MentoriasAuth ? global.MentoriasAuth.getHomePath(user) : '/index.html';
+      user && global.MentoriasAuth ? global.MentoriasAuth.obtenerRutaInicio(user) : '/index.html';
     const brand = `
       <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="${homePath}">
         <span class="mentorix-brand-mark rounded-4 d-inline-flex align-items-center justify-content-center text-white">
@@ -182,7 +182,7 @@
             <li><h6 class="dropdown-header">${esc(user.email || roleLabel)}</h6></li>
             <li><a class="dropdown-item" href="/pages/perfil.html"><i class="bi bi-person-gear me-2"></i>Modificar perfil</a></li>
             <li><hr class="dropdown-divider"></li>
-            <li><button id="btn-logout" class="dropdown-item" type="button"><i class="bi bi-box-arrow-right me-2"></i>Cerrar sesion</button></li>
+            <li><button id="btn-cerrarSesion" class="dropdown-item" type="button"><i class="bi bi-box-arrow-right me-2"></i>Cerrar sesion</button></li>
           </ul>
         </li>
       </ul>
@@ -212,7 +212,7 @@
             <li><h6 class="dropdown-header">${esc(user.email || roleLabel)}</h6></li>
             <li><a class="dropdown-item" href="/pages/perfil.html"><i class="bi bi-person-gear me-2"></i>Modificar perfil</a></li>
             <li><hr class="dropdown-divider"></li>
-            <li><button id="btn-logout" class="dropdown-item" type="button"><i class="bi bi-box-arrow-right me-2"></i>Cerrar sesion</button></li>
+            <li><button id="btn-cerrarSesion" class="dropdown-item" type="button"><i class="bi bi-box-arrow-right me-2"></i>Cerrar sesion</button></li>
           </ul>
         </li>
       </ul>
@@ -221,31 +221,31 @@
 </nav>`;
   }
 
-  async function mountNavbar() {
+  async function montarNavbar() {
     const host = document.querySelector('[data-component="navbar"]');
     if (!host) return;
 
-    const user = global.MentoriasAuth ? global.MentoriasAuth.getUser() : null;
-    const activeKey = activeKeyFromPath(window.location.pathname);
-    host.innerHTML = navbarHtml({ user, activeKey });
+    const user = global.MentoriasAuth ? global.MentoriasAuth.obtenerUsuario() : null;
+    const activeKey = claveActivaDesdeRuta(window.location.pathname);
+    host.innerHTML = htmlNavbar({ user, activeKey });
 
-    const logoutButton = document.getElementById('btn-logout');
+    const logoutButton = document.getElementById('btn-cerrarSesion');
     if (logoutButton) {
       logoutButton.addEventListener('click', async () => {
-        const confirmarSalida = await showConfirmDialog({
+        const confirmarSalida = await mostrarDialogoConfirmacion({
           title: 'Cerrar sesion',
           message: 'Queres cerrar tu sesion en Mentorix?',
           confirmText: 'Cerrar sesion',
           cancelText: 'Cancelar',
         });
         if (!confirmarSalida) return;
-        global.MentoriasAuth.logout();
+        global.MentoriasAuth.cerrarSesion();
         window.location.href = '/index.html';
       });
     }
   }
 
-  function renderClasesCards(container, clases, options = {}) {
+  function renderizarTarjetasClases(container, clases, options = {}) {
     if (!container) return;
 
     const {
@@ -297,11 +297,11 @@
           <h5 class="card-title fw-bold mb-1">${esc(clase.titulo)}</h5>
           <div class="text-muted small"><i class="bi bi-person-circle me-1"></i><a href="/pages/mentor.html?id=${encodeURIComponent(clase.mentorId)}">${esc(clase.mentorNombre || 'Mentor')}</a></div>
           <div class="text-muted small"><i class="bi bi-journal-bookmark me-1"></i>${esc(clase.materiaNombre || 'Materia a definir')}</div>
-          <div class="text-muted small"><i class="bi ${clase.modalidad === 'presencial' ? 'bi-geo-alt' : 'bi-camera-video'} me-1"></i>${esc(modalityLabel(clase.modalidad))}</div>
+          <div class="text-muted small"><i class="bi ${clase.modalidad === 'presencial' ? 'bi-geo-alt' : 'bi-camera-video'} me-1"></i>${esc(etiquetaModalidad(clase.modalidad))}</div>
           <div class="text-muted small"><i class="bi bi-cash-coin me-1"></i>${esc(clase.precio != null ? `$${Number(clase.precio).toLocaleString('es-AR')}` : 'Precio a coordinar')}</div>
           ${clase.modalidad === 'presencial' && clase.ubicacion ? `<div class="text-muted small"><i class="bi bi-pin-map me-1"></i>${esc(clase.ubicacion)}</div>` : ''}
         </div>
-        <span class="badge rounded-pill text-bg-light border">${esc(formatDate(clase.fecha))}</span>
+        <span class="badge rounded-pill text-bg-light border">${esc(formatearFecha(clase.fecha))}</span>
       </div>
       <p class="text-muted flex-grow-1 mb-4">${esc(clase.descripcion || 'Sin descripcion.')}</p>
       <div class="d-flex gap-2 flex-wrap mt-auto">
@@ -321,11 +321,11 @@
   }
 
   global.MentoriasUI = {
-    mountNavbar,
-    renderClasesCards,
-    formatDate,
-    showConfirmDialog,
-    goBackOrHome,
-    bindBackButtons,
+    montarNavbar,
+    renderizarTarjetasClases,
+    formatearFecha,
+    mostrarDialogoConfirmacion,
+    volverOAInicio,
+    vincularBotonesVolver,
   };
 })(window);

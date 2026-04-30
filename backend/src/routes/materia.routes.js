@@ -3,7 +3,7 @@ const materiaController = require('../controllers/materia.controller');
 
 const router = Router();
 
-router.get('/', materiaController.list);
-router.post('/', materiaController.create);
+router.get('/', materiaController.listar);
+router.post('/', materiaController.crear);
 
 module.exports = router;

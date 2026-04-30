@@ -1,18 +1,18 @@
-const { toSeguimiento } = require('../models/seguimiento.model');
+const { mapearSeguimiento } = require('../models/seguimiento.model');
 
 let nextId = 1;
 const store = [];
 
-function findAll() {
-  return store.map((r) => toSeguimiento(r));
+function buscarTodos() {
+  return store.map((r) => mapearSeguimiento(r));
 }
 
-function findById(id) {
+function buscarPorId(id) {
   const row = store.find((r) => r.id === Number(id));
-  return row ? toSeguimiento(row) : null;
+  return row ? mapearSeguimiento(row) : null;
 }
 
-function create(data) {
+function crear(data) {
   const row = {
     id: nextId++,
     inscripcionId: Number(data.inscripcionId),
@@ -20,11 +20,11 @@ function create(data) {
     fecha: data.fecha || new Date().toISOString(),
   };
   store.push(row);
-  return toSeguimiento(row);
+  return mapearSeguimiento(row);
 }
 
 module.exports = {
-  findAll,
-  findById,
-  create,
+  buscarTodos,
+  buscarPorId,
+  crear,
 };

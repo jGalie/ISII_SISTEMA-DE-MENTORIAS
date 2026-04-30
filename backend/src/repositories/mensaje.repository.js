@@ -1,18 +1,18 @@
-const { toMensaje } = require('../models/mensaje.model');
+const { mapearMensaje } = require('../models/mensaje.model');
 
 let nextId = 1;
 const store = [];
 
-function findAll() {
-  return store.map((r) => toMensaje(r));
+function buscarTodos() {
+  return store.map((r) => mapearMensaje(r));
 }
 
-function findById(id) {
+function buscarPorId(id) {
   const row = store.find((r) => r.id === Number(id));
-  return row ? toMensaje(row) : null;
+  return row ? mapearMensaje(row) : null;
 }
 
-function create(data) {
+function crear(data) {
   const row = {
     id: nextId++,
     remitenteId: Number(data.remitenteId),
@@ -22,11 +22,11 @@ function create(data) {
     claseId: data.claseId != null ? Number(data.claseId) : null,
   };
   store.push(row);
-  return toMensaje(row);
+  return mapearMensaje(row);
 }
 
 module.exports = {
-  findAll,
-  findById,
-  create,
+  buscarTodos,
+  buscarPorId,
+  crear,
 };

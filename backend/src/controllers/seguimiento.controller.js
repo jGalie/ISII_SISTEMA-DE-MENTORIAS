@@ -1,6 +1,6 @@
 const seguimientoService = require('../services/seguimiento.service');
 
-function list(req, res) {
+function listar(req, res) {
   try {
     const data = seguimientoService.listar();
     res.json({ data });
@@ -9,7 +9,7 @@ function list(req, res) {
   }
 }
 
-function create(req, res) {
+function crear(req, res) {
   try {
     const data = seguimientoService.crear(req.body || {});
     res.status(201).json({ data });
@@ -18,4 +18,4 @@ function create(req, res) {
   }
 }
 
-module.exports = { list, create };
+module.exports = { listar, crear };

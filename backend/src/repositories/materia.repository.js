@@ -1,11 +1,11 @@
 const { pool } = require('../config/db');
-const { toMateria } = require('../models/materia.model');
+const { mapearMateria } = require('../models/materia.model');
 
-function normalizeName(value) {
+function normalizarNombre(value) {
   return String(value || '').trim();
 }
 
-function normalizeCode(value) {
+function normalizarCodigo(value) {
   return String(value || '')
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
@@ -15,35 +15,35 @@ function normalizeCode(value) {
     .slice(0, 30);
 }
 
-async function findAll() {
+async function buscarTodos() {
   const [rows] = await pool.query(
     'SELECT id_materia, nombre, codigo FROM materias ORDER BY nombre ASC, id_materia ASC'
   );
-  return rows.map(toMateria);
+  return rows.map(mapearMateria);
 }
 
-async function findById(id) {
+async function buscarPorId(id) {
   const [rows] = await pool.query(
     'SELECT id_materia, nombre, codigo FROM materias WHERE id_materia = ? LIMIT 1',
     [Number(id)]
   );
-  return rows.length ? toMateria(rows[0]) : null;
+  return rows.length ? mapearMateria(rows[0]) : null;
 }
 
-async function findByNombre(nombre) {
-  const normalized = normalizeName(nombre);
+async function buscarPorNombre(nombre) {
+  const normalized = normalizarNombre(nombre);
   if (!normalized) return null;
 
   const [rows] = await pool.query(
     'SELECT id_materia, nombre, codigo FROM materias WHERE LOWER(nombre) = LOWER(?) LIMIT 1',
     [normalized]
   );
-  return rows.length ? toMateria(rows[0]) : null;
+  return rows.length ? mapearMateria(rows[0]) : null;
 }
 
-async function create(data, executor = pool) {
-  const nombre = normalizeName(data?.nombre);
-  const codigo = normalizeCode(data?.codigo || nombre);
+async function crear(data, executor = pool) {
+  const nombre = normalizarNombre(data?.nombre);
+  const codigo = normalizarCodigo(data?.codigo || nombre);
 
   const [result] = await executor.query(
     `
@@ -60,8 +60,8 @@ async function create(data, executor = pool) {
   };
 }
 
-async function findOrCreateByNombre(nombre, executor = pool) {
-  const normalized = normalizeName(nombre);
+async function buscarOCrearPorNombre(nombre, executor = pool) {
+  const normalized = normalizarNombre(nombre);
   if (!normalized) return null;
 
   const [rows] = await executor.query(
@@ -70,16 +70,16 @@ async function findOrCreateByNombre(nombre, executor = pool) {
   );
 
   if (rows.length) {
-    return toMateria(rows[0]);
+    return mapearMateria(rows[0]);
   }
 
-  let codigoBase = normalizeCode(normalized) || 'MATERIA';
+  let codigoBase = normalizarCodigo(normalized) || 'MATERIA';
   let codigo = codigoBase;
   let attempt = 1;
 
   while (true) {
     try {
-      return await create({ nombre: normalized, codigo }, executor);
+      return await crear({ nombre: normalized, codigo }, executor);
     } catch (error) {
       if (error?.code !== 'ER_DUP_ENTRY') throw error;
       attempt += 1;
@@ -89,9 +89,9 @@ async function findOrCreateByNombre(nombre, executor = pool) {
 }
 
 module.exports = {
-  findAll,
-  findById,
-  findByNombre,
-  findOrCreateByNombre,
-  create,
+  buscarTodos,
+  buscarPorId,
+  buscarPorNombre,
+  buscarOCrearPorNombre,
+  crear,
 };

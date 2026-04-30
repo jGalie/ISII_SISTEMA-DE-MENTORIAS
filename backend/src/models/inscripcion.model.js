@@ -8,7 +8,7 @@
  * @property {string} fechaSolicitud
  */
 
-function toInscripcion(row) {
+function mapearInscripcion(row) {
   if (!row) return null;
   return {
     id: row.id ?? row.id_inscripcion,
@@ -26,4 +26,4 @@ function toInscripcion(row) {
   };
 }
 
-module.exports = { toInscripcion };
+module.exports = { mapearInscripcion };

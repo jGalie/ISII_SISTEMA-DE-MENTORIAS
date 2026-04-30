@@ -1,6 +1,6 @@
 const mentorMateriaService = require('../services/mentor-materia.service');
 
-async function list(req, res) {
+async function listar(req, res) {
   try {
     const data = await mentorMateriaService.listar(req.query || {});
     res.json({ data });
@@ -9,7 +9,7 @@ async function list(req, res) {
   }
 }
 
-async function create(req, res) {
+async function crear(req, res) {
   try {
     const data = await mentorMateriaService.crear(req.body || {});
     res.status(201).json({ data });
@@ -18,4 +18,4 @@ async function create(req, res) {
   }
 }
 
-module.exports = { list, create };
+module.exports = { listar, crear };

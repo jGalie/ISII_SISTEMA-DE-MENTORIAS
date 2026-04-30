@@ -7,7 +7,7 @@
  * @property {string} url
  */
 
-function toMaterial(row) {
+function mapearMaterial(row) {
   return {
     id: row.id,
     claseId: row.claseId,
@@ -16,4 +16,4 @@ function toMaterial(row) {
   };
 }
 
-module.exports = { toMaterial };
+module.exports = { mapearMaterial };

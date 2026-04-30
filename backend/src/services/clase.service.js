@@ -78,12 +78,12 @@ function crearServicioClase({ claseRepository, usuarioRepository, mentorMateriaR
         throw crearErrorApp('Debes indicar el mentor creador.', 'VALIDATION_ERROR');
       }
 
-      const mentor = await usuarioRepository.findById(id_mentor);
+      const mentor = await usuarioRepository.buscarPorId(id_mentor);
       if (!mentor || mentor.rol !== 'mentor') {
         throw crearErrorApp('Solo un mentor puede crear clases.', 'FORBIDDEN');
       }
 
-      const hasSubject = await mentorMateriaRepository.exists(id_mentor, payload.id_materia);
+      const hasSubject = await mentorMateriaRepository.existe(id_mentor, payload.id_materia);
       if (!hasSubject) {
         throw crearErrorApp('La materia seleccionada no pertenece a las materias registradas por el mentor.', 'FORBIDDEN');
       }
@@ -109,7 +109,7 @@ function crearServicioClase({ claseRepository, usuarioRepository, mentorMateriaR
     async listarClasesPorMentor(id_mentor) {
       // Antes de listar por mentor se comprueba que el usuario exista y tenga
       // el rol correspondiente.
-      const mentor = await usuarioRepository.findById(id_mentor);
+      const mentor = await usuarioRepository.buscarPorId(id_mentor);
       if (!mentor || mentor.rol !== 'mentor') {
         throw crearErrorApp('Mentor no encontrado.', 'NOT_FOUND');
       }
@@ -132,7 +132,7 @@ function crearServicioClase({ claseRepository, usuarioRepository, mentorMateriaR
         throw crearErrorApp('El cupo maximo no puede ser menor al cupo actual.', 'VALIDATION_ERROR');
       }
 
-      const hasSubject = await mentorMateriaRepository.exists(actorId, payload.id_materia);
+      const hasSubject = await mentorMateriaRepository.existe(actorId, payload.id_materia);
       if (!hasSubject) {
         throw crearErrorApp('La materia seleccionada no pertenece a las materias registradas por el mentor.', 'FORBIDDEN');
       }

@@ -7,7 +7,7 @@
  * @property {'mentor'|'estudiante'} rol
  */
 
-function toUsuario(row) {
+function mapearUsuario(row) {
   if (!row) return null;
   let nivelesEducativos = [];
   if (Array.isArray(row.niveles_educativos)) {
@@ -34,12 +34,12 @@ function toUsuario(row) {
   };
 }
 
-function toUsuarioConPassword(row) {
+function mapearUsuarioConPassword(row) {
   if (!row) return null;
   return {
-    ...toUsuario(row),
+    ...mapearUsuario(row),
     password_hash: row.password_hash,
   };
 }
 
-module.exports = { toUsuario, toUsuarioConPassword };
+module.exports = { mapearUsuario, mapearUsuarioConPassword };

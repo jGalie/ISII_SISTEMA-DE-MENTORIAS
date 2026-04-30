@@ -7,7 +7,7 @@
  * @property {string} fecha ISO date
  */
 
-function toSeguimiento(row) {
+function mapearSeguimiento(row) {
   return {
     id: row.id,
     inscripcionId: row.inscripcionId,
@@ -16,4 +16,4 @@ function toSeguimiento(row) {
   };
 }
 
-module.exports = { toSeguimiento };
+module.exports = { mapearSeguimiento };

@@ -11,7 +11,7 @@ const { crearRepositorioClase } = require('../repositories/clase.repository');
  */
 const claseRepository = crearRepositorioClase({ pool });
 
-function requireFields(body, fields) {
+function requerirCampos(body, fields) {
   for (const f of fields) {
     if (body[f] == null || String(body[f]).trim() === '') {
       throw new Error(`Campo obligatorio: ${f}`);
@@ -20,15 +20,15 @@ function requireFields(body, fields) {
 }
 
 function listar() {
-  return materialRepository.findAll();
+  return materialRepository.buscarTodos();
 }
 
 async function crear(body) {
-  requireFields(body, ['claseId', 'titulo']);
+  requerirCampos(body, ['claseId', 'titulo']);
   // El material no debe existir aislado: siempre se vincula a una clase valida.
   const clase = await claseRepository.buscarPorId(body.claseId);
   if (!clase) throw new Error('claseId no válido');
-  return materialRepository.create(body);
+  return materialRepository.crear(body);
 }
 
 module.exports = {

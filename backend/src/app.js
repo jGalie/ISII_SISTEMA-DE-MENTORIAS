@@ -3,26 +3,26 @@ const path = require('path');
 const cors = require('cors');
 
 const { pool } = require('./config/db');
-const { createUsuarioRepository } = require('./repositories/usuario.repository');
+const { crearRepositorioUsuario } = require('./repositories/usuario.repository');
 const { crearRepositorioClase } = require('./repositories/clase.repository');
-const { createInscripcionRepository } = require('./repositories/inscripcion.repository');
-const { createValoracionRepository } = require('./repositories/valoracion.repository');
+const { crearRepositorioInscripcion } = require('./repositories/inscripcion.repository');
+const { crearRepositorioValoracion } = require('./repositories/valoracion.repository');
 const mentorMateriaRepository = require('./repositories/mentor-materia.repository');
-const { createUsuarioService } = require('./services/usuario.service');
+const { crearServicioUsuario } = require('./services/usuario.service');
 const { crearServicioClase } = require('./services/clase.service');
-const { createInscripcionService } = require('./services/inscripcion.service');
-const { createValoracionService } = require('./services/valoracion.service');
-const { createAuthService } = require('./services/auth.service');
-const { createUsuarioController } = require('./controllers/usuario.controller');
+const { crearServicioInscripcion } = require('./services/inscripcion.service');
+const { crearServicioValoracion } = require('./services/valoracion.service');
+const { crearServicioAuth } = require('./services/auth.service');
+const { crearControladorUsuario } = require('./controllers/usuario.controller');
 const { crearControladorClase } = require('./controllers/clase.controller');
-const { createInscripcionController } = require('./controllers/inscripcion.controller');
-const { createValoracionController } = require('./controllers/valoracion.controller');
-const { createAuthController } = require('./controllers/auth.controller');
-const { createUsuarioRoutes } = require('./routes/usuario.routes');
+const { crearControladorInscripcion } = require('./controllers/inscripcion.controller');
+const { crearControladorValoracion } = require('./controllers/valoracion.controller');
+const { crearControladorAuth } = require('./controllers/auth.controller');
+const { crearRutasUsuario } = require('./routes/usuario.routes');
 const { crearRutasClase } = require('./routes/clase.routes');
-const { createInscripcionRoutes } = require('./routes/inscripcion.routes');
-const { createValoracionRoutes } = require('./routes/valoracion.routes');
-const { createAuthRoutes } = require('./routes/auth.routes');
+const { crearRutasInscripcion } = require('./routes/inscripcion.routes');
+const { crearRutasValoracion } = require('./routes/valoracion.routes');
+const { crearRutasAuth } = require('./routes/auth.routes');
 
 const materiaRoutes = require('./routes/materia.routes');
 const seguimientoRoutes = require('./routes/seguimiento.routes');
@@ -30,38 +30,38 @@ const materialRoutes = require('./routes/material.routes');
 const mensajeRoutes = require('./routes/mensaje.routes');
 const mentorMateriaRoutes = require('./routes/mentor-materia.routes');
 
-const usuarioRepository = createUsuarioRepository({ pool });
+const usuarioRepository = crearRepositorioUsuario({ pool });
 const claseRepository = crearRepositorioClase({ pool });
-const inscripcionRepository = createInscripcionRepository({ pool });
-const valoracionRepository = createValoracionRepository({ pool });
+const inscripcionRepository = crearRepositorioInscripcion({ pool });
+const valoracionRepository = crearRepositorioValoracion({ pool });
 
 // En esta seccion se realiza la inyeccion manual de dependencias. Cada capa
 // recibe solamente los objetos que necesita, lo que disminuye el acoplamiento y
 // facilita explicar el flujo Repository -> Service -> Controller -> Route.
-const usuarioService = createUsuarioService({ usuarioRepository, claseRepository, valoracionRepository });
+const usuarioService = crearServicioUsuario({ usuarioRepository, claseRepository, valoracionRepository });
 const claseService = crearServicioClase({
   claseRepository,
   usuarioRepository,
   mentorMateriaRepository,
 });
-const inscripcionService = createInscripcionService({
+const inscripcionService = crearServicioInscripcion({
   inscripcionRepository,
   claseRepository,
   usuarioRepository,
 });
-const valoracionService = createValoracionService({
+const valoracionService = crearServicioValoracion({
   valoracionRepository,
   claseRepository,
   usuarioRepository,
   inscripcionRepository,
 });
-const authService = createAuthService({ usuarioRepository });
+const authService = crearServicioAuth({ usuarioRepository });
 
-const usuarioController = createUsuarioController({ usuarioService });
+const usuarioController = crearControladorUsuario({ usuarioService });
 const claseController = crearControladorClase({ claseService });
-const inscripcionController = createInscripcionController({ inscripcionService });
-const valoracionController = createValoracionController({ valoracionService });
-const authController = createAuthController({ authService });
+const inscripcionController = crearControladorInscripcion({ inscripcionService });
+const valoracionController = crearControladorValoracion({ valoracionService });
+const authController = crearControladorAuth({ authService });
 
 const app = express();
 
@@ -78,11 +78,11 @@ app.use(cors());
 app.use(express.json());
 
 // Cada prefijo delega el procesamiento a su modulo especializado.
-app.use('/auth', createAuthRoutes({ authController }));
-app.use('/usuarios', createUsuarioRoutes({ usuarioController }));
+app.use('/auth', crearRutasAuth({ authController }));
+app.use('/usuarios', crearRutasUsuario({ usuarioController }));
 app.use('/clases', crearRutasClase({ claseController }));
-app.use('/inscripciones', createInscripcionRoutes({ inscripcionController }));
-app.use('/valoraciones', createValoracionRoutes({ valoracionController }));
+app.use('/inscripciones', crearRutasInscripcion({ inscripcionController }));
+app.use('/valoraciones', crearRutasValoracion({ valoracionController }));
 app.use('/materias', materiaRoutes);
 app.use('/seguimientos', seguimientoRoutes);
 app.use('/materiales', materialRoutes);

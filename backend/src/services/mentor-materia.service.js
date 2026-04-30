@@ -2,7 +2,7 @@ const mentorMateriaRepository = require('../repositories/mentor-materia.reposito
 const usuarioRepository = require('../repositories/usuario.repository');
 const materiaRepository = require('../repositories/materia.repository');
 
-function requireFields(body, fields) {
+function requerirCampos(body, fields) {
   for (const field of fields) {
     if (body[field] == null || String(body[field]).trim() === '') {
       throw new Error(`Campo obligatorio: ${field}`);
@@ -12,26 +12,26 @@ function requireFields(body, fields) {
 
 async function listar(filtros = {}) {
   if (filtros.mentorId) {
-    return mentorMateriaRepository.findByMentorId(filtros.mentorId);
+    return mentorMateriaRepository.buscarPorMentorId(filtros.mentorId);
   }
 
-  return mentorMateriaRepository.findAll();
+  return mentorMateriaRepository.buscarTodos();
 }
 
 async function crear(body) {
-  requireFields(body, ['mentorId', 'materiaId']);
+  requerirCampos(body, ['mentorId', 'materiaId']);
 
-  const mentor = await usuarioRepository.findById(body.mentorId);
+  const mentor = await usuarioRepository.buscarPorId(body.mentorId);
   if (!mentor || mentor.rol !== 'mentor') {
     throw new Error('mentorId debe ser un usuario mentor');
   }
 
-  const materia = await materiaRepository.findById(body.materiaId);
+  const materia = await materiaRepository.buscarPorId(body.materiaId);
   if (!materia) {
     throw new Error('materiaId no valido');
   }
 
-  return mentorMateriaRepository.create(body);
+  return mentorMateriaRepository.crear(body);
 }
 
 module.exports = {

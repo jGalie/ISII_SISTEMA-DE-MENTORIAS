@@ -1,4 +1,4 @@
-function resolveStatus(error, fallbackStatus) {
+function resolverEstadoHttp(error, fallbackStatus) {
   if (error.code === 'VALIDATION_ERROR' || error.code === 'DUPLICATE_USER') {
     return 400;
   }
@@ -8,28 +8,28 @@ function resolveStatus(error, fallbackStatus) {
   return fallbackStatus;
 }
 
-function createAuthController({ authService }) {
+function crearControladorAuth({ authService }) {
   return {
-    async register(req, res) {
+    async registrar(req, res) {
       try {
-        const data = await authService.register(req.body || {});
+        const data = await authService.registrar(req.body || {});
         res.status(201).json({ success: true, data });
       } catch (err) {
-        res.status(resolveStatus(err, 500)).json({ success: false, error: err.message });
+        res.status(resolverEstadoHttp(err, 500)).json({ success: false, error: err.message });
       }
     },
 
-    async login(req, res) {
+    async iniciarSesion(req, res) {
       try {
-        const data = await authService.login(req.body || {});
+        const data = await authService.iniciarSesion(req.body || {});
         res.json({ success: true, data });
       } catch (err) {
-        res.status(resolveStatus(err, 500)).json({ success: false, error: err.message });
+        res.status(resolverEstadoHttp(err, 500)).json({ success: false, error: err.message });
       }
     },
   };
 }
 
 module.exports = {
-  createAuthController,
+  crearControladorAuth,
 };

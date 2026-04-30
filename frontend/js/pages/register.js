@@ -32,7 +32,7 @@
   const allMaterias = [];
   const selectedMaterias = new Set();
 
-  function showError(message) {
+  function mostrarError(message) {
     if (alertBox) {
       alertBox.textContent = message;
       alertBox.classList.remove('d-none');
@@ -40,7 +40,7 @@
     if (okBox) okBox.classList.add('d-none');
   }
 
-  function showOk(message) {
+  function mostrarOk(message) {
     if (okBox) {
       okBox.textContent = message;
       okBox.classList.remove('d-none');
@@ -48,11 +48,11 @@
     if (alertBox) alertBox.classList.add('d-none');
   }
 
-  function normalize(value) {
+  function normalizar(value) {
     return String(value || '').trim();
   }
 
-  function normalizeKey(value) {
+  function normalizarClave(value) {
     return String(value || '')
       .normalize('NFD')
       .replace(/[\u0300-\u036f]/g, '')
@@ -60,11 +60,11 @@
       .trim();
   }
 
-  function isValidEmail(email) {
+  function esEmailValido(email) {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email || '').trim());
   }
 
-  function setChecklistState(element, status) {
+  function establecerEstadoChecklist(element, status) {
     if (!element) return;
     const icon = element.querySelector('.status-icon');
 
@@ -82,18 +82,18 @@
     if (icon) icon.textContent = '*';
   }
 
-  function getSelectedMaterias() {
+  function obtenerMateriasSeleccionadas() {
     return Array.from(selectedMaterias.values());
   }
 
-  function getSelectedLevels() {
+  function obtenerNivelesSeleccionados() {
     const role = String(rolEl?.value || 'estudiante');
     const selector =
       role === 'mentor' ? 'input[name="nivel-educativo"]:checked' : 'input[name="nivel-estudiante"]:checked';
     return Array.from(document.querySelectorAll(selector)).map((input) => input.value);
   }
 
-  function updateChipStates() {
+  function actualizarEstadosChips() {
     document.querySelectorAll('.chip-option').forEach((label) => {
       const input = label.querySelector('input[type="checkbox"]');
       if (!input) return;
@@ -101,10 +101,10 @@
     });
   }
 
-  function renderSelectedMaterias() {
+  function renderizarMateriasSeleccionadas() {
     if (!materiasSelectedEl) return;
 
-    const values = getSelectedMaterias();
+    const values = obtenerMateriasSeleccionadas();
     if (!values.length) {
       materiasSelectedEl.innerHTML = '<span class="empty-selected">Aun no seleccionaste materias.</span>';
       return;
@@ -122,12 +122,12 @@
       .join('');
   }
 
-  function renderMaterias() {
+  function renderizarMaterias() {
     if (!materiasContainer) return;
 
-    const searchValue = normalizeKey(materiasSearchEl?.value);
+    const searchValue = normalizarClave(materiasSearchEl?.value);
     const filtered = allMaterias.filter((materia) =>
-      !searchValue || normalizeKey(materia.nombre).includes(searchValue)
+      !searchValue || normalizarClave(materia.nombre).includes(searchValue)
     );
 
     materiasContainer.innerHTML = filtered
@@ -147,7 +147,7 @@
     }
   }
 
-  function updateChecklist() {
+  function actualizarChecklist() {
     const password = String(passEl?.value || '');
     const passwordConfirm = String(passConfirmEl?.value || '');
     const hasStarted = password.length > 0 || passwordConfirm.length > 0;
@@ -156,10 +156,10 @@
     const hasNumber = /\d/.test(password);
     const matches = password.length > 0 && password === passwordConfirm;
 
-    setChecklistState(chkLen, hasStarted ? (minLen ? 'valid' : 'invalid') : 'idle');
-    setChecklistState(chkLetter, hasStarted ? (hasLetter ? 'valid' : 'invalid') : 'idle');
-    setChecklistState(chkNumber, hasStarted ? (hasNumber ? 'valid' : 'invalid') : 'idle');
-    setChecklistState(chkMatch, hasStarted ? (matches ? 'valid' : 'invalid') : 'idle');
+    establecerEstadoChecklist(chkLen, hasStarted ? (minLen ? 'valid' : 'invalid') : 'idle');
+    establecerEstadoChecklist(chkLetter, hasStarted ? (hasLetter ? 'valid' : 'invalid') : 'idle');
+    establecerEstadoChecklist(chkNumber, hasStarted ? (hasNumber ? 'valid' : 'invalid') : 'idle');
+    establecerEstadoChecklist(chkMatch, hasStarted ? (matches ? 'valid' : 'invalid') : 'idle');
 
     if (passwordMatchFeedback) {
       const shouldShow = passwordConfirm.length > 0 && !matches;
@@ -174,7 +174,7 @@
     return { ok: minLen && hasLetter && hasNumber && matches };
   }
 
-  function updatePasswordFields(force = false) {
+  function actualizarCamposPassword(force = false) {
     const password = String(passEl?.value || '');
     const passwordConfirm = String(passConfirmEl?.value || '');
     const hasPasswordError = force && !/^(?=.*[A-Za-z])(?=.*\d).{8,}$/.test(password);
@@ -189,10 +189,10 @@
     passwordMatchFeedback?.classList.toggle('is-visible', hasConfirmError);
   }
 
-  function updateEmailValidity() {
+  function actualizarValidezEmail() {
     if (!emailEl) return true;
-    const value = normalize(emailEl.value);
-    const ok = isValidEmail(value);
+    const value = normalizar(emailEl.value);
+    const ok = esEmailValido(value);
     const shouldShow = value !== '';
 
     emailEl.classList.toggle('is-invalid', shouldShow && !ok);
@@ -206,9 +206,9 @@
     return ok;
   }
 
-  function updateRequiredInput(input, feedback, message) {
+  function actualizarInputRequerido(input, feedback, message) {
     if (!input) return true;
-    const ok = normalize(input.value) !== '';
+    const ok = normalizar(input.value) !== '';
     input.classList.toggle('is-invalid', !ok);
     input.classList.toggle('is-valid', ok);
     input.closest('.input-shell')?.classList.toggle('is-invalid', !ok);
@@ -219,13 +219,13 @@
     return ok;
   }
 
-  function updateGroupValidation(panel, feedback, ok) {
+  function actualizarValidacionGrupo(panel, feedback, ok) {
     panel?.classList.toggle('is-invalid', !ok);
     feedback?.classList.toggle('is-visible', !ok);
     return ok;
   }
 
-  function updateRoleFields() {
+  function actualizarCamposRol() {
     const isMentor = rolEl && rolEl.value === 'mentor';
     studentFields?.classList.toggle('d-none', isMentor);
     mentorFields?.classList.toggle('d-none', !isMentor);
@@ -236,7 +236,7 @@
     materiasFeedback?.classList.remove('is-visible');
   }
 
-  function bindPasswordToggles() {
+  function vincularTogglesPassword() {
     document.querySelectorAll('.password-toggle').forEach((button) => {
       button.addEventListener('click', function () {
         const input = document.getElementById(this.getAttribute('data-target'));
@@ -252,8 +252,8 @@
     });
   }
 
-  function syncSelectedMateriasFromInput(input) {
-    const value = normalize(input.value);
+  function sincronizarMateriasSeleccionadasDesdeInput(input) {
+    const value = normalizar(input.value);
     if (!value) return;
 
     if (input.checked) {
@@ -262,18 +262,18 @@
       selectedMaterias.delete(value);
     }
 
-    renderSelectedMaterias();
-    updateChipStates();
-    updateGroupValidation(mentorFields?.querySelectorAll('.mentor-panel')[0], materiasFeedback, getSelectedMaterias().length > 0 || normalize(otrasMateriasEl?.value) !== '');
+    renderizarMateriasSeleccionadas();
+    actualizarEstadosChips();
+    actualizarValidacionGrupo(mentorFields?.querySelectorAll('.mentor-panel')[0], materiasFeedback, obtenerMateriasSeleccionadas().length > 0 || normalizar(otrasMateriasEl?.value) !== '');
   }
 
-  async function loadMaterias() {
+  async function cargarMaterias() {
     try {
-      const response = await MentoriasApi.getMaterias();
+      const response = await MentoriasApi.obtenerMaterias();
       const materias = Array.isArray(response.data) ? response.data : [];
       allMaterias.splice(0, allMaterias.length, ...materias);
-      renderMaterias();
-      renderSelectedMaterias();
+      renderizarMaterias();
+      renderizarMateriasSeleccionadas();
     } catch (error) {
       if (materiasContainer) {
         materiasContainer.innerHTML = '<div class="text-muted small">No se pudieron cargar las materias predefinidas.</div>';
@@ -282,40 +282,40 @@
   }
 
   if (passEl) passEl.addEventListener('input', () => {
-    updateChecklist();
-    updatePasswordFields(false);
+    actualizarChecklist();
+    actualizarCamposPassword(false);
   });
   if (passConfirmEl) passConfirmEl.addEventListener('input', () => {
-    updateChecklist();
-    updatePasswordFields(false);
+    actualizarChecklist();
+    actualizarCamposPassword(false);
   });
-  if (emailEl) emailEl.addEventListener('input', updateEmailValidity);
-  if (nombreEl) nombreEl.addEventListener('input', () => updateRequiredInput(nombreEl, nombreFeedback, 'Ingresa tu nombre.'));
-  if (rolEl) rolEl.addEventListener('change', updateRoleFields);
+  if (emailEl) emailEl.addEventListener('input', actualizarValidezEmail);
+  if (nombreEl) nombreEl.addEventListener('input', () => actualizarInputRequerido(nombreEl, nombreFeedback, 'Ingresa tu nombre.'));
+  if (rolEl) rolEl.addEventListener('change', actualizarCamposRol);
   if (materiasSearchEl) {
-    materiasSearchEl.addEventListener('input', renderMaterias);
+    materiasSearchEl.addEventListener('input', renderizarMaterias);
   }
   if (otrasMateriasEl) {
     otrasMateriasEl.addEventListener('input', () => {
-      updateGroupValidation(mentorFields?.querySelectorAll('.mentor-panel')[0], materiasFeedback, getSelectedMaterias().length > 0 || normalize(otrasMateriasEl.value) !== '');
+      actualizarValidacionGrupo(mentorFields?.querySelectorAll('.mentor-panel')[0], materiasFeedback, obtenerMateriasSeleccionadas().length > 0 || normalizar(otrasMateriasEl.value) !== '');
     });
   }
   if (materiasContainer) {
     materiasContainer.addEventListener('change', function (event) {
       const input = event.target;
       if (!(input instanceof HTMLInputElement) || input.name !== 'materia') return;
-      syncSelectedMateriasFromInput(input);
+      sincronizarMateriasSeleccionadasDesdeInput(input);
     });
   }
   if (materiasSelectedEl) {
     materiasSelectedEl.addEventListener('click', function (event) {
       const button = event.target.closest('[data-remove-materia]');
       if (!button) return;
-      const value = normalize(button.getAttribute('data-remove-materia'));
+      const value = normalizar(button.getAttribute('data-remove-materia'));
       if (!value) return;
       selectedMaterias.delete(value);
-      renderMaterias();
-      renderSelectedMaterias();
+      renderizarMaterias();
+      renderizarMateriasSeleccionadas();
     });
   }
   document.addEventListener('change', function (event) {
@@ -326,96 +326,96 @@
     ) {
       return;
     }
-    updateChipStates();
+    actualizarEstadosChips();
     const role = String(rolEl?.value || 'estudiante');
     if (role === 'estudiante') {
-      updateGroupValidation(studentFields?.querySelector('.mentor-panel'), studentLevelsFeedback, getSelectedLevels().length > 0);
+      actualizarValidacionGrupo(studentFields?.querySelector('.mentor-panel'), studentLevelsFeedback, obtenerNivelesSeleccionados().length > 0);
     } else {
-      updateGroupValidation(mentorFields?.querySelectorAll('.mentor-panel')[1], mentorLevelsFeedback, getSelectedLevels().length > 0);
+      actualizarValidacionGrupo(mentorFields?.querySelectorAll('.mentor-panel')[1], mentorLevelsFeedback, obtenerNivelesSeleccionados().length > 0);
     }
   });
 
-  bindPasswordToggles();
-  updateChecklist();
-  updateRoleFields();
-  await loadMaterias();
-  updateChipStates();
+  vincularTogglesPassword();
+  actualizarChecklist();
+  actualizarCamposRol();
+  await cargarMaterias();
+  actualizarEstadosChips();
 
   if (!form) return;
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
 
-    const emailOk = updateEmailValidity();
-    const nombreOk = updateRequiredInput(nombreEl, nombreFeedback, 'Ingresa tu nombre.');
-    const passPolicy = updateChecklist();
-    updatePasswordFields(true);
+    const emailOk = actualizarValidezEmail();
+    const nombreOk = actualizarInputRequerido(nombreEl, nombreFeedback, 'Ingresa tu nombre.');
+    const passPolicy = actualizarChecklist();
+    actualizarCamposPassword(true);
     const rol = String(rolEl?.value || 'estudiante');
-    const materias = getSelectedMaterias();
-    const nivelesEducativos = getSelectedLevels();
-    const customSubjects = normalize(otrasMateriasEl?.value)
-      ? normalize(otrasMateriasEl?.value).split(',').map((item) => item.trim()).filter(Boolean)
+    const materias = obtenerMateriasSeleccionadas();
+    const nivelesEducativos = obtenerNivelesSeleccionados();
+    const customSubjects = normalizar(otrasMateriasEl?.value)
+      ? normalizar(otrasMateriasEl?.value).split(',').map((item) => item.trim()).filter(Boolean)
       : [];
     const studentLevelsOk = rol !== 'estudiante' || nivelesEducativos.length > 0;
     const mentorSubjectsOk = rol !== 'mentor' || materias.length > 0 || customSubjects.length > 0;
     const mentorLevelsOk = rol !== 'mentor' || nivelesEducativos.length > 0;
 
-    updateGroupValidation(studentFields?.querySelector('.mentor-panel'), studentLevelsFeedback, studentLevelsOk);
-    updateGroupValidation(mentorFields?.querySelectorAll('.mentor-panel')[0], materiasFeedback, mentorSubjectsOk);
-    updateGroupValidation(mentorFields?.querySelectorAll('.mentor-panel')[1], mentorLevelsFeedback, mentorLevelsOk);
+    actualizarValidacionGrupo(studentFields?.querySelector('.mentor-panel'), studentLevelsFeedback, studentLevelsOk);
+    actualizarValidacionGrupo(mentorFields?.querySelectorAll('.mentor-panel')[0], materiasFeedback, mentorSubjectsOk);
+    actualizarValidacionGrupo(mentorFields?.querySelectorAll('.mentor-panel')[1], mentorLevelsFeedback, mentorLevelsOk);
 
     if (!nombreOk || !studentLevelsOk || !mentorSubjectsOk || !mentorLevelsOk) {
-      showError('Debes completar todos los campos obligatorios.');
+      mostrarError('Debes completar todos los campos obligatorios.');
       return;
     }
     if (!emailOk) {
-      showError('Email invalido.');
+      mostrarError('Email invalido.');
       return;
     }
     if (!passPolicy.ok) {
-      showError('La contrasena no cumple los requisitos o no coincide.');
+      mostrarError('La contrasena no cumple los requisitos o no coincide.');
       return;
     }
 
     const payload = {
-      nombre: normalize(nombreEl?.value),
-      email: normalize(emailEl?.value),
+      nombre: normalizar(nombreEl?.value),
+      email: normalizar(emailEl?.value),
       password: String(passEl?.value || ''),
       rol,
       materias,
-      otrasMaterias: normalize(otrasMateriasEl?.value),
+      otrasMaterias: normalizar(otrasMateriasEl?.value),
       nivelesEducativos,
     };
 
     if (!payload.nombre) {
-      showError('Campo obligatorio: nombre');
+      mostrarError('Campo obligatorio: nombre');
       return;
     }
 
     if (rol === 'mentor') {
       if (materias.length === 0 && customSubjects.length === 0) {
-        showError('Selecciona o escribe al menos una materia para el mentor.');
+        mostrarError('Selecciona o escribe al menos una materia para el mentor.');
         return;
       }
       if (nivelesEducativos.length === 0) {
-        showError('Selecciona al menos un nivel educativo para el mentor.');
+        mostrarError('Selecciona al menos un nivel educativo para el mentor.');
         return;
       }
     } else if (nivelesEducativos.length === 0) {
-      showError('Selecciona al menos un nivel educativo de interes para el estudiante.');
+      mostrarError('Selecciona al menos un nivel educativo de interes para el estudiante.');
       return;
     }
 
     try {
       if (btn) btn.disabled = true;
       if (btn) btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>Registrando...';
-      await MentoriasApi.register(payload);
-      showOk('Registro exitoso. Ahora puedes iniciar sesion.');
+      await MentoriasApi.registrar(payload);
+      mostrarOk('Registro exitoso. Ahora puedes iniciar sesion.');
       setTimeout(() => {
         window.location.href = '/pages/login.html';
       }, 700);
     } catch (err) {
-      showError(err.message);
+      mostrarError(err.message);
     } finally {
       if (btn) {
         btn.disabled = false;

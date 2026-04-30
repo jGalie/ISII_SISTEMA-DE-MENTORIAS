@@ -6,7 +6,7 @@
  * @property {number} materiaId
  */
 
-function toMentorMateria(row) {
+function mapearMentorMateria(row) {
   return {
     id: row.id ?? row.id_mentor_materia,
     mentorId: row.mentorId ?? row.id_mentor,
@@ -16,4 +16,4 @@ function toMentorMateria(row) {
   };
 }
 
-module.exports = { toMentorMateria };
+module.exports = { mapearMentorMateria };

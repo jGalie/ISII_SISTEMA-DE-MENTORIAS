@@ -5,40 +5,40 @@
   const NAVBAR_SELECTOR = '[data-component="navbar"]';
   const FOOTER_SELECTOR = '#footer';
 
-  function componentPath(fileName) {
+  function rutaComponente(fileName) {
     const fromPages = window.location.pathname.includes('/pages/');
     return `${fromPages ? '../' : ''}components/${fileName}`;
   }
 
-  async function mountNavbar() {
+  async function montarNavbar() {
     const host = document.querySelector(NAVBAR_SELECTOR);
     if (!host) return;
     try {
-      const res = await fetch(componentPath('navbar.html'), { cache: 'no-store' });
+      const res = await fetch(rutaComponente('navbar.html'), { cache: 'no-store' });
       if (!res.ok) throw new Error('No se pudo cargar navbar');
       host.innerHTML = await res.text();
-      highlightActiveLink();
+      resaltarEnlaceActivo();
     } catch (e) {
       host.innerHTML = `<p class="alert alert--error" role="alert">${e.message}</p>`;
     }
   }
 
-  async function mountFooter() {
+  async function montarFooter() {
     const host = document.querySelector(FOOTER_SELECTOR);
     if (!host) return;
     try {
-      const res = await fetch(componentPath('footer.html'), { cache: 'no-store' });
+      const res = await fetch(rutaComponente('footer.html'), { cache: 'no-store' });
       if (!res.ok) throw new Error('No se pudo cargar footer');
       host.innerHTML = await res.text();
-      attachFooterClassLink(host);
+      adjuntarEnlaceClasesFooter(host);
     } catch (e) {
       host.innerHTML = `<p class="alert alert-danger m-0" role="alert">${e.message}</p>`;
     }
   }
 
-  function getStoredUser() {
-    if (global.MentoriasAuth && typeof global.MentoriasAuth.getUser === 'function') {
-      return global.MentoriasAuth.getUser();
+  function obtenerUsuarioGuardado() {
+    if (global.MentoriasAuth && typeof global.MentoriasAuth.obtenerUsuario === 'function') {
+      return global.MentoriasAuth.obtenerUsuario();
     }
 
     const keys = ['usuarioLogueado'];
@@ -58,32 +58,32 @@
     return null;
   }
 
-  function isAuthenticated() {
-    if (global.MentoriasAuth && typeof global.MentoriasAuth.isAuthenticated === 'function') {
-      return global.MentoriasAuth.isAuthenticated();
+  function estaAutenticado() {
+    if (global.MentoriasAuth && typeof global.MentoriasAuth.estaAutenticado === 'function') {
+      return global.MentoriasAuth.estaAutenticado();
     }
 
-    const user = getStoredUser();
+    const user = obtenerUsuarioGuardado();
     return Boolean(user && user.id && user.email);
   }
 
-  function attachFooterClassLink(scope) {
+  function adjuntarEnlaceClasesFooter(scope) {
     const link = scope.querySelector('[data-footer-clases]');
     if (!link) return;
 
     link.addEventListener('click', (event) => {
       event.preventDefault();
 
-      if (isAuthenticated()) {
+      if (estaAutenticado()) {
         global.location.href = '/pages/clases.html';
         return;
       }
 
-      showClassesAuthNotice();
+      mostrarAvisoAuthClases();
     });
   }
 
-  function showClassesAuthNotice() {
+  function mostrarAvisoAuthClases() {
     const existing = document.getElementById('classes-auth-notice');
     if (existing) existing.remove();
 
@@ -121,7 +121,7 @@
     notice.removeAttribute('aria-hidden');
   }
 
-  function highlightActiveLink() {
+  function resaltarEnlaceActivo() {
     const path = window.location.pathname;
     document.querySelectorAll('.app-nav__links a[data-nav]').forEach((a) => {
       const key = a.getAttribute('data-nav');
@@ -133,7 +133,7 @@
     });
   }
 
-  function formatDate(iso) {
+  function formatearFecha(iso) {
     if (!iso) return '—';
     const d = new Date(iso);
     if (Number.isNaN(d.getTime())) return '—';
@@ -143,7 +143,7 @@
   /**
    * @param {object} c - objeto Clase del backend
    */
-  function claseCardHtml(c) {
+  function htmlTarjetaClase(c) {
     const safe = (s) =>
       String(s == null ? '' : s)
         .replace(/&/g, '&amp;')
@@ -152,7 +152,7 @@
     const titulo = safe(c.titulo);
     const id = Number(c.id);
     const materia = safe(c.materiaNombre || c.materia || `Materia #${c.materiaId ?? '—'}`);
-    const fecha = safe(c.fechaLabel || formatDate(c.fechaInicio));
+    const fecha = safe(c.fechaLabel || formatearFecha(c.fechaInicio));
     return `
 <article class="clase-card">
   <div class="clase-card__top">
@@ -167,24 +167,24 @@
 </article>`;
   }
 
-  function renderClaseCards(container, clases) {
+  function renderizarTarjetasClase(container, clases) {
     if (!container) return;
     if (!clases || !clases.length) {
       container.innerHTML = '<p class="muted">No hay clases todavía. Crea una desde “Nueva clase”.</p>';
       return;
     }
-    container.innerHTML = `<div class="grid-cards">${clases.map((c) => claseCardHtml(c)).join('')}</div>`;
+    container.innerHTML = `<div class="grid-cards">${clases.map((c) => htmlTarjetaClase(c)).join('')}</div>`;
   }
 
   global.MentoriasUi = {
-    mountNavbar,
-    mountFooter,
-    renderClaseCards,
+    montarNavbar,
+    montarFooter,
+    renderizarTarjetasClase,
   };
 
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', mountFooter);
+    document.addEventListener('DOMContentLoaded', montarFooter);
   } else {
-    mountFooter();
+    montarFooter();
   }
 })(window);

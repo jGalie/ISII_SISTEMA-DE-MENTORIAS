@@ -5,8 +5,8 @@
    * La logica pertenece a la capa de presentacion: organiza datos para la vista,
    * pero no decide permisos finales ni modifica directamente la base de datos.
    */
-  await MentoriasUI.mountNavbar();
-  MentoriasUI.bindBackButtons();
+  await MentoriasUI.montarNavbar();
+  MentoriasUI.vincularBotonesVolver();
 
   const params = new URLSearchParams(window.location.search);
   const id = params.get('id');
@@ -19,10 +19,10 @@
   const reviewSection = document.getElementById('review-section');
   const reviewsList = document.getElementById('reviews-list');
   const reviewForm = document.getElementById('review-form');
-  const reviewStars = document.getElementById('review-stars');
+  const reviewStars = document.getElementById('review-estrellas');
   const reviewComment = document.getElementById('review-comment');
   const reviewSubmit = document.getElementById('review-submit');
-  const user = MentoriasAuth.getUser();
+  const user = MentoriasAuth.obtenerUsuario();
 
   function esc(value) {
     return String(value == null ? '' : value)
@@ -33,8 +33,8 @@
       .replace(/'/g, '&#39;');
   }
 
-  async function renderReviews(classId) {
-    const response = await MentoriasApi.getValoracionesClase(classId);
+  async function renderizarValoraciones(classId) {
+    const response = await MentoriasApi.obtenerValoracionesClase(classId);
     const reviews = Array.isArray(response.data) ? response.data : [];
     reviewsList.innerHTML = reviews.length
       ? reviews
@@ -73,7 +73,7 @@
     document.getElementById('dc-mentor').textContent = `Mentor: ${data.mentorNombre || 'Mentorix'}`;
     document.getElementById('dc-email').textContent = data.mentorEmail || 'No disponible';
     document.getElementById('dc-materia').textContent = data.materiaNombre || 'Materia a definir';
-    document.getElementById('dc-fecha').textContent = MentoriasUI.formatDate(data.fecha);
+    document.getElementById('dc-fecha').textContent = MentoriasUI.formatearFecha(data.fecha);
     document.getElementById('dc-modalidad').textContent =
       data.modalidad === 'presencial' ? 'Presencial' : 'Virtual';
     document.getElementById('dc-precio').textContent =
@@ -94,7 +94,7 @@
 
     if (user && user.rol === 'estudiante') {
       // Si ya existe una solicitud previa, no se vuelve a ofrecer la misma accion.
-      const inscripcionesResponse = await MentoriasApi.getInscripcionesUsuario(user.id);
+      const inscripcionesResponse = await MentoriasApi.obtenerInscripcionesUsuario(user.id);
       const inscripciones = Array.isArray(inscripcionesResponse.data) ? inscripcionesResponse.data : [];
       const existing = inscripciones.find((item) => Number(item.claseId) === Number(data.id));
 
@@ -113,7 +113,7 @@
           success.classList.add('d-none');
 
           try {
-            await MentoriasApi.createInscripcion({
+            await MentoriasApi.crearInscripcion({
               id_usuario: user.id,
               id_clase: data.id,
             });
@@ -131,12 +131,12 @@
       }
     }
 
-    const reviews = await renderReviews(data.id);
+    const reviews = await renderizarValoraciones(data.id);
     const currentUserReview = reviews.find((review) => Number(review.estudianteId) === Number(user?.id));
     if (user && user.rol === 'estudiante' && currentUserReview) {
       reviewForm.classList.add('d-none');
     } else if (user && user.rol === 'estudiante') {
-      const inscripcionesResponse = await MentoriasApi.getInscripcionesUsuario(user.id);
+      const inscripcionesResponse = await MentoriasApi.obtenerInscripcionesUsuario(user.id);
       const inscripciones = Array.isArray(inscripcionesResponse.data) ? inscripcionesResponse.data : [];
       const accepted = inscripciones.some((item) => Number(item.claseId) === Number(data.id) && item.estado === 'aceptada');
       if (accepted) reviewForm.classList.remove('d-none');
@@ -157,7 +157,7 @@
           reviewForm.classList.add('d-none');
           success.textContent = 'Valoracion enviada correctamente.';
           success.classList.remove('d-none');
-          await renderReviews(data.id);
+          await renderizarValoraciones(data.id);
         } catch (error) {
           err.classList.remove('d-none');
           err.textContent = error.message;

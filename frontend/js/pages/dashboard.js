@@ -4,16 +4,16 @@
    * Segun el rol, muestra seguimiento de solicitudes o herramientas de gestion
    * para que el mentor pueda responder inscripciones.
    */
-  if (!MentoriasAuth.requireAuth()) return;
+  if (!MentoriasAuth.requerirAutenticacion()) return;
 
-  if (window.MentoriasUI && typeof MentoriasUI.mountNavbar === 'function') {
-    await MentoriasUI.mountNavbar();
+  if (window.MentoriasUI && typeof MentoriasUI.montarNavbar === 'function') {
+    await MentoriasUI.montarNavbar();
   }
 
-  const user = MentoriasAuth.getUser();
+  const user = MentoriasAuth.obtenerUsuario();
   const welcome = document.getElementById('welcome-text');
   const errorBox = document.getElementById('dashboard-error');
-  const logoutButton = document.getElementById('logout-button');
+  const logoutButton = document.getElementById('cerrarSesion-button');
   const studentDashboard = document.getElementById('student-dashboard');
   const mentorDashboard = document.getElementById('mentor-dashboard');
   const pendingList = document.getElementById('pending-list');
@@ -36,31 +36,31 @@
 
   if (logoutButton) {
     logoutButton.addEventListener('click', async function () {
-      const confirmarSalida = await MentoriasUI.showConfirmDialog({
+      const confirmarSalida = await MentoriasUI.mostrarDialogoConfirmacion({
         title: 'Cerrar sesion',
         message: 'Queres cerrar tu sesion en Mentorix?',
         confirmText: 'Cerrar sesion',
         cancelText: 'Cancelar',
       });
       if (!confirmarSalida) return;
-      MentoriasAuth.logout();
+      MentoriasAuth.cerrarSesion();
       window.location.href = '/pages/login.html';
     });
   }
 
-  function showError(message) {
+  function mostrarError(message) {
     if (!errorBox) return;
     errorBox.textContent = message;
     errorBox.classList.remove('d-none');
   }
 
-  function clearError() {
+  function limpiarError() {
     if (!errorBox) return;
     errorBox.classList.add('d-none');
     errorBox.textContent = '';
   }
 
-  function escapeHtml(value) {
+  function escaparHtml(value) {
     return String(value || '')
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
@@ -69,7 +69,7 @@
       .replace(/'/g, '&#39;');
   }
 
-  function formatDate(value) {
+  function formatearFecha(value) {
     const date = new Date(value);
     if (Number.isNaN(date.getTime())) return 'Fecha pendiente';
     return date.toLocaleString('es-AR', {
@@ -80,7 +80,7 @@
     });
   }
 
-  function statusClass(estado) {
+  function claseEstado(estado) {
     return {
       pendiente: 'status-pendiente',
       aceptada: 'status-aceptada',
@@ -88,7 +88,7 @@
     }[estado] || 'status-pendiente';
   }
 
-  function buildStudentCard(item) {
+  function construirTarjetaEstudiante(item) {
     // Resume el estado de una solicitud desde la perspectiva estudiantil.
     const statusMessages = {
       pendiente: 'Tu solicitud esta siendo evaluada por el mentor',
@@ -99,43 +99,43 @@
         ? `<a class="btn btn-outline-dark btn-sm rounded-pill px-3 mt-3" href="/pages/detalle-clase.html?id=${encodeURIComponent(item.claseId)}">Ver clase</a>`
         : '';
     const helperText = statusMessages[item.estado]
-      ? `<p class="text-muted small mb-0 mt-2">${escapeHtml(statusMessages[item.estado])}</p>`
+      ? `<p class="text-muted small mb-0 mt-2">${escaparHtml(statusMessages[item.estado])}</p>`
       : '';
 
     return `
       <article class="item-card p-3">
         <div class="d-flex justify-content-between align-items-start gap-3 mb-2">
           <div>
-            <h3 class="h6 fw-bold mb-1">${escapeHtml(item.claseTitulo || 'Clase')}</h3>
-            <p class="text-muted mb-1">${escapeHtml(item.mentorNombre || 'Mentorix')}</p>
+            <h3 class="h6 fw-bold mb-1">${escaparHtml(item.claseTitulo || 'Clase')}</h3>
+            <p class="text-muted mb-1">${escaparHtml(item.mentorNombre || 'Mentorix')}</p>
           </div>
-          <span class="status-badge ${statusClass(item.estado)}">${escapeHtml(item.estado)}</span>
+          <span class="status-badge ${claseEstado(item.estado)}">${escaparHtml(item.estado)}</span>
         </div>
         ${helperText}
         <p class="text-muted small mb-1">
-          <i class="bi bi-calendar-event me-1"></i>${escapeHtml(formatDate(item.claseFecha))}
+          <i class="bi bi-calendar-event me-1"></i>${escaparHtml(formatearFecha(item.claseFecha))}
         </p>
         <p class="text-muted small mb-0">
-          <i class="bi bi-clock-history me-1"></i>Solicitada: ${escapeHtml(formatDate(item.fechaSolicitud))}
+          <i class="bi bi-clock-history me-1"></i>Solicitada: ${escaparHtml(formatearFecha(item.fechaSolicitud))}
         </p>
         ${acceptedAction}
       </article>
     `;
   }
 
-  function buildMentorPendingCard(item) {
+  function construirTarjetaPendienteMentor(item) {
     // Combina informacion de contexto con acciones de decision para el mentor.
     return `
       <article class="item-card p-3">
         <div class="d-flex justify-content-between align-items-start gap-3 mb-2 flex-wrap">
           <div>
-            <h3 class="h6 fw-bold mb-1">${escapeHtml(item.claseTitulo || 'Clase')}</h3>
-            <p class="text-muted mb-1">${escapeHtml(item.usuarioNombre || item.usuarioEmail || 'Estudiante')}</p>
-            <p class="text-muted small mb-0">${escapeHtml(formatDate(item.fechaSolicitud))}</p>
+            <h3 class="h6 fw-bold mb-1">${escaparHtml(item.claseTitulo || 'Clase')}</h3>
+            <p class="text-muted mb-1">${escaparHtml(item.usuarioNombre || item.usuarioEmail || 'Estudiante')}</p>
+            <p class="text-muted small mb-0">${escaparHtml(formatearFecha(item.fechaSolicitud))}</p>
           </div>
-          <span class="status-badge ${statusClass(item.estado)}">${escapeHtml(item.estado)}</span>
+          <span class="status-badge ${claseEstado(item.estado)}">${escaparHtml(item.estado)}</span>
         </div>
-        <p class="text-muted small mb-3">${escapeHtml(item.claseDescripcion || '')}</p>
+        <p class="text-muted small mb-3">${escaparHtml(item.claseDescripcion || '')}</p>
         <div class="mentor-actions d-flex gap-2 flex-wrap">
           <button class="btn btn-success" data-action="aceptada" data-id="${item.id}" type="button">
             Aceptar
@@ -148,7 +148,7 @@
     `;
   }
 
-  function buildMentorHistoryCard(item) {
+  function construirTarjetaHistorialMentor(item) {
     const nextStatus = item.estado === 'aceptada' ? 'rechazada' : 'aceptada';
     const actionLabel = item.estado === 'aceptada' ? 'Cambiar a rechazada' : 'Cambiar a aceptada';
     const actionClass = item.estado === 'aceptada' ? 'btn-outline-danger' : 'btn-success';
@@ -157,13 +157,13 @@
       <article class="item-card p-3">
         <div class="d-flex justify-content-between align-items-start gap-3 mb-2 flex-wrap">
           <div>
-            <h3 class="h6 fw-bold mb-1">${escapeHtml(item.claseTitulo || 'Clase')}</h3>
-            <p class="text-muted mb-1">${escapeHtml(item.usuarioNombre || item.usuarioEmail || 'Estudiante')}</p>
-            <p class="text-muted small mb-0">${escapeHtml(formatDate(item.fechaSolicitud))}</p>
+            <h3 class="h6 fw-bold mb-1">${escaparHtml(item.claseTitulo || 'Clase')}</h3>
+            <p class="text-muted mb-1">${escaparHtml(item.usuarioNombre || item.usuarioEmail || 'Estudiante')}</p>
+            <p class="text-muted small mb-0">${escaparHtml(formatearFecha(item.fechaSolicitud))}</p>
           </div>
-          <span class="status-badge ${statusClass(item.estado)}">${escapeHtml(item.estado)}</span>
+          <span class="status-badge ${claseEstado(item.estado)}">${escaparHtml(item.estado)}</span>
         </div>
-        <p class="text-muted small mb-3">${escapeHtml(item.claseDescripcion || '')}</p>
+        <p class="text-muted small mb-3">${escaparHtml(item.claseDescripcion || '')}</p>
         <div class="mentor-actions d-flex gap-2 flex-wrap">
           <button class="btn ${actionClass}" data-action="${nextStatus}" data-id="${item.id}" type="button">
             ${actionLabel}
@@ -173,7 +173,7 @@
     `;
   }
 
-  function buildMentorClassCard(clase) {
+  function construirTarjetaClaseMentor(clase) {
     const fecha = new Date(clase.fecha);
 
     const fechaTexto = Number.isNaN(fecha.getTime())
@@ -195,61 +195,61 @@
       <div class="col-12 col-md-6">
         <article class="item-card p-4 h-100">
           <div class="d-flex justify-content-between align-items-start gap-3 mb-2 flex-wrap">
-            <h3 class="h6 fw-bold mb-0">${escapeHtml(clase.titulo || 'Clase')}</h3>
-            <span class="status-badge status-pendiente">${escapeHtml(fechaTexto)}</span>
+            <h3 class="h6 fw-bold mb-0">${escaparHtml(clase.titulo || 'Clase')}</h3>
+            <span class="status-badge status-pendiente">${escaparHtml(fechaTexto)}</span>
           </div>
           <p class="text-muted small mb-2">
-            <i class="bi bi-clock me-1"></i>${escapeHtml(horaTexto)}
+            <i class="bi bi-clock me-1"></i>${escaparHtml(horaTexto)}
           </p>
-          <p class="text-muted small mb-0">${escapeHtml(clase.descripcion || 'Sin descripción.')}</p>
+          <p class="text-muted small mb-0">${escaparHtml(clase.descripcion || 'Sin descripción.')}</p>
         </article>
       </div>
     `;
   }
 
-  function renderEmpty(container, message) {
+  function renderizarVacio(container, message) {
     if (!container) return;
     container.innerHTML = `
       <div class="item-card p-3 text-muted text-center">
-        ${escapeHtml(message)}
+        ${escaparHtml(message)}
       </div>
     `;
   }
 
-  function renderEmptyWithAction(container, message, actionLabel, href) {
+  function renderizarVacioConAccion(container, message, actionLabel, href) {
     if (!container) return;
     container.innerHTML = `
       <div class="item-card p-3 text-muted text-center">
-        <p class="mb-3">${escapeHtml(message)}</p>
-        <a class="btn btn-outline-dark btn-sm rounded-pill px-3" href="${href}">${escapeHtml(actionLabel)}</a>
+        <p class="mb-3">${escaparHtml(message)}</p>
+        <a class="btn btn-outline-dark btn-sm rounded-pill px-3" href="${href}">${escaparHtml(actionLabel)}</a>
       </div>
     `;
   }
 
-  function renderEmptyGrid(container, message) {
+  function renderizarGrillaVacia(container, message) {
     if (!container) return;
     container.innerHTML = `
       <div class="col-12">
         <div class="item-card p-3 text-muted text-center">
-          ${escapeHtml(message)}
+          ${escaparHtml(message)}
         </div>
       </div>
     `;
   }
 
-  function renderEmptyGridWithAction(container, message, actionLabel, href) {
+  function renderizarGrillaVaciaConAccion(container, message, actionLabel, href) {
     if (!container) return;
     container.innerHTML = `
       <div class="col-12">
         <div class="item-card p-3 text-muted text-center">
-          <p class="mb-3">${escapeHtml(message)}</p>
-          <a class="btn btn-outline-dark btn-sm rounded-pill px-3" href="${href}">${escapeHtml(actionLabel)}</a>
+          <p class="mb-3">${escaparHtml(message)}</p>
+          <a class="btn btn-outline-dark btn-sm rounded-pill px-3" href="${href}">${escaparHtml(actionLabel)}</a>
         </div>
       </div>
     `;
   }
 
-  function updateMetrics(items) {
+  function actualizarMetricas(items) {
     // Ofrece una lectura sintetica del panel mediante contadores por estado.
     const counts = items.reduce(
       (acc, item) => {
@@ -264,28 +264,28 @@
     if (metricRechazada) metricRechazada.textContent = counts.rechazada || 0;
   }
 
-  async function loadStudentDashboard() {
+  async function cargarDashboardEstudiante() {
     // Se separan las inscripciones por estado para ordenar mejor el seguimiento.
     if (studentDashboard) studentDashboard.classList.remove('d-none');
 
-    const response = await MentoriasApi.getInscripcionesUsuario(user.id);
+    const response = await MentoriasApi.obtenerInscripcionesUsuario(user.id);
     const items = Array.isArray(response.data) ? response.data : [];
-    updateMetrics(items);
+    actualizarMetricas(items);
 
     const pending = items.filter((item) => item.estado === 'pendiente');
     const accepted = items.filter((item) => item.estado === 'aceptada');
     const rejected = items.filter((item) => item.estado === 'rechazada');
 
-    if (pendingList) pendingList.innerHTML = pending.length ? pending.map(buildStudentCard).join('') : '';
-    if (acceptedList) acceptedList.innerHTML = accepted.length ? accepted.map(buildStudentCard).join('') : '';
-    if (rejectedList) rejectedList.innerHTML = rejected.length ? rejected.map(buildStudentCard).join('') : '';
+    if (pendingList) pendingList.innerHTML = pending.length ? pending.map(construirTarjetaEstudiante).join('') : '';
+    if (acceptedList) acceptedList.innerHTML = accepted.length ? accepted.map(construirTarjetaEstudiante).join('') : '';
+    if (rejectedList) rejectedList.innerHTML = rejected.length ? rejected.map(construirTarjetaEstudiante).join('') : '';
 
-    if (!pending.length) renderEmptyWithAction(pendingList, 'No tenes inscripciones pendientes.', 'Explorar clases', '/pages/clases.html');
-    if (!accepted.length) renderEmptyWithAction(acceptedList, 'Todavia no tenes clases aceptadas.', 'Explorar clases', '/pages/clases.html');
-    if (!rejected.length) renderEmpty(rejectedList, 'No hay solicitudes rechazadas.');
+    if (!pending.length) renderizarVacioConAccion(pendingList, 'No tenes inscripciones pendientes.', 'Explorar clases', '/pages/clases.html');
+    if (!accepted.length) renderizarVacioConAccion(acceptedList, 'Todavia no tenes clases aceptadas.', 'Explorar clases', '/pages/clases.html');
+    if (!rejected.length) renderizarVacio(rejectedList, 'No hay solicitudes rechazadas.');
   }
 
-  function attachMentorActions(container) {
+  function adjuntarAccionesMentor(container) {
     // Despues de una accion, se recarga la informacion para mantener sincronizada la vista.
     if (!container) return;
 
@@ -295,7 +295,7 @@
         const estado = this.getAttribute('data-action');
         if (!id || !estado) return;
         const esAceptacion = estado === 'aceptada';
-        const confirmarCambio = await MentoriasUI.showConfirmDialog({
+        const confirmarCambio = await MentoriasUI.mostrarDialogoConfirmacion({
           title: esAceptacion ? 'Aceptar solicitud' : 'Rechazar solicitud',
           message: esAceptacion
             ? 'La solicitud pasara a estar aceptada para el estudiante.'
@@ -307,20 +307,20 @@
         if (!confirmarCambio) return;
 
         this.disabled = true;
-        clearError();
+        limpiarError();
 
         try {
-          await MentoriasApi.updateEstadoInscripcion(id, { estado, mentorId: user.id });
-          await loadMentorDashboard();
+          await MentoriasApi.actualizarEstadoInscripcion(id, { estado, mentorId: user.id });
+          await cargarDashboardMentor();
         } catch (error) {
           this.disabled = false;
-          showError(error.message || 'No se pudo actualizar la inscripción.');
+          mostrarError(error.message || 'No se pudo actualizar la inscripción.');
         }
       });
     });
   }
 
-  async function loadMentorClasses() {
+  async function cargarClasesMentor() {
     if (!mentorClassesList) return;
 
     try {
@@ -334,54 +334,54 @@
       );
 
       if (!clasesMentor.length) {
-        renderEmptyGridWithAction(mentorClassesList, 'Todavia no publicaste clases.', 'Crear clase', '/pages/crear-clase.html');
+        renderizarGrillaVaciaConAccion(mentorClassesList, 'Todavia no publicaste clases.', 'Crear clase', '/pages/crear-clase.html');
         return;
       }
 
-      mentorClassesList.innerHTML = clasesMentor.map(buildMentorClassCard).join('');
+      mentorClassesList.innerHTML = clasesMentor.map(construirTarjetaClaseMentor).join('');
     } catch (error) {
       console.error('Error cargando clases del mentor:', error);
-      renderEmptyGrid(mentorClassesList, 'No pudimos cargar tu agenda de clases.');
+      renderizarGrillaVacia(mentorClassesList, 'No pudimos cargar tu agenda de clases.');
     }
   }
 
-  async function loadMentorDashboard() {
+  async function cargarDashboardMentor() {
     // Este flujo construye el espacio de trabajo del mentor.
     if (mentorDashboard) mentorDashboard.classList.remove('d-none');
 
-    const response = await MentoriasApi.getInscripcionesMentor(user.id);
+    const response = await MentoriasApi.obtenerInscripcionesMentor(user.id);
     const items = Array.isArray(response.data) ? response.data : [];
-    updateMetrics(items);
+    actualizarMetricas(items);
 
     const pendingItems = items.filter((item) => item.estado === 'pendiente');
     const managedItems = items.filter((item) => item.estado === 'aceptada' || item.estado === 'rechazada');
 
     if (!pendingItems.length) {
-      renderEmpty(mentorList, 'No tienes solicitudes pendientes.');
+      renderizarVacio(mentorList, 'No tienes solicitudes pendientes.');
     } else {
-      if (mentorList) mentorList.innerHTML = pendingItems.map(buildMentorPendingCard).join('');
-      attachMentorActions(mentorList);
+      if (mentorList) mentorList.innerHTML = pendingItems.map(construirTarjetaPendienteMentor).join('');
+      adjuntarAccionesMentor(mentorList);
     }
 
     if (!managedItems.length) {
-      renderEmpty(mentorHistoryList, 'Todavia no hay solicitudes gestionadas.');
+      renderizarVacio(mentorHistoryList, 'Todavia no hay solicitudes gestionadas.');
     } else {
-      if (mentorHistoryList) mentorHistoryList.innerHTML = managedItems.map(buildMentorHistoryCard).join('');
-      attachMentorActions(mentorHistoryList);
+      if (mentorHistoryList) mentorHistoryList.innerHTML = managedItems.map(construirTarjetaHistorialMentor).join('');
+      adjuntarAccionesMentor(mentorHistoryList);
     }
 
-    await loadMentorClasses();
+    await cargarClasesMentor();
   }
 
   try {
-    clearError();
+    limpiarError();
 
     if (user.rol === 'mentor') {
-      await loadMentorDashboard();
+      await cargarDashboardMentor();
     } else {
-      await loadStudentDashboard();
+      await cargarDashboardEstudiante();
     }
   } catch (error) {
-    showError(error.message || 'No pudimos cargar tu dashboard.');
+    mostrarError(error.message || 'No pudimos cargar tu dashboard.');
   }
 })();

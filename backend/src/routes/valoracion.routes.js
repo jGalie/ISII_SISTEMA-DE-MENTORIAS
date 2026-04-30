@@ -1,6 +1,6 @@
 const { Router } = require('express');
 
-function createValoracionRoutes({ valoracionController }) {
+function crearRutasValoracion({ valoracionController }) {
   const router = Router();
 
   router.post('/', valoracionController.crear);
@@ -11,5 +11,5 @@ function createValoracionRoutes({ valoracionController }) {
 }
 
 module.exports = {
-  createValoracionRoutes,
+  crearRutasValoracion,
 };

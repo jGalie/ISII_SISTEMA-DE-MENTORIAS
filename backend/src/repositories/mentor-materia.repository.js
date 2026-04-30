@@ -1,7 +1,7 @@
 const { pool } = require('../config/db');
-const { toMentorMateria } = require('../models/mentor-materia.model');
+const { mapearMentorMateria } = require('../models/mentor-materia.model');
 
-async function findAll() {
+async function buscarTodos() {
   const [rows] = await pool.query(`
     SELECT
       mm.id_mentor_materia,
@@ -14,10 +14,10 @@ async function findAll() {
     ORDER BY mm.id_mentor ASC, m.nombre ASC
   `);
 
-  return rows.map(toMentorMateria);
+  return rows.map(mapearMentorMateria);
 }
 
-async function findByMentorId(mentorId) {
+async function buscarPorMentorId(mentorId) {
   const [rows] = await pool.query(
     `
       SELECT
@@ -34,10 +34,10 @@ async function findByMentorId(mentorId) {
     [Number(mentorId)]
   );
 
-  return rows.map(toMentorMateria);
+  return rows.map(mapearMentorMateria);
 }
 
-async function exists(mentorId, materiaId, executor = pool) {
+async function existe(mentorId, materiaId, executor = pool) {
   const [rows] = await executor.query(
     `
       SELECT 1
@@ -51,7 +51,7 @@ async function exists(mentorId, materiaId, executor = pool) {
   return rows.length > 0;
 }
 
-async function create({ mentorId, materiaId }, executor = pool) {
+async function crear({ mentorId, materiaId }, executor = pool) {
   await executor.query(
     `
       INSERT IGNORE INTO mentor_materias (id_mentor, id_materia)
@@ -76,17 +76,17 @@ async function create({ mentorId, materiaId }, executor = pool) {
     [Number(mentorId), Number(materiaId)]
   );
 
-  return rows.length ? toMentorMateria(rows[0]) : null;
+  return rows.length ? mapearMentorMateria(rows[0]) : null;
 }
 
-async function deleteByMentorId(mentorId, executor = pool) {
+async function eliminarPorMentorId(mentorId, executor = pool) {
   await executor.query('DELETE FROM mentor_materias WHERE id_mentor = ?', [Number(mentorId)]);
 }
 
 module.exports = {
-  findAll,
-  findByMentorId,
-  exists,
-  create,
-  deleteByMentorId,
+  buscarTodos,
+  buscarPorMentorId,
+  existe,
+  crear,
+  eliminarPorMentorId,
 };

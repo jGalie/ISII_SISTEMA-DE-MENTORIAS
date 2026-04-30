@@ -6,7 +6,7 @@
  * @property {string} codigo
  */
 
-function toMateria(row) {
+function mapearMateria(row) {
   return {
     id: row.id ?? row.id_materia,
     nombre: row.nombre,
@@ -14,4 +14,4 @@ function toMateria(row) {
   };
 }
 
-module.exports = { toMateria };
+module.exports = { mapearMateria };

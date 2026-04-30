@@ -3,7 +3,7 @@ const seguimientoController = require('../controllers/seguimiento.controller');
 
 const router = Router();
 
-router.get('/', seguimientoController.list);
-router.post('/', seguimientoController.create);
+router.get('/', seguimientoController.listar);
+router.post('/', seguimientoController.crear);
 
 module.exports = router;

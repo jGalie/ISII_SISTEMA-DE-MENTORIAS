@@ -1,6 +1,6 @@
-const { toValoracion } = require('../models/valoracion.model');
+const { mapearValoracion } = require('../models/valoracion.model');
 
-function createValoracionRepository({ pool }) {
+function crearRepositorioValoracion({ pool }) {
   const baseSelect = `
     SELECT
       v.id_valoracion,
@@ -40,7 +40,7 @@ function createValoracionRepository({ pool }) {
         [Number(id)]
       );
 
-      return rows.length ? toValoracion(rows[0]) : null;
+      return rows.length ? mapearValoracion(rows[0]) : null;
     },
 
     async buscarPorClase(id_clase) {
@@ -53,7 +53,7 @@ function createValoracionRepository({ pool }) {
         [Number(id_clase)]
       );
 
-      return rows.map(toValoracion);
+      return rows.map(mapearValoracion);
     },
 
     async buscarPorMentor(id_mentor) {
@@ -66,7 +66,7 @@ function createValoracionRepository({ pool }) {
         [Number(id_mentor)]
       );
 
-      return rows.map(toValoracion);
+      return rows.map(mapearValoracion);
     },
 
     async promedioPorMentor(id_mentor) {
@@ -103,5 +103,5 @@ function createValoracionRepository({ pool }) {
 }
 
 module.exports = {
-  createValoracionRepository,
+  crearRepositorioValoracion,
 };

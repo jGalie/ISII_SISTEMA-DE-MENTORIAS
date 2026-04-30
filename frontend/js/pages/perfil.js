@@ -1,8 +1,8 @@
 (async function () {
-  if (!MentoriasAuth.requireAuth()) return;
-  await MentoriasUI.mountNavbar();
+  if (!MentoriasAuth.requerirAutenticacion()) return;
+  await MentoriasUI.montarNavbar();
 
-  const user = MentoriasAuth.getUser();
+  const user = MentoriasAuth.obtenerUsuario();
   const form = document.getElementById('profile-form');
   const msg = document.getElementById('profile-msg');
   const saveButton = document.getElementById('btn-save-profile');
@@ -13,15 +13,15 @@
   let formDirty = false;
   let allowNavigation = false;
 
-  function showMessage(type, text) {
+  function mostrarMensaje(type, text) {
     msg.className = `alert alert-${type}`;
     msg.textContent = text;
     msg.classList.remove('d-none');
   }
 
-  function confirmLeave() {
+  function confirmarSalida() {
     if (!formDirty) return Promise.resolve(true);
-    return MentoriasUI.showConfirmDialog({
+    return MentoriasUI.mostrarDialogoConfirmacion({
       title: 'Cambios sin guardar',
       message: 'Tenes cambios sin guardar. Queres salir sin guardar?',
       confirmText: 'Salir sin guardar',
@@ -29,7 +29,7 @@
     });
   }
 
-  function setFieldError(inputId, message) {
+  function establecerErrorCampo(inputId, message) {
     const input = document.getElementById(inputId);
     const box = document.getElementById(`${inputId}-error`);
     if (input) input.classList.add('is-invalid');
@@ -39,14 +39,14 @@
     }
   }
 
-  function clearFieldError(inputId) {
+  function limpiarErrorCampo(inputId) {
     const input = document.getElementById(inputId);
     const box = document.getElementById(`${inputId}-error`);
     if (input) input.classList.remove('is-invalid');
     if (box) box.classList.add('d-none');
   }
 
-  function renderMaterias(materias, selectedNames = []) {
+  function renderizarMaterias(materias, selectedNames = []) {
     if (!materiasContainer) return;
     const selected = new Set(selectedNames.map((item) => String(item).toLowerCase()));
 
@@ -62,18 +62,18 @@
       .join('');
   }
 
-  function getSelectedMaterias() {
+  function obtenerMateriasSeleccionadas() {
     return Array.from(document.querySelectorAll('input[name="profile-materia"]:checked')).map((input) => input.value);
   }
 
-  function getSelectedLevels() {
+  function obtenerNivelesSeleccionados() {
     return Array.from(document.querySelectorAll('input[name="profile-nivel"]:checked')).map((input) => input.value);
   }
 
   try {
     const [profileResponse, materiasResponse] = await Promise.all([
-      MentoriasApi.getUsuario(user.id),
-      MentoriasApi.getMaterias(),
+      MentoriasApi.obtenerUsuario(user.id),
+      MentoriasApi.obtenerMaterias(),
     ]);
 
     const profile = profileResponse.data || user;
@@ -92,7 +92,7 @@
       document.getElementById('profile-mentor-link').value = profile.mentorLink || '';
 
       const selectedNames = Array.isArray(profile.materias) ? profile.materias.map((item) => item.nombre) : [];
-      renderMaterias(materias, selectedNames);
+      renderizarMaterias(materias, selectedNames);
 
       const selectedLevels = new Set(Array.isArray(profile.nivelesEducativos) ? profile.nivelesEducativos : []);
       document.querySelectorAll('input[name="profile-nivel"]').forEach((input) => {
@@ -100,7 +100,7 @@
       });
     }
   } catch (error) {
-    showMessage('danger', error.message);
+    mostrarMensaje('danger', error.message);
     saveButton.disabled = true;
     return;
   }
@@ -121,27 +121,27 @@
     const confirmarPassword = document.getElementById('profile-confirm-password').value;
 
     if (passwordActual || nuevaPassword || confirmarPassword) {
-      clearFieldError('profile-current-password');
-      clearFieldError('profile-new-password');
-      clearFieldError('profile-confirm-password');
+      limpiarErrorCampo('profile-current-password');
+      limpiarErrorCampo('profile-new-password');
+      limpiarErrorCampo('profile-confirm-password');
       if (!passwordActual) {
-        setFieldError('profile-current-password', 'Ingresa tu contrasena actual.');
-        showMessage('danger', 'Debes completar todos los campos de seguridad.');
+        establecerErrorCampo('profile-current-password', 'Ingresa tu contrasena actual.');
+        mostrarMensaje('danger', 'Debes completar todos los campos de seguridad.');
         return;
       }
       if (nuevaPassword.length < 8) {
-        setFieldError('profile-new-password', 'La nueva contrasena debe tener al menos 8 caracteres.');
-        showMessage('danger', 'La nueva contrasena debe tener al menos 8 caracteres.');
+        establecerErrorCampo('profile-new-password', 'La nueva contrasena debe tener al menos 8 caracteres.');
+        mostrarMensaje('danger', 'La nueva contrasena debe tener al menos 8 caracteres.');
         return;
       }
       if (!/[A-Za-z]/.test(nuevaPassword) || !/\d/.test(nuevaPassword)) {
-        setFieldError('profile-new-password', 'La nueva contrasena debe contener letras y numeros.');
-        showMessage('danger', 'La nueva contrasena debe contener letras y numeros.');
+        establecerErrorCampo('profile-new-password', 'La nueva contrasena debe contener letras y numeros.');
+        mostrarMensaje('danger', 'La nueva contrasena debe contener letras y numeros.');
         return;
       }
       if (nuevaPassword !== confirmarPassword) {
-        setFieldError('profile-confirm-password', 'La confirmacion de contrasena no coincide.');
-        showMessage('danger', 'La confirmacion de contrasena no coincide.');
+        establecerErrorCampo('profile-confirm-password', 'La confirmacion de contrasena no coincide.');
+        mostrarMensaje('danger', 'La confirmacion de contrasena no coincide.');
         return;
       }
 
@@ -150,9 +150,9 @@
     }
 
     if (user.rol === 'mentor') {
-      payload.materias = getSelectedMaterias();
+      payload.materias = obtenerMateriasSeleccionadas();
       payload.otrasMaterias = otrasMateriasEl.value.trim();
-      payload.nivelesEducativos = getSelectedLevels();
+      payload.nivelesEducativos = obtenerNivelesSeleccionados();
       payload.mentorBio = document.getElementById('profile-mentor-bio').value.trim();
       payload.mentorExperiencia = document.getElementById('profile-mentor-experiencia').value.trim();
       payload.mentorLink = document.getElementById('profile-mentor-link').value.trim();
@@ -160,17 +160,17 @@
 
     try {
       saveButton.disabled = true;
-      showMessage('info', 'Guardando cambios...');
-      const response = await MentoriasApi.updateUsuario(user.id, payload);
+      mostrarMensaje('info', 'Guardando cambios...');
+      const response = await MentoriasApi.actualizarUsuario(user.id, payload);
       const updatedUser = response.data;
-      MentoriasAuth.setUser(updatedUser);
+      MentoriasAuth.guardarUsuario(updatedUser);
       formDirty = false;
       document.getElementById('profile-current-password').value = '';
       document.getElementById('profile-new-password').value = '';
       document.getElementById('profile-confirm-password').value = '';
-      showMessage('success', 'Perfil actualizado correctamente.');
+      mostrarMensaje('success', 'Perfil actualizado correctamente.');
     } catch (error) {
-      showMessage('danger', error.message);
+      mostrarMensaje('danger', error.message);
     } finally {
       saveButton.disabled = false;
     }
@@ -196,15 +196,15 @@
     if (href.startsWith('#') || link.target === '_blank') return;
     if (link.hasAttribute('data-back-link')) {
       event.preventDefault();
-      if (!formDirty || (await confirmLeave())) {
+      if (!formDirty || (await confirmarSalida())) {
         allowNavigation = true;
-        MentoriasUI.goBackOrHome(href);
+        MentoriasUI.volverOAInicio(href);
       }
       return;
     }
     if (!formDirty) return;
     event.preventDefault();
-    if (await confirmLeave()) {
+    if (await confirmarSalida()) {
       allowNavigation = true;
       window.location.href = href;
       return;

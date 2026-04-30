@@ -1,6 +1,6 @@
 const materialService = require('../services/material.service');
 
-function list(req, res) {
+function listar(req, res) {
   try {
     const data = materialService.listar();
     res.json({ data });
@@ -9,7 +9,7 @@ function list(req, res) {
   }
 }
 
-async function create(req, res) {
+async function crear(req, res) {
   try {
     // La creacion puede requerir consultar la clase asociada, por eso se espera
     // la respuesta del service antes de contestar al cliente.
@@ -20,4 +20,4 @@ async function create(req, res) {
   }
 }
 
-module.exports = { list, create };
+module.exports = { listar, crear };

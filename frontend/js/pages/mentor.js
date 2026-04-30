@@ -1,5 +1,5 @@
 (async function () {
-  await MentoriasUI.mountNavbar();
+  await MentoriasUI.montarNavbar();
 
   const params = new URLSearchParams(window.location.search);
   const mentorId = params.get('id');
@@ -15,17 +15,17 @@
       .replace(/'/g, '&#39;');
   }
 
-  function stars(value) {
+  function estrellas(value) {
     const rating = Math.round(Number(value || 0));
     return '\u2605'.repeat(rating) + '\u2606'.repeat(Math.max(0, 5 - rating));
   }
 
-  function renderTags(items, emptyText) {
+  function renderizarEtiquetas(items, emptyText) {
     if (!Array.isArray(items) || !items.length) return `<span class="text-muted">${esc(emptyText)}</span>`;
     return items.map((item) => `<span class="mentor-tag">${esc(item.nombre || item)}</span>`).join('');
   }
 
-  function renderClasses(classes) {
+  function renderizarClases(classes) {
     if (!Array.isArray(classes) || !classes.length) {
       return '<div class="text-muted">Este mentor todavia no tiene clases publicadas.</div>';
     }
@@ -39,7 +39,7 @@
                 <article class="mentor-class-card">
                   <div class="d-flex justify-content-between gap-3 mb-2">
                     <h3 class="h6 fw-bold mb-0">${esc(clase.titulo)}</h3>
-                    <span class="badge rounded-pill text-bg-light border">${esc(MentoriasUI.formatDate(clase.fecha))}</span>
+                    <span class="badge rounded-pill text-bg-light border">${esc(MentoriasUI.formatearFecha(clase.fecha))}</span>
                   </div>
                   <p class="text-muted small mb-3">${esc(clase.descripcion || 'Sin descripcion.')}</p>
                   <a class="btn btn-dark btn-sm rounded-pill px-3" href="/pages/detalle-clase.html?id=${encodeURIComponent(clase.id)}">Ver clase</a>
@@ -52,7 +52,7 @@
     `;
   }
 
-  function renderReviews(reviews) {
+  function renderizarValoraciones(reviews) {
     if (!Array.isArray(reviews) || !reviews.length) {
       return '<div class="text-muted">Todavia no hay valoraciones para este mentor.</div>';
     }
@@ -63,7 +63,7 @@
           <article class="mentor-review">
             <div class="d-flex justify-content-between gap-3 mb-2">
               <strong>${esc(review.estudianteNombre || 'Estudiante')}</strong>
-              <span class="mentor-review-stars">${stars(review.estrellas)}</span>
+              <span class="mentor-review-estrellas">${estrellas(review.estrellas)}</span>
             </div>
             <p class="text-muted small mb-1">${esc(review.claseTitulo || 'Clase')}</p>
             <p class="mb-0">${esc(review.comentario || 'Sin comentario.')}</p>
@@ -80,7 +80,7 @@
   }
 
   try {
-    const { data } = await MentoriasApi.getMentorPublico(mentorId);
+    const { data } = await MentoriasApi.obtenerMentorPublico(mentorId);
     const average = data.promedioEstrellas ? Number(data.promedioEstrellas).toFixed(1) : 'Sin valoraciones';
 
     profile.innerHTML = `
@@ -92,7 +92,7 @@
               <p class="text-uppercase small fw-bold text-secondary mb-2">Perfil del mentor</p>
               <h1 class="h2 fw-bold mb-2">${esc(data.nombre)}</h1>
               <p class="text-muted mb-3">${esc(data.mentorBio || 'Este mentor aun no cargo una presentacion.')}</p>
-              <div class="mentor-tags">${renderTags(data.materias, 'Sin materias cargadas')}</div>
+              <div class="mentor-tags">${renderizarEtiquetas(data.materias, 'Sin materias cargadas')}</div>
             </div>
           </div>
           <div class="mentor-rating">
@@ -112,12 +112,12 @@
 
       <section class="mentor-section">
         <h2 class="h5 fw-bold mb-3">Clases disponibles</h2>
-        ${renderClasses(data.clases)}
+        ${renderizarClases(data.clases)}
       </section>
 
       <section class="mentor-section">
         <h2 class="h5 fw-bold mb-3">Valoraciones</h2>
-        <div class="d-grid gap-3">${renderReviews(data.valoraciones)}</div>
+        <div class="d-grid gap-3">${renderizarValoraciones(data.valoraciones)}</div>
       </section>
     `;
 

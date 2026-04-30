@@ -1,10 +1,10 @@
-function createAppError(message, code) {
+function crearErrorApp(message, code) {
   const error = new Error(message);
   error.code = code;
   return error;
 }
 
-function createValoracionService({ valoracionRepository, claseRepository, usuarioRepository, inscripcionRepository }) {
+function crearServicioValoracion({ valoracionRepository, claseRepository, usuarioRepository, inscripcionRepository }) {
   return {
     async crearValoracion(data) {
       const id_clase = Number(data?.id_clase || data?.claseId);
@@ -13,30 +13,30 @@ function createValoracionService({ valoracionRepository, claseRepository, usuari
       const comentario = String(data?.comentario || '').trim();
 
       if (!id_clase || !id_estudiante) {
-        throw createAppError('Debes indicar clase y estudiante.', 'VALIDATION_ERROR');
+        throw crearErrorApp('Debes indicar clase y estudiante.', 'VALIDATION_ERROR');
       }
       if (!Number.isInteger(estrellas) || estrellas < 1 || estrellas > 5) {
-        throw createAppError('La valoracion debe tener entre 1 y 5 estrellas.', 'VALIDATION_ERROR');
+        throw crearErrorApp('La valoracion debe tener entre 1 y 5 estrellas.', 'VALIDATION_ERROR');
       }
 
-      const estudiante = await usuarioRepository.findById(id_estudiante);
+      const estudiante = await usuarioRepository.buscarPorId(id_estudiante);
       if (!estudiante || estudiante.rol !== 'estudiante') {
-        throw createAppError('Solo un estudiante puede valorar una clase.', 'FORBIDDEN');
+        throw crearErrorApp('Solo un estudiante puede valorar una clase.', 'FORBIDDEN');
       }
 
       const clase = await claseRepository.buscarPorId(id_clase);
       if (!clase) {
-        throw createAppError('Clase no encontrada.', 'NOT_FOUND');
+        throw crearErrorApp('Clase no encontrada.', 'NOT_FOUND');
       }
 
-      const inscripcion = await inscripcionRepository.findExisting(id_estudiante, id_clase);
+      const inscripcion = await inscripcionRepository.buscarExistente(id_estudiante, id_clase);
       if (!inscripcion || inscripcion.estado !== 'aceptada') {
-        throw createAppError('Solo puedes valorar clases en las que fuiste aceptado.', 'FORBIDDEN');
+        throw crearErrorApp('Solo puedes valorar clases en las que fuiste aceptado.', 'FORBIDDEN');
       }
 
       const yaValoro = await valoracionRepository.existeDeEstudianteEnClase(id_estudiante, id_clase);
       if (yaValoro) {
-        throw createAppError('Ya valoraste esta clase.', 'DUPLICATE_REVIEW');
+        throw crearErrorApp('Ya valoraste esta clase.', 'DUPLICATE_REVIEW');
       }
 
       return valoracionRepository.crear({
@@ -59,5 +59,5 @@ function createValoracionService({ valoracionRepository, claseRepository, usuari
 }
 
 module.exports = {
-  createValoracionService,
+  crearServicioValoracion,
 };

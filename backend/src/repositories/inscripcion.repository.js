@@ -1,8 +1,8 @@
-const { toInscripcion } = require('../models/inscripcion.model');
+const { mapearInscripcion } = require('../models/inscripcion.model');
 
-function createInscripcionRepository({ pool }) {
+function crearRepositorioInscripcion({ pool }) {
   return {
-    async createInscripcion({ id_usuario, id_clase, estado = 'pendiente' }) {
+    async crearInscripcion({ id_usuario, id_clase, estado = 'pendiente' }) {
       const [result] = await pool.query(
         `
           INSERT INTO inscripciones (id_usuario, id_clase, estado)
@@ -11,10 +11,10 @@ function createInscripcionRepository({ pool }) {
         [id_usuario, id_clase, estado]
       );
 
-      return this.getById(result.insertId);
+      return this.obtenerPorId(result.insertId);
     },
 
-    async getById(id) {
+    async obtenerPorId(id) {
       // Esta consulta recompone toda la informacion de contexto
       // necesaria para mostrar una inscripcion en las interfaces.
       const [rows] = await pool.query(
@@ -42,10 +42,10 @@ function createInscripcionRepository({ pool }) {
         [Number(id)]
       );
 
-      return rows.length ? toInscripcion(rows[0]) : null;
+      return rows.length ? mapearInscripcion(rows[0]) : null;
     },
 
-    async getByUsuario(idUsuario) {
+    async obtenerPorUsuario(idUsuario) {
       const [rows] = await pool.query(
         `
           SELECT
@@ -68,10 +68,10 @@ function createInscripcionRepository({ pool }) {
         [Number(idUsuario)]
       );
 
-      return rows.map(toInscripcion);
+      return rows.map(mapearInscripcion);
     },
 
-    async getByMentor(idMentor) {
+    async obtenerPorMentor(idMentor) {
       // El orden prioriza pendientes para ayudar al mentor a resolver primero
       // las solicitudes que aun requieren accion.
       const [rows] = await pool.query(
@@ -105,10 +105,10 @@ function createInscripcionRepository({ pool }) {
         [Number(idMentor)]
       );
 
-      return rows.map(toInscripcion);
+      return rows.map(mapearInscripcion);
     },
 
-    async updateEstado(idInscripcion, estado) {
+    async actualizarEstado(idInscripcion, estado) {
       await pool.query(
         `
           UPDATE inscripciones
@@ -118,10 +118,10 @@ function createInscripcionRepository({ pool }) {
         [estado, Number(idInscripcion)]
       );
 
-      return this.getById(idInscripcion);
+      return this.obtenerPorId(idInscripcion);
     },
 
-    async findExisting(idUsuario, idClase) {
+    async buscarExistente(idUsuario, idClase) {
       const [rows] = await pool.query(
         `
           SELECT id_inscripcion, id_usuario, id_clase, estado, fecha_solicitud
@@ -132,11 +132,11 @@ function createInscripcionRepository({ pool }) {
         [Number(idUsuario), Number(idClase)]
       );
 
-      return rows.length ? toInscripcion(rows[0]) : null;
+      return rows.length ? mapearInscripcion(rows[0]) : null;
     },
   };
 }
 
 module.exports = {
-  createInscripcionRepository,
+  crearRepositorioInscripcion,
 };

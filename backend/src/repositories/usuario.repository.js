@@ -1,31 +1,31 @@
-const { toUsuario, toUsuarioConPassword } = require('../models/usuario.model');
+const { mapearUsuario, mapearUsuarioConPassword } = require('../models/usuario.model');
 
-function createUsuarioRepository({ pool }) {
+function crearRepositorioUsuario({ pool }) {
   return {
-    async findAll() {
+    async buscarTodos() {
       const [rows] = await pool.query(
         'SELECT id_usuario, nombre, email, rol, niveles_educativos, ubicacion, telefono, mentor_bio, mentor_experiencia, mentor_link FROM usuarios ORDER BY id_usuario ASC'
       );
-      return rows.map(toUsuario);
+      return rows.map(mapearUsuario);
     },
 
-    async findById(id) {
+    async buscarPorId(id) {
       const [rows] = await pool.query(
         'SELECT id_usuario, nombre, email, rol, niveles_educativos, ubicacion, telefono, mentor_bio, mentor_experiencia, mentor_link FROM usuarios WHERE id_usuario = ? LIMIT 1',
         [Number(id)]
       );
-      return rows.length ? toUsuario(rows[0]) : null;
+      return rows.length ? mapearUsuario(rows[0]) : null;
     },
 
-    async findByEmail(email) {
+    async buscarPorEmail(email) {
       const [rows] = await pool.query(
         'SELECT id_usuario, nombre, email, password_hash, rol, niveles_educativos, ubicacion, telefono, mentor_bio, mentor_experiencia, mentor_link FROM usuarios WHERE email = ? LIMIT 1',
         [email]
       );
-      return rows.length ? toUsuarioConPassword(rows[0]) : null;
+      return rows.length ? mapearUsuarioConPassword(rows[0]) : null;
     },
 
-    async createUser({ nombre, email, password_hash, rol, niveles_educativos }, executor = pool) {
+    async crearUsuario({ nombre, email, password_hash, rol, niveles_educativos }, executor = pool) {
       const [result] = await executor.query(
         `
           INSERT INTO usuarios (nombre, email, password_hash, rol, niveles_educativos)
@@ -43,11 +43,11 @@ function createUsuarioRepository({ pool }) {
       };
     },
 
-    async create(data) {
-      return this.createUser(data);
+    async crear(data) {
+      return this.crearUsuario(data);
     },
 
-    async updateUser(
+    async actualizarUsuario(
       id,
       { nombre, email, niveles_educativos, ubicacion, telefono, mentor_bio, mentor_experiencia, mentor_link, password_hash },
       executor = pool
@@ -80,11 +80,11 @@ function createUsuarioRepository({ pool }) {
         'SELECT id_usuario, nombre, email, rol, niveles_educativos, ubicacion, telefono, mentor_bio, mentor_experiencia, mentor_link FROM usuarios WHERE id_usuario = ? LIMIT 1',
         [Number(id)]
       );
-      return rows.length ? toUsuario(rows[0]) : null;
+      return rows.length ? mapearUsuario(rows[0]) : null;
     },
   };
 }
 
 module.exports = {
-  createUsuarioRepository,
+  crearRepositorioUsuario,
 };

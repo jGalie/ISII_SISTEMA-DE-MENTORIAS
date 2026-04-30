@@ -1,14 +1,14 @@
 const { Router } = require('express');
 
-function createAuthRoutes({ authController }) {
+function crearRutasAuth({ authController }) {
   const router = Router();
 
-  router.post('/register', authController.register);
-  router.post('/login', authController.login);
+  router.post('/register', authController.registrar);
+  router.post('/login', authController.iniciarSesion);
 
   return router;
 }
 
 module.exports = {
-  createAuthRoutes,
+  crearRutasAuth,
 };

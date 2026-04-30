@@ -1,6 +1,6 @@
 const mensajeService = require('../services/mensaje.service');
 
-function list(req, res) {
+function listar(req, res) {
   try {
     const data = mensajeService.listar();
     res.json({ data });
@@ -9,7 +9,7 @@ function list(req, res) {
   }
 }
 
-function create(req, res) {
+function crear(req, res) {
   try {
     const data = mensajeService.crear(req.body || {});
     res.status(201).json({ data });
@@ -18,4 +18,4 @@ function create(req, res) {
   }
 }
 
-module.exports = { list, create };
+module.exports = { listar, crear };

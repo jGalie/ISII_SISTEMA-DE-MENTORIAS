@@ -1,17 +1,17 @@
 const { Router } = require('express');
 
-function createUsuarioRoutes({ usuarioController }) {
+function crearRutasUsuario({ usuarioController }) {
   const router = Router();
 
-  router.get('/', usuarioController.list);
-  router.get('/mentores/:id/publico', usuarioController.getPerfilPublicoMentor);
-  router.get('/:id', usuarioController.getById);
-  router.post('/', usuarioController.create);
-  router.put('/:id', usuarioController.update);
+  router.get('/', usuarioController.listar);
+  router.get('/mentores/:id/publico', usuarioController.obtenerPerfilPublicoMentor);
+  router.get('/:id', usuarioController.obtenerPorId);
+  router.post('/', usuarioController.crear);
+  router.put('/:id', usuarioController.actualizar);
 
   return router;
 }
 
 module.exports = {
-  createUsuarioRoutes,
+  crearRutasUsuario,
 };

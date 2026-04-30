@@ -86,52 +86,52 @@
         body: JSON.stringify(payload || {}),
       });
     },
-    createInscripcion(payload) {
+    crearInscripcion(payload) {
       return pedirJson('/inscripciones', {
         method: 'POST',
         body: JSON.stringify(payload),
       });
     },
-    getInscripcionesUsuario(idUsuario) {
+    obtenerInscripcionesUsuario(idUsuario) {
       return pedirJson(`/inscripciones/usuario/${encodeURIComponent(idUsuario)}`);
     },
-    getInscripcionesMentor(idMentor) {
+    obtenerInscripcionesMentor(idMentor) {
       return pedirJson(`/inscripciones/mentor/${encodeURIComponent(idMentor)}`);
     },
-    updateEstadoInscripcion(idInscripcion, payload) {
+    actualizarEstadoInscripcion(idInscripcion, payload) {
       return pedirJson(`/inscripciones/${encodeURIComponent(idInscripcion)}/estado`, {
         method: 'PUT',
         body: JSON.stringify(payload),
       });
     },
-    getUsuarios() {
+    obtenerUsuarios() {
       return pedirJson('/usuarios');
     },
-    getUsuario(id) {
+    obtenerUsuario(id) {
       return pedirJson(`/usuarios/${encodeURIComponent(id)}`);
     },
-    getMentorPublico(id) {
+    obtenerMentorPublico(id) {
       return pedirJson(`/usuarios/mentores/${encodeURIComponent(id)}/publico`);
     },
-    updateUsuario(id, payload) {
+    actualizarUsuario(id, payload) {
       return pedirJson(`/usuarios/${encodeURIComponent(id)}`, {
         method: 'PUT',
         body: JSON.stringify(payload),
       });
     },
-    getMaterias() {
+    obtenerMaterias() {
       return pedirJson('/materias');
     },
-    getMentorMaterias(mentorId) {
+    obtenerMateriasMentor(mentorId) {
       return pedirJson(`/mentor-materias?mentorId=${encodeURIComponent(mentorId)}`);
     },
-    register(payload) {
+    registrar(payload) {
       return pedirJson('/auth/register', {
         method: 'POST',
         body: JSON.stringify(payload),
       });
     },
-    login(payload) {
+    iniciarSesion(payload) {
       return pedirJson('/auth/login', {
         method: 'POST',
         body: JSON.stringify(payload),
@@ -143,10 +143,10 @@
         body: JSON.stringify(payload),
       });
     },
-    getValoracionesClase(idClase) {
+    obtenerValoracionesClase(idClase) {
       return pedirJson(`/valoraciones/clase/${encodeURIComponent(idClase)}`);
     },
-    getValoracionesMentor(idMentor) {
+    obtenerValoracionesMentor(idMentor) {
       return pedirJson(`/valoraciones/mentor/${encodeURIComponent(idMentor)}`);
     },
     pedirJson,

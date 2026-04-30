@@ -8,12 +8,12 @@
    * conservar la separacion de responsabilidades propia de una arquitectura en
    * capas.
    */
-  if (!MentoriasAuth.requireAuth()) return;
-  await MentoriasUI.mountNavbar();
+  if (!MentoriasAuth.requerirAutenticacion()) return;
+  await MentoriasUI.montarNavbar();
 
   // La publicacion de clases pertenece al rol mentor; por eso se bloquea el
   // acceso temprano a otros perfiles antes de habilitar el formulario.
-  const usuario = MentoriasAuth.getUser();
+  const usuario = MentoriasAuth.obtenerUsuario();
   if (!usuario || usuario.rol !== 'mentor') {
     window.location.href = '/index.html';
     return;
@@ -49,7 +49,7 @@
     mensaje.classList.remove('d-none');
   }
 
-  function setFieldError(input, message) {
+  function establecerErrorCampo(input, message) {
     if (!input) return;
     const errorBox = document.getElementById(`${input.id}-error`);
     input.classList.add('is-invalid');
@@ -59,22 +59,22 @@
     }
   }
 
-  function clearFieldError(input) {
+  function limpiarErrorCampo(input) {
     if (!input) return;
     const errorBox = document.getElementById(`${input.id}-error`);
     input.classList.remove('is-invalid');
     if (errorBox) errorBox.classList.add('d-none');
   }
 
-  function clearValidationErrors() {
+  function limpiarErroresValidacion() {
     ['materia', 'titulo', 'descripcion', 'fecha', 'precio', 'cupo-maximo', 'ubicacion'].forEach((id) => {
-      clearFieldError(document.getElementById(id));
+      limpiarErrorCampo(document.getElementById(id));
     });
   }
 
-  function confirmLeave() {
+  function confirmarSalida() {
     if (!formDirty) return Promise.resolve(true);
-    return MentoriasUI.showConfirmDialog({
+    return MentoriasUI.mostrarDialogoConfirmacion({
       title: 'Cambios sin guardar',
       message: 'Tenes cambios sin guardar. Queres salir sin guardar?',
       confirmText: 'Salir sin guardar',
@@ -82,8 +82,8 @@
     });
   }
 
-  function validateClassForm() {
-    clearValidationErrors();
+  function validarFormularioClase() {
+    limpiarErroresValidacion();
     let ok = true;
 
     const titulo = document.getElementById('titulo');
@@ -95,31 +95,31 @@
     const ubicacion = inputUbicacion.value.trim();
 
     if (!selectorMateria.value) {
-      setFieldError(selectorMateria, 'Selecciona una materia.');
+      establecerErrorCampo(selectorMateria, 'Selecciona una materia.');
       ok = false;
     }
     if (!titulo.value.trim()) {
-      setFieldError(titulo, 'Ingresa un titulo para la clase.');
+      establecerErrorCampo(titulo, 'Ingresa un titulo para la clase.');
       ok = false;
     }
     if (!descripcion.value.trim()) {
-      setFieldError(descripcion, 'Ingresa una descripcion.');
+      establecerErrorCampo(descripcion, 'Ingresa una descripcion.');
       ok = false;
     }
     if (!fecha.value || Number.isNaN(new Date(fecha.value).getTime())) {
-      setFieldError(fecha, 'Ingresa una fecha y hora validas.');
+      establecerErrorCampo(fecha, 'Ingresa una fecha y hora validas.');
       ok = false;
     }
     if (!Number.isFinite(precioValue) || precioValue < 0) {
-      setFieldError(inputPrecio, 'Ingresa un precio valido.');
+      establecerErrorCampo(inputPrecio, 'Ingresa un precio valido.');
       ok = false;
     }
     if (!Number.isInteger(cupoValue) || cupoValue < 1) {
-      setFieldError(inputCupoMaximo, 'Ingresa un cupo valido.');
+      establecerErrorCampo(inputCupoMaximo, 'Ingresa un cupo valido.');
       ok = false;
     }
     if (modalidad === 'presencial' && !ubicacion) {
-      setFieldError(inputUbicacion, 'Ingresa una ubicacion para clases presenciales.');
+      establecerErrorCampo(inputUbicacion, 'Ingresa una ubicacion para clases presenciales.');
       ok = false;
     }
 
@@ -184,7 +184,7 @@
   try {
     // La carga inicial obtiene las materias del mentor y, si corresponde,
     // tambien recupera la clase existente para completar el formulario.
-    const respuestaMaterias = await MentoriasApi.getMentorMaterias(usuario.id);
+    const respuestaMaterias = await MentoriasApi.obtenerMateriasMentor(usuario.id);
     materiasMentor = Array.isArray(respuestaMaterias.data) ? respuestaMaterias.data : [];
 
     if (esEdicion) {
@@ -251,15 +251,15 @@
     if (href.startsWith('#') || link.target === '_blank') return;
     if (link.hasAttribute('data-back-link')) {
       event.preventDefault();
-      if (!formDirty || (await confirmLeave())) {
+      if (!formDirty || (await confirmarSalida())) {
         allowNavigation = true;
-        MentoriasUI.goBackOrHome(href);
+        MentoriasUI.volverOAInicio(href);
       }
       return;
     }
     if (!formDirty) return;
     event.preventDefault();
-    if (await confirmLeave()) {
+    if (await confirmarSalida()) {
       allowNavigation = true;
       window.location.href = href;
     }
@@ -273,7 +273,7 @@
   formulario.addEventListener('submit', async function (event) {
     event.preventDefault();
 
-    if (!validateClassForm()) return;
+    if (!validarFormularioClase()) return;
 
     const valorFecha = document.getElementById('fecha').value;
     if (!valorFecha) {
@@ -340,7 +340,7 @@
     // para que el backend pueda corroborar la propiedad de la clase.
     botonEliminar.addEventListener('click', async function () {
       if (!esEdicion) return;
-      const confirmarEliminacion = await MentoriasUI.showConfirmDialog({
+      const confirmarEliminacion = await MentoriasUI.mostrarDialogoConfirmacion({
         title: 'Eliminar clase',
         message: 'Esta accion no se puede deshacer. Queres eliminar la clase?',
         confirmText: 'Eliminar',

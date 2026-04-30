@@ -1,5 +1,5 @@
 const app = require('./app');
-const { ensureDatabaseSchema, pool } = require('./config/db');
+const { asegurarEsquemaBaseDatos, pool } = require('./config/db');
 
 const PORT = Number(process.env.PORT) || 3000;
 
@@ -7,9 +7,9 @@ const PORT = Number(process.env.PORT) || 3000;
  * Antes de escuchar peticiones, el sistema verifica que la base
  * este disponible y que el esquema minimo exista.
  */
-async function startServer() {
+async function iniciarServidor() {
   try {
-    await ensureDatabaseSchema();
+    await asegurarEsquemaBaseDatos();
     app.listen(PORT, () => {
       console.log(`Servidor MVP en http://localhost:${PORT}`);
     });
@@ -25,4 +25,4 @@ async function startServer() {
   }
 }
 
-startServer();
+iniciarServidor();

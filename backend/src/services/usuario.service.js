@@ -16,7 +16,7 @@ const EDUCATIONAL_LEVELS = new Set([
   'adultos',
 ]);
 
-function requireFields(body, fields) {
+function requerirCampos(body, fields) {
   for (const field of fields) {
     if (body[field] == null || String(body[field]).trim() === '') {
       throw new Error(`Campo obligatorio: ${field}`);
@@ -24,40 +24,40 @@ function requireFields(body, fields) {
   }
 }
 
-function createAppError(message, code) {
+function crearErrorApp(message, code) {
   const error = new Error(message);
   error.code = code;
   return error;
 }
 
-function normalizeList(value) {
+function normalizarLista(value) {
   if (!Array.isArray(value)) return [];
   return value
     .map((item) => String(item || '').trim())
     .filter(Boolean);
 }
 
-function uniqueList(items) {
+function obtenerListaUnica(items) {
   return Array.from(new Set(items.map((item) => item.trim()))).filter(Boolean);
 }
 
-function parseMentorSubjects(data) {
-  const predefined = normalizeList(data?.materias);
+function parsearMateriasMentor(data) {
+  const predefined = normalizarLista(data?.materias);
   const custom = String(data?.otrasMaterias || '')
     .split(',')
     .map((item) => item.trim())
     .filter(Boolean);
 
-  return uniqueList([...predefined, ...custom]);
+  return obtenerListaUnica([...predefined, ...custom]);
 }
 
-function parseEducationalLevels(data) {
-  return uniqueList(normalizeList(data?.nivelesEducativos)).filter((level) =>
+function parsearNivelesEducativos(data) {
+  return obtenerListaUnica(normalizarLista(data?.nivelesEducativos)).filter((level) =>
     EDUCATIONAL_LEVELS.has(level)
   );
 }
 
-function buildProfileResponse(user, materias = []) {
+function construirRespuestaPerfil(user, materias = []) {
   return {
     id: user.id,
     nombre: user.nombre,
@@ -73,21 +73,21 @@ function buildProfileResponse(user, materias = []) {
   };
 }
 
-function createUsuarioService({ usuarioRepository, claseRepository, valoracionRepository }) {
+function crearServicioUsuario({ usuarioRepository, claseRepository, valoracionRepository }) {
   return {
     async listar() {
-      return usuarioRepository.findAll();
+      return usuarioRepository.buscarTodos();
     },
 
     async obtener(id) {
-      const user = await usuarioRepository.findById(id);
+      const user = await usuarioRepository.buscarPorId(id);
       if (!user) {
-        throw createAppError('Usuario no encontrado.', 'NOT_FOUND');
+        throw crearErrorApp('Usuario no encontrado.', 'NOT_FOUND');
       }
 
       let materias = [];
       if (user.rol === 'mentor') {
-        const links = await mentorMateriaRepository.findByMentorId(user.id);
+        const links = await mentorMateriaRepository.buscarPorMentorId(user.id);
         materias = links.map((item) => ({
           id: item.materiaId,
           nombre: item.materiaNombre,
@@ -95,16 +95,16 @@ function createUsuarioService({ usuarioRepository, claseRepository, valoracionRe
         }));
       }
 
-      return buildProfileResponse(user, materias);
+      return construirRespuestaPerfil(user, materias);
     },
 
     async obtenerPerfilPublicoMentor(id) {
-      const mentor = await usuarioRepository.findById(id);
+      const mentor = await usuarioRepository.buscarPorId(id);
       if (!mentor || mentor.rol !== 'mentor') {
-        throw createAppError('Mentor no encontrado.', 'NOT_FOUND');
+        throw crearErrorApp('Mentor no encontrado.', 'NOT_FOUND');
       }
 
-      const materiasLinks = await mentorMateriaRepository.findByMentorId(mentor.id);
+      const materiasLinks = await mentorMateriaRepository.buscarPorMentorId(mentor.id);
       const clases = claseRepository ? await claseRepository.buscarPorMentor(mentor.id) : [];
       const valoraciones = valoracionRepository
         ? await valoracionRepository.buscarPorMentor(mentor.id)
@@ -135,9 +135,9 @@ function createUsuarioService({ usuarioRepository, claseRepository, valoracionRe
     },
 
     async crear(body) {
-      requireFields(body, ['nombre', 'email', 'password_hash']);
+      requerirCampos(body, ['nombre', 'email', 'password_hash']);
       const rol = body.rol === 'mentor' ? 'mentor' : 'estudiante';
-      return usuarioRepository.create({
+      return usuarioRepository.crear({
         nombre: String(body.nombre).trim(),
         email: String(body.email).trim().toLowerCase(),
         password_hash: body.password_hash,
@@ -150,12 +150,12 @@ function createUsuarioService({ usuarioRepository, claseRepository, valoracionRe
       const targetId = Number(id);
 
       if (!targetId || !actorId || targetId !== actorId) {
-        throw createAppError('No tienes permisos para editar este perfil.', 'FORBIDDEN');
+        throw crearErrorApp('No tienes permisos para editar este perfil.', 'FORBIDDEN');
       }
 
-      const existingUser = await usuarioRepository.findById(targetId);
+      const existingUser = await usuarioRepository.buscarPorId(targetId);
       if (!existingUser) {
-        throw createAppError('Usuario no encontrado.', 'NOT_FOUND');
+        throw crearErrorApp('Usuario no encontrado.', 'NOT_FOUND');
       }
 
       const nombre = String(body?.nombre || '').trim();
@@ -167,43 +167,43 @@ function createUsuarioService({ usuarioRepository, claseRepository, valoracionRe
       const mentorLink = String(body?.mentorLink || '').trim();
       const passwordActual = String(body?.passwordActual || '');
       const nuevaPassword = String(body?.nuevaPassword || '');
-      const nivelesEducativos = parseEducationalLevels(body);
-      const mentorSubjects = parseMentorSubjects(body);
+      const nivelesEducativos = parsearNivelesEducativos(body);
+      const mentorSubjects = parsearMateriasMentor(body);
 
       if (!nombre) {
-        throw createAppError('Campo obligatorio: nombre', 'VALIDATION_ERROR');
+        throw crearErrorApp('Campo obligatorio: nombre', 'VALIDATION_ERROR');
       }
       if (!EMAIL_REGEX.test(email)) {
-        throw createAppError('Email invalido.', 'VALIDATION_ERROR');
+        throw crearErrorApp('Email invalido.', 'VALIDATION_ERROR');
       }
       if (existingUser.rol === 'mentor' && mentorSubjects.length === 0) {
-        throw createAppError('Debes indicar al menos una materia para el mentor.', 'VALIDATION_ERROR');
+        throw crearErrorApp('Debes indicar al menos una materia para el mentor.', 'VALIDATION_ERROR');
       }
       if (existingUser.rol === 'mentor' && nivelesEducativos.length === 0) {
-        throw createAppError('Debes seleccionar al menos un nivel educativo para el mentor.', 'VALIDATION_ERROR');
+        throw crearErrorApp('Debes seleccionar al menos un nivel educativo para el mentor.', 'VALIDATION_ERROR');
       }
 
-      const duplicated = await usuarioRepository.findByEmail(email);
+      const duplicated = await usuarioRepository.buscarPorEmail(email);
       if (duplicated && Number(duplicated.id) !== targetId) {
-        throw createAppError('Ya existe un usuario registrado con ese email.', 'DUPLICATE_USER');
+        throw crearErrorApp('Ya existe un usuario registrado con ese email.', 'DUPLICATE_USER');
       }
 
       let password_hash = null;
       if (passwordActual || nuevaPassword) {
         if (!passwordActual) {
-          throw createAppError('Debes indicar la contrasena actual.', 'VALIDATION_ERROR');
+          throw crearErrorApp('Debes indicar la contrasena actual.', 'VALIDATION_ERROR');
         }
         if (nuevaPassword.length < 8) {
-          throw createAppError('La nueva contrasena debe tener al menos 8 caracteres.', 'VALIDATION_ERROR');
+          throw crearErrorApp('La nueva contrasena debe tener al menos 8 caracteres.', 'VALIDATION_ERROR');
         }
         if (!PASSWORD_LETTER_REGEX.test(nuevaPassword) || !PASSWORD_NUMBER_REGEX.test(nuevaPassword)) {
-          throw createAppError('La nueva contrasena debe contener letras y numeros.', 'VALIDATION_ERROR');
+          throw crearErrorApp('La nueva contrasena debe contener letras y numeros.', 'VALIDATION_ERROR');
         }
 
-        const userWithPassword = await usuarioRepository.findByEmail(existingUser.email);
+        const userWithPassword = await usuarioRepository.buscarPorEmail(existingUser.email);
         const passwordMatches = await bcrypt.compare(passwordActual, userWithPassword.password_hash);
         if (!passwordMatches) {
-          throw createAppError('La contrasena actual no es correcta.', 'VALIDATION_ERROR');
+          throw crearErrorApp('La contrasena actual no es correcta.', 'VALIDATION_ERROR');
         }
 
         password_hash = await bcrypt.hash(nuevaPassword, 10);
@@ -213,7 +213,7 @@ function createUsuarioService({ usuarioRepository, claseRepository, valoracionRe
       try {
         await connection.beginTransaction();
 
-        const updatedUser = await usuarioRepository.updateUser(
+        const updatedUser = await usuarioRepository.actualizarUsuario(
           targetId,
           {
             nombre,
@@ -233,13 +233,13 @@ function createUsuarioService({ usuarioRepository, claseRepository, valoracionRe
         let materias = [];
 
         if (existingUser.rol === 'mentor') {
-          await mentorMateriaRepository.deleteByMentorId(targetId, connection);
+          await mentorMateriaRepository.eliminarPorMentorId(targetId, connection);
 
           for (const subjectName of mentorSubjects) {
-            const materia = await materiaRepository.findOrCreateByNombre(subjectName, connection);
+            const materia = await materiaRepository.buscarOCrearPorNombre(subjectName, connection);
             if (!materia) continue;
 
-            await mentorMateriaRepository.create(
+            await mentorMateriaRepository.crear(
               { mentorId: targetId, materiaId: materia.id },
               connection
             );
@@ -249,7 +249,7 @@ function createUsuarioService({ usuarioRepository, claseRepository, valoracionRe
         }
 
         await connection.commit();
-        return buildProfileResponse(updatedUser, materias);
+        return construirRespuestaPerfil(updatedUser, materias);
       } catch (error) {
         await connection.rollback();
         throw error;
@@ -261,5 +261,5 @@ function createUsuarioService({ usuarioRepository, claseRepository, valoracionRe
 }
 
 module.exports = {
-  createUsuarioService,
+  crearServicioUsuario,
 };

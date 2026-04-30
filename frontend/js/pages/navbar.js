@@ -1,4 +1,4 @@
-async function loadNavbar() {
+async function cargarNavbar() {
   const container = document.getElementById("shared-navbar");
   if (!container) return;
 
@@ -6,10 +6,10 @@ async function loadNavbar() {
   const html = await response.text();
   container.innerHTML = html;
 
-  markActiveNav();
+  marcarNavActivo();
 }
 
-function markActiveNav() {
+function marcarNavActivo() {
   const currentPath = window.location.pathname;
 
   if (currentPath.includes("inicio-estudiante.html")) {
@@ -23,4 +23,4 @@ function markActiveNav() {
   }
 }
 
-document.addEventListener("DOMContentLoaded", loadNavbar);
+document.addEventListener("DOMContentLoaded", cargarNavbar);

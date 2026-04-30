@@ -1,4 +1,4 @@
-function toValoracion(row) {
+function mapearValoracion(row) {
   if (!row) return null;
   return {
     id: row.id ?? row.id_valoracion,
@@ -14,5 +14,5 @@ function toValoracion(row) {
 }
 
 module.exports = {
-  toValoracion,
+  mapearValoracion,
 };

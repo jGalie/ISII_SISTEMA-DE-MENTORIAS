@@ -3,7 +3,7 @@ const mentorMateriaController = require('../controllers/mentor-materia.controlle
 
 const router = Router();
 
-router.get('/', mentorMateriaController.list);
-router.post('/', mentorMateriaController.create);
+router.get('/', mentorMateriaController.listar);
+router.post('/', mentorMateriaController.crear);
 
 module.exports = router;

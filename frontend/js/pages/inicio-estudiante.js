@@ -1,16 +1,16 @@
 (async function () {
-  if (!MentoriasAuth.requireAuth()) return;
+  if (!MentoriasAuth.requerirAutenticacion()) return;
 
-  const user = MentoriasAuth.getUser();
+  const user = MentoriasAuth.obtenerUsuario();
   if (!user || user.rol !== 'estudiante') {
-    window.location.href = MentoriasAuth.getHomePath(user);
+    window.location.href = MentoriasAuth.obtenerRutaInicio(user);
     return;
   }
 
   const welcome = document.getElementById('student-home-welcome');
   const menuName = document.getElementById('student-menu-name');
   const menuEmail = document.getElementById('student-menu-email');
-  const logoutButton = document.getElementById('student-logout');
+  const logoutButton = document.getElementById('student-cerrarSesion');
 
   if (welcome) {
     welcome.textContent = `Hola, ${user.nombre}. Explorá clases disponibles e inscribite; tu solicitud quedará pendiente hasta que el mentor la apruebe.`;
@@ -26,14 +26,14 @@
 
   if (logoutButton) {
     logoutButton.addEventListener('click', async function () {
-      const confirmarSalida = await MentoriasUI.showConfirmDialog({
+      const confirmarSalida = await MentoriasUI.mostrarDialogoConfirmacion({
         title: 'Cerrar sesion',
         message: 'Queres cerrar tu sesion en Mentorix?',
         confirmText: 'Cerrar sesion',
         cancelText: 'Cancelar',
       });
       if (!confirmarSalida) return;
-      MentoriasAuth.logout();
+      MentoriasAuth.cerrarSesion();
       window.location.href = '/index.html';
     });
   }

@@ -1,6 +1,6 @@
 const materiaRepository = require('../repositories/materia.repository');
 
-function requireFields(body, fields) {
+function requerirCampos(body, fields) {
   for (const field of fields) {
     if (body[field] == null || String(body[field]).trim() === '') {
       throw new Error(`Campo obligatorio: ${field}`);
@@ -9,12 +9,12 @@ function requireFields(body, fields) {
 }
 
 async function listar() {
-  return materiaRepository.findAll();
+  return materiaRepository.buscarTodos();
 }
 
 async function crear(body) {
-  requireFields(body, ['nombre', 'codigo']);
-  return materiaRepository.create(body);
+  requerirCampos(body, ['nombre', 'codigo']);
+  return materiaRepository.crear(body);
 }
 
 module.exports = {

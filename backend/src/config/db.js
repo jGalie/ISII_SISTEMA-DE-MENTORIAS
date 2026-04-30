@@ -17,7 +17,7 @@ const pool = mysql.createPool(dbConfig);
  * Estas utilidades permiten que el backend revise si faltan columnas
  * y adapte el esquema durante el arranque del proyecto.
  */
-async function hasColumn(tableName, columnName) {
+async function tieneColumna(tableName, columnName) {
   const [rows] = await pool.query(
     `
       SELECT 1
@@ -33,13 +33,13 @@ async function hasColumn(tableName, columnName) {
   return rows.length > 0;
 }
 
-async function ensureColumn(tableName, columnName, sql) {
-  if (!(await hasColumn(tableName, columnName))) {
+async function asegurarColumna(tableName, columnName, sql) {
+  if (!(await tieneColumna(tableName, columnName))) {
     await pool.query(sql);
   }
 }
 
-async function seedSubjects() {
+async function sembrarMaterias() {
   // Se cargan materias base para contar con datos iniciales del dominio.
   const subjects = [
     ['Matematica', 'MAT'],
@@ -73,7 +73,7 @@ async function seedSubjects() {
   }
 }
 
-async function ensureDatabaseSchema() {
+async function asegurarEsquemaBaseDatos() {
   /**
    * Esta funcion prepara la base de datos completa del MVP:
    * crea la base, crea tablas, incorpora nuevas columnas y
@@ -102,32 +102,32 @@ async function ensureDatabaseSchema() {
     )
   `);
 
-  await ensureColumn(
+  await asegurarColumna(
     'usuarios',
     'niveles_educativos',
     'ALTER TABLE usuarios ADD COLUMN niveles_educativos TEXT NULL AFTER rol'
   );
-  await ensureColumn(
+  await asegurarColumna(
     'usuarios',
     'ubicacion',
     'ALTER TABLE usuarios ADD COLUMN ubicacion VARCHAR(120) NULL AFTER niveles_educativos'
   );
-  await ensureColumn(
+  await asegurarColumna(
     'usuarios',
     'telefono',
     'ALTER TABLE usuarios ADD COLUMN telefono VARCHAR(40) NULL AFTER ubicacion'
   );
-  await ensureColumn(
+  await asegurarColumna(
     'usuarios',
     'mentor_bio',
     'ALTER TABLE usuarios ADD COLUMN mentor_bio TEXT NULL AFTER telefono'
   );
-  await ensureColumn(
+  await asegurarColumna(
     'usuarios',
     'mentor_experiencia',
     'ALTER TABLE usuarios ADD COLUMN mentor_experiencia VARCHAR(120) NULL AFTER mentor_bio'
   );
-  await ensureColumn(
+  await asegurarColumna(
     'usuarios',
     'mentor_link',
     'ALTER TABLE usuarios ADD COLUMN mentor_link VARCHAR(255) NULL AFTER mentor_experiencia'
@@ -152,32 +152,32 @@ async function ensureDatabaseSchema() {
     )
   `);
 
-  await ensureColumn(
+  await asegurarColumna(
     'clases',
     'modalidad',
     "ALTER TABLE clases ADD COLUMN modalidad ENUM('virtual', 'presencial') NOT NULL DEFAULT 'virtual' AFTER fecha"
   );
-  await ensureColumn(
+  await asegurarColumna(
     'clases',
     'id_materia',
     'ALTER TABLE clases ADD COLUMN id_materia INT NULL AFTER id_mentor'
   );
-  await ensureColumn(
+  await asegurarColumna(
     'clases',
     'precio',
     'ALTER TABLE clases ADD COLUMN precio DECIMAL(10,2) NULL AFTER id_materia'
   );
-  await ensureColumn(
+  await asegurarColumna(
     'clases',
     'ubicacion',
     'ALTER TABLE clases ADD COLUMN ubicacion VARCHAR(255) NULL AFTER precio'
   );
-  await ensureColumn(
+  await asegurarColumna(
     'clases',
     'cupo_maximo',
     'ALTER TABLE clases ADD COLUMN cupo_maximo INT NOT NULL DEFAULT 1 AFTER ubicacion'
   );
-  await ensureColumn(
+  await asegurarColumna(
     'clases',
     'cupo_actual',
     'ALTER TABLE clases ADD COLUMN cupo_actual INT NOT NULL DEFAULT 0 AFTER cupo_maximo'
@@ -234,7 +234,7 @@ async function ensureDatabaseSchema() {
     )
   `);
 
-  await seedSubjects();
+  await sembrarMaterias();
 
   // Se crea un mentor demo para facilitar pruebas y presentaciones.
   const mentorHash = '$2a$10$nbSbLJy8ssc6yeBDeJznTOo/8r03KSWi9h.zDSPsxM0SVVDod9aFu';
@@ -333,5 +333,5 @@ async function ensureDatabaseSchema() {
 module.exports = {
   dbConfig,
   pool,
-  ensureDatabaseSchema,
+  asegurarEsquemaBaseDatos,
 };

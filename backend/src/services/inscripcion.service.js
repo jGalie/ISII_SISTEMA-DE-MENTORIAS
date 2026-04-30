@@ -1,10 +1,10 @@
-function createAppError(message, code) {
+function crearErrorApp(message, code) {
   const error = new Error(message);
   error.code = code;
   return error;
 }
 
-function createInscripcionService({ inscripcionRepository, claseRepository, usuarioRepository }) {
+function crearServicioInscripcion({ inscripcionRepository, claseRepository, usuarioRepository }) {
   return {
     async solicitarInscripcion(data) {
       /**
@@ -16,49 +16,49 @@ function createInscripcionService({ inscripcionRepository, claseRepository, usua
       const id_clase = Number(data?.id_clase || data?.idClase);
 
       if (!id_usuario || !id_clase) {
-        throw createAppError('Debes indicar usuario y clase para inscribirte.', 'VALIDATION_ERROR');
+        throw crearErrorApp('Debes indicar usuario y clase para inscribirte.', 'VALIDATION_ERROR');
       }
 
-      const usuario = await usuarioRepository.findById(id_usuario);
+      const usuario = await usuarioRepository.buscarPorId(id_usuario);
       if (!usuario || usuario.rol !== 'estudiante') {
-        throw createAppError('Solo un estudiante puede solicitar una inscripción.', 'VALIDATION_ERROR');
+        throw crearErrorApp('Solo un estudiante puede solicitar una inscripción.', 'VALIDATION_ERROR');
       }
 
       // Se consulta la clase mediante el repository inyectado para confirmar
       // que el recurso exista antes de crear la relacion de inscripcion.
       const clase = await claseRepository.buscarPorId(id_clase);
       if (!clase) {
-        throw createAppError('La clase indicada no existe.', 'NOT_FOUND');
+        throw crearErrorApp('La clase indicada no existe.', 'NOT_FOUND');
       }
       if (clase.completa) {
-        throw createAppError('La clase ya no tiene cupos disponibles.', 'VALIDATION_ERROR');
+        throw crearErrorApp('La clase ya no tiene cupos disponibles.', 'VALIDATION_ERROR');
       }
       if (clase.mentorId === id_usuario) {
-        throw createAppError('No puedes inscribirte en tu propia clase.', 'VALIDATION_ERROR');
+        throw crearErrorApp('No puedes inscribirte en tu propia clase.', 'VALIDATION_ERROR');
       }
 
-      const existing = await inscripcionRepository.findExisting(id_usuario, id_clase);
+      const existing = await inscripcionRepository.buscarExistente(id_usuario, id_clase);
       if (existing) {
-        throw createAppError('Ya existe una inscripción para esa clase.', 'DUPLICATE_ENROLLMENT');
+        throw crearErrorApp('Ya existe una inscripción para esa clase.', 'DUPLICATE_ENROLLMENT');
       }
 
-      return inscripcionRepository.createInscripcion({ id_usuario, id_clase, estado: 'pendiente' });
+      return inscripcionRepository.crearInscripcion({ id_usuario, id_clase, estado: 'pendiente' });
     },
 
     async obtenerInscripcionesUsuario(idUsuario) {
-      const usuario = await usuarioRepository.findById(idUsuario);
+      const usuario = await usuarioRepository.buscarPorId(idUsuario);
       if (!usuario) {
-        throw createAppError('Usuario no encontrado.', 'NOT_FOUND');
+        throw crearErrorApp('Usuario no encontrado.', 'NOT_FOUND');
       }
-      return inscripcionRepository.getByUsuario(idUsuario);
+      return inscripcionRepository.obtenerPorUsuario(idUsuario);
     },
 
     async obtenerInscripcionesMentor(idMentor) {
-      const mentor = await usuarioRepository.findById(idMentor);
+      const mentor = await usuarioRepository.buscarPorId(idMentor);
       if (!mentor || mentor.rol !== 'mentor') {
-        throw createAppError('Mentor no encontrado.', 'NOT_FOUND');
+        throw crearErrorApp('Mentor no encontrado.', 'NOT_FOUND');
       }
-      return inscripcionRepository.getByMentor(idMentor);
+      return inscripcionRepository.obtenerPorMentor(idMentor);
     },
 
     async cambiarEstadoInscripcion(idInscripcion, data) {
@@ -69,35 +69,35 @@ function createInscripcionService({ inscripcionRepository, claseRepository, usua
       const validStates = new Set(['pendiente', 'aceptada', 'rechazada']);
 
       if (!validStates.has(estado)) {
-        throw createAppError('Estado de inscripción inválido.', 'VALIDATION_ERROR');
+        throw crearErrorApp('Estado de inscripción inválido.', 'VALIDATION_ERROR');
       }
 
-      const inscripcion = await inscripcionRepository.getById(idInscripcion);
+      const inscripcion = await inscripcionRepository.obtenerPorId(idInscripcion);
       if (!inscripcion) {
-        throw createAppError('Inscripción no encontrada.', 'NOT_FOUND');
+        throw crearErrorApp('Inscripción no encontrada.', 'NOT_FOUND');
       }
 
       if (mentorId) {
-        const mentor = await usuarioRepository.findById(mentorId);
+        const mentor = await usuarioRepository.buscarPorId(mentorId);
         if (!mentor || mentor.rol !== 'mentor') {
-          throw createAppError('Mentor no válido para actualizar la inscripción.', 'VALIDATION_ERROR');
+          throw crearErrorApp('Mentor no válido para actualizar la inscripción.', 'VALIDATION_ERROR');
         }
         if (inscripcion.mentorId !== mentorId) {
-          throw createAppError('No puedes gestionar inscripciones de otra clase.', 'FORBIDDEN');
+          throw crearErrorApp('No puedes gestionar inscripciones de otra clase.', 'FORBIDDEN');
         }
       }
 
       if (estado === 'aceptada' && inscripcion.estado !== 'aceptada') {
         const clase = await claseRepository.buscarPorId(inscripcion.claseId);
         if (!clase) {
-          throw createAppError('La clase indicada no existe.', 'NOT_FOUND');
+          throw crearErrorApp('La clase indicada no existe.', 'NOT_FOUND');
         }
         if (clase.completa) {
-          throw createAppError('La clase ya no tiene cupos disponibles.', 'VALIDATION_ERROR');
+          throw crearErrorApp('La clase ya no tiene cupos disponibles.', 'VALIDATION_ERROR');
         }
         const claseActualizada = await claseRepository.incrementarCupoActual(inscripcion.claseId);
         if (!claseActualizada) {
-          throw createAppError('La clase ya no tiene cupos disponibles.', 'VALIDATION_ERROR');
+          throw crearErrorApp('La clase ya no tiene cupos disponibles.', 'VALIDATION_ERROR');
         }
       }
 
@@ -105,11 +105,11 @@ function createInscripcionService({ inscripcionRepository, claseRepository, usua
         await claseRepository.decrementarCupoActual(inscripcion.claseId);
       }
 
-      return inscripcionRepository.updateEstado(idInscripcion, estado);
+      return inscripcionRepository.actualizarEstado(idInscripcion, estado);
     },
   };
 }
 
 module.exports = {
-  createInscripcionService,
+  crearServicioInscripcion,
 };
