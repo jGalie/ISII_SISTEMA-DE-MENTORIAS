@@ -95,13 +95,13 @@
     obtenerInscripcionesUsuario(idUsuario) {
       return pedirJson(`/inscripciones/usuario/${encodeURIComponent(idUsuario)}`);
     },
-    obtenerInscripcionesMentor(idMentor) {
+    buscarSolicitudesDelMentor(idMentor) {
       return pedirJson(`/inscripciones/mentor/${encodeURIComponent(idMentor)}`);
     },
-    actualizarEstadoInscripcion(idInscripcion, payload) {
+    actualizarEstadoInscripcion(idInscripcion, datosInscripcion) {
       return pedirJson(`/inscripciones/${encodeURIComponent(idInscripcion)}/estado`, {
         method: 'PUT',
-        body: JSON.stringify(payload),
+        body: JSON.stringify(datosInscripcion),
       });
     },
     obtenerUsuarios() {

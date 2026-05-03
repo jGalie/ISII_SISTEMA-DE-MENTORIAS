@@ -349,7 +349,7 @@
     // Este flujo construye el espacio de trabajo del mentor.
     if (mentorDashboard) mentorDashboard.classList.remove('d-none');
 
-    const response = await MentoriasApi.obtenerInscripcionesMentor(user.id);
+    const response = await MentoriasApi.buscarSolicitudesDelMentor(user.id);
     const items = Array.isArray(response.data) ? response.data : [];
     actualizarMetricas(items);
 

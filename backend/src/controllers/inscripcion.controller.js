@@ -9,8 +9,8 @@ function crearControladorInscripcion({ inscripcionService }) {
   return {
     async crear(req, res) {
       try {
-        const data = await inscripcionService.solicitarInscripcion(req.body || {});
-        res.status(201).json({ success: true, data });
+        const inscripcionCreada = await inscripcionService.solicitarInscripcion(req.body || {});
+        res.status(201).json({ success: true, data: inscripcionCreada });
       } catch (err) {
         res.status(resolverEstadoHttp(err)).json({ success: false, error: err.message });
       }
@@ -18,17 +18,17 @@ function crearControladorInscripcion({ inscripcionService }) {
 
     async obtenerPorUsuario(req, res) {
       try {
-        const data = await inscripcionService.obtenerInscripcionesUsuario(req.params.id);
-        res.json({ success: true, data });
+        const inscripcionesUsuario = await inscripcionService.obtenerInscripcionesUsuario(req.params.id);
+        res.json({ success: true, data: inscripcionesUsuario });
       } catch (err) {
         res.status(resolverEstadoHttp(err)).json({ success: false, error: err.message });
       }
     },
 
-    async obtenerPorMentor(req, res) {
+    async buscarSolicitudesDelMentor(req, res) {
       try {
-        const data = await inscripcionService.obtenerInscripcionesMentor(req.params.id);
-        res.json({ success: true, data });
+        const solicitudesMentor = await inscripcionService.buscarSolicitudesDelMentor(req.params.id);
+        res.json({ success: true, data: solicitudesMentor });
       } catch (err) {
         res.status(resolverEstadoHttp(err)).json({ success: false, error: err.message });
       }
@@ -36,8 +36,8 @@ function crearControladorInscripcion({ inscripcionService }) {
 
     async actualizarEstado(req, res) {
       try {
-        const data = await inscripcionService.cambiarEstadoInscripcion(req.params.id, req.body || {});
-        res.json({ success: true, data });
+        const inscripcionActualizada = await inscripcionService.cambiarEstadoInscripcion(req.params.id, req.body || {});
+        res.json({ success: true, data: inscripcionActualizada });
       } catch (err) {
         res.status(resolverEstadoHttp(err)).json({ success: false, error: err.message });
       }

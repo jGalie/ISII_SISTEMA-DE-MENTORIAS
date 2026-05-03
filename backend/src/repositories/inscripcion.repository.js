@@ -3,7 +3,7 @@ const { mapearInscripcion } = require('../models/inscripcion.model');
 function crearRepositorioInscripcion({ pool }) {
   return {
     async crearInscripcion({ id_usuario, id_clase, estado = 'pendiente' }) {
-      const [result] = await pool.query(
+      const [resultadoCreacion] = await pool.query(
         `
           INSERT INTO inscripciones (id_usuario, id_clase, estado)
           VALUES (?, ?, ?)
@@ -11,13 +11,13 @@ function crearRepositorioInscripcion({ pool }) {
         [id_usuario, id_clase, estado]
       );
 
-      return this.obtenerPorId(result.insertId);
+      return this.obtenerPorId(resultadoCreacion.insertId);
     },
 
-    async obtenerPorId(id) {
+    async obtenerPorId(idInscripcion) {
       // Esta consulta recompone toda la informacion de contexto
       // necesaria para mostrar una inscripcion en las interfaces.
-      const [rows] = await pool.query(
+      const [filasInscripcion] = await pool.query(
         `
           SELECT
             i.id_inscripcion,
@@ -39,14 +39,14 @@ function crearRepositorioInscripcion({ pool }) {
           WHERE i.id_inscripcion = ?
           LIMIT 1
         `,
-        [Number(id)]
+        [Number(idInscripcion)]
       );
 
-      return rows.length ? mapearInscripcion(rows[0]) : null;
+      return filasInscripcion.length ? mapearInscripcion(filasInscripcion[0]) : null;
     },
 
     async obtenerPorUsuario(idUsuario) {
-      const [rows] = await pool.query(
+      const [filasInscripcionesUsuario] = await pool.query(
         `
           SELECT
             i.id_inscripcion,
@@ -68,13 +68,13 @@ function crearRepositorioInscripcion({ pool }) {
         [Number(idUsuario)]
       );
 
-      return rows.map(mapearInscripcion);
+      return filasInscripcionesUsuario.map(mapearInscripcion);
     },
 
-    async obtenerPorMentor(idMentor) {
+    async buscarSolicitudesDelMentor(mentorId) {
       // El orden prioriza pendientes para ayudar al mentor a resolver primero
       // las solicitudes que aun requieren accion.
-      const [rows] = await pool.query(
+      const [filasInscripcionesMentor] = await pool.query(
         `
           SELECT
             i.id_inscripcion,
@@ -102,10 +102,10 @@ function crearRepositorioInscripcion({ pool }) {
             END,
             i.fecha_solicitud DESC
         `,
-        [Number(idMentor)]
+        [Number(mentorId)]
       );
 
-      return rows.map(mapearInscripcion);
+      return filasInscripcionesMentor.map(mapearInscripcion);
     },
 
     async actualizarEstado(idInscripcion, estado) {
@@ -121,8 +121,50 @@ function crearRepositorioInscripcion({ pool }) {
       return this.obtenerPorId(idInscripcion);
     },
 
+    async cambiarEstadoAceptada(idInscripcion) {
+      return this.actualizarEstado(idInscripcion, 'aceptada');
+    },
+
+    async cambiarEstadoRechazada(idInscripcion) {
+      return this.actualizarEstado(idInscripcion, 'rechazada');
+    },
+
+    async cambiarEstadoPendiente(idInscripcion) {
+      return this.actualizarEstado(idInscripcion, 'pendiente');
+    },
+
+    async buscarSolicitudesPendientes(mentorId) {
+      const [filasSolicitudesPendientes] = await pool.query(
+        `
+          SELECT
+            i.id_inscripcion,
+            i.id_usuario,
+            i.id_clase,
+            i.estado,
+            i.fecha_solicitud,
+            c.titulo AS clase_titulo,
+            c.descripcion AS clase_descripcion,
+            c.fecha AS clase_fecha,
+            c.id_mentor,
+            mentor.nombre AS mentor_nombre,
+            u.nombre AS usuario_nombre,
+            u.email AS usuario_email
+          FROM inscripciones i
+          INNER JOIN clases c ON c.id_clase = i.id_clase
+          INNER JOIN usuarios mentor ON mentor.id_usuario = c.id_mentor
+          INNER JOIN usuarios u ON u.id_usuario = i.id_usuario
+          WHERE c.id_mentor = ?
+            AND i.estado = 'pendiente'
+          ORDER BY i.fecha_solicitud DESC
+        `,
+        [Number(mentorId)]
+      );
+
+      return filasSolicitudesPendientes.map(mapearInscripcion);
+    },
+
     async buscarExistente(idUsuario, idClase) {
-      const [rows] = await pool.query(
+      const [filasInscripcionExistente] = await pool.query(
         `
           SELECT id_inscripcion, id_usuario, id_clase, estado, fecha_solicitud
           FROM inscripciones
@@ -132,7 +174,7 @@ function crearRepositorioInscripcion({ pool }) {
         [Number(idUsuario), Number(idClase)]
       );
 
-      return rows.length ? mapearInscripcion(rows[0]) : null;
+      return filasInscripcionExistente.length ? mapearInscripcion(filasInscripcionExistente[0]) : null;
     },
   };
 }

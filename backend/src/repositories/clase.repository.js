@@ -93,34 +93,34 @@ function crearRepositorioClase({ pool }) {
       }
 
       const whereSql = condiciones.length ? `WHERE ${condiciones.join(' AND ')}` : '';
-      const [rows] = await pool.query(`
+      const [filasClases] = await pool.query(`
         ${baseSelect}
         ${whereSql}
         ${baseGroup}
         ORDER BY c.fecha ASC, c.id_clase ASC
       `, valores);
 
-      return rows.map(mapearClase);
+      return filasClases.map(mapearClase);
     },
 
-    async buscarPorId(id) {
+    async buscarPorId(claseId) {
       // LIMIT 1 expresa que el identificador de clase es unico en la tabla.
-      const [rows] = await pool.query(
+      const [filasClase] = await pool.query(
         `
           ${baseSelect}
           WHERE c.id_clase = ?
           ${baseGroup}
           LIMIT 1
         `,
-        [Number(id)]
+        [Number(claseId)]
       );
 
-      return rows.length ? mapearClase(rows[0]) : null;
+      return filasClase.length ? mapearClase(filasClase[0]) : null;
     },
 
     async buscarPorMentor(id_mentor) {
       // Permite obtener el tablero de clases correspondiente a un mentor.
-      const [rows] = await pool.query(
+      const [filasClasesMentor] = await pool.query(
         `
           ${baseSelect}
           WHERE c.id_mentor = ?
@@ -130,7 +130,7 @@ function crearRepositorioClase({ pool }) {
         [Number(id_mentor)]
       );
 
-      return rows.map(mapearClase);
+      return filasClasesMentor.map(mapearClase);
     },
 
     async actualizarClase(id, { titulo, descripcion, fecha, modalidad, id_materia, precio, ubicacion, cupo_maximo }) {
@@ -160,7 +160,7 @@ function crearRepositorioClase({ pool }) {
       return clase;
     },
 
-    async incrementarCupoActual(id) {
+    async incrementarCupoActual(claseId) {
       const [resultado] = await pool.query(
         `
           UPDATE clases
@@ -168,24 +168,24 @@ function crearRepositorioClase({ pool }) {
           WHERE id_clase = ?
             AND cupo_actual < cupo_maximo
         `,
-        [Number(id)]
+        [Number(claseId)]
       );
 
       if (resultado.affectedRows === 0) return null;
-      return this.buscarPorId(id);
+      return this.buscarPorId(claseId);
     },
 
-    async decrementarCupoActual(id) {
+    async decrementarCupoActual(claseId) {
       await pool.query(
         `
           UPDATE clases
           SET cupo_actual = GREATEST(cupo_actual - 1, 0)
           WHERE id_clase = ?
         `,
-        [Number(id)]
+        [Number(claseId)]
       );
 
-      return this.buscarPorId(id);
+      return this.buscarPorId(claseId);
     },
   };
 }
