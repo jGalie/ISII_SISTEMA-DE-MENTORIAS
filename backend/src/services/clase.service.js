@@ -45,21 +45,21 @@ function normalizarNumero(value, message) {
  * dominio: toda clase debe tener titulo, descripcion, fecha, materia, precio
  * valido y una ubicacion cuando la modalidad sea presencial.
  */
-function validarDatosClase(data) {
+function validarDatosClase(datosClase) {
   /**
    * Crear y editar una clase comparten el mismo criterio de validacion.
    * Por eso esta funcion centraliza los requisitos funcionales minimos
    * que debe cumplir una publicacion.
    */
-  const titulo = String(data?.titulo || '').trim();
-  const descripcion = String(data?.descripcion || '').trim();
-  const fecha = normalizarFechaClase(data?.fecha);
-  const modalidad = String(data?.modalidad || 'virtual').trim().toLowerCase();
-  const id_materia = Number(data?.id_materia || data?.materiaId);
-  const precio = normalizarNumero(data?.precio, 'Debes ingresar un precio valido para la clase.');
-  const ubicacion = String(data?.ubicacion || '').trim();
-  const cupoSource = data?.cupo_maximo ?? data?.cupoMaximo ?? 1;
-  const cupo_maximo = normalizarNumero(cupoSource, 'Debes indicar un cupo maximo valido.');
+  const titulo = String(datosClase?.titulo || '').trim();
+  const descripcion = String(datosClase?.descripcion || '').trim();
+  const fecha = normalizarFechaClase(datosClase?.fecha);
+  const modalidad = String(datosClase?.modalidad || 'virtual').trim().toLowerCase();
+  const id_materia = Number(datosClase?.id_materia || datosClase?.materiaId);
+  const precio = normalizarNumero(datosClase?.precio, 'Debes ingresar un precio valido para la clase.');
+  const ubicacion = String(datosClase?.ubicacion || '').trim();
+  const origenCupo = datosClase?.cupo_maximo ?? datosClase?.cupoMaximo ?? 1;
+  const cupo_maximo = normalizarNumero(origenCupo, 'Debes indicar un cupo maximo valido.');
 
   if (!titulo || !descripcion) {
     throw crearErrorApp('Titulo, descripcion y fecha son obligatorios.', 'VALIDATION_ERROR');
@@ -99,11 +99,11 @@ function validarDatosClase(data) {
 
 function crearServicioClase({ claseRepository, usuarioRepository, mentorMateriaRepository }) {
   return {
-    async crearClase(data) {
+    async crearClase(datosClase) {
       // Solo un mentor valido puede publicar. Ademas, la materia elegida debe
       // pertenecer a su perfil academico para evitar publicaciones inconsistentes.
-      const payload = validarDatosClase(data);
-      const id_mentor = Number(data?.id_mentor || data?.mentorId);
+      const datosClaseValidada = validarDatosClase(datosClase);
+      const id_mentor = Number(datosClase?.id_mentor || datosClase?.mentorId);
 
       if (!id_mentor) {
         throw crearErrorApp('Debes indicar el mentor creador.', 'VALIDATION_ERROR');
@@ -114,12 +114,18 @@ function crearServicioClase({ claseRepository, usuarioRepository, mentorMateriaR
         throw crearErrorApp('Solo un mentor puede crear clases.', 'FORBIDDEN');
       }
 
-      const hasSubject = await mentorMateriaRepository.existe(id_mentor, payload.id_materia);
-      if (!hasSubject) {
+      const materiaPerteneceAlMentor = await mentorMateriaRepository.existe(
+        id_mentor,
+        datosClaseValidada.id_materia
+      );
+      if (!materiaPerteneceAlMentor) {
         throw crearErrorApp('La materia seleccionada no pertenece a las materias registradas por el mentor.', 'FORBIDDEN');
       }
 
-      return claseRepository.crearClase({ ...payload, id_mentor });
+      return claseRepository.crearClase({
+        ...datosClaseValidada,
+        id_mentor,
+      });
     },
 
     async listarClases(filtros = {}) {
@@ -147,40 +153,43 @@ function crearServicioClase({ claseRepository, usuarioRepository, mentorMateriaR
       return claseRepository.buscarPorMentor(id_mentor);
     },
 
-    async actualizarClase(id, data) {
+    async actualizarClase(id, datosClase) {
       // Se preserva la autoria: solo el mentor creador puede modificar la clase.
-      const payload = validarDatosClase(data);
-      const actorId = Number(data?.id_mentor || data?.mentorId);
+      const datosClaseValidada = validarDatosClase(datosClase);
+      const id_mentor = Number(datosClase?.id_mentor || datosClase?.mentorId);
       const clase = await claseRepository.buscarPorId(id);
 
       if (!clase) {
         throw crearErrorApp('Clase no encontrada.', 'NOT_FOUND');
       }
-      if (!actorId || actorId !== clase.mentorId) {
+      if (!id_mentor || id_mentor !== clase.mentorId) {
         throw crearErrorApp('Solo el mentor creador puede editar esta clase.', 'FORBIDDEN');
       }
-      if (payload.cupo_maximo < clase.cupoActual) {
+      if (datosClaseValidada.cupo_maximo < clase.cupoActual) {
         throw crearErrorApp('El cupo maximo no puede ser menor al cupo actual.', 'VALIDATION_ERROR');
       }
 
-      const hasSubject = await mentorMateriaRepository.existe(actorId, payload.id_materia);
-      if (!hasSubject) {
+      const materiaPerteneceAlMentor = await mentorMateriaRepository.existe(
+        id_mentor,
+        datosClaseValidada.id_materia
+      );
+      if (!materiaPerteneceAlMentor) {
         throw crearErrorApp('La materia seleccionada no pertenece a las materias registradas por el mentor.', 'FORBIDDEN');
       }
 
-      return claseRepository.actualizarClase(id, payload);
+      return claseRepository.actualizarClase(id, datosClaseValidada);
     },
 
-    async eliminarClase(id, data) {
+    async eliminarClase(id, datosClase) {
       // El mismo control de propiedad se aplica al borrado para que un mentor
       // no pueda eliminar clases creadas por otra persona.
-      const actorId = Number(data?.id_mentor || data?.mentorId);
+      const id_mentor = Number(datosClase?.id_mentor || datosClase?.mentorId);
       const clase = await claseRepository.buscarPorId(id);
 
       if (!clase) {
         throw crearErrorApp('Clase no encontrada.', 'NOT_FOUND');
       }
-      if (!actorId || actorId !== clase.mentorId) {
+      if (!id_mentor || id_mentor !== clase.mentorId) {
         throw crearErrorApp('Solo el mentor creador puede eliminar esta clase.', 'FORBIDDEN');
       }
 

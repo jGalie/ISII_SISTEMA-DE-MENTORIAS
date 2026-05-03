@@ -43,7 +43,7 @@ function crearRepositorioClase({ pool }) {
     async crearClase({ titulo, descripcion, fecha, modalidad, id_mentor, id_materia, precio, ubicacion, cupo_maximo }) {
       // Inserta la clase y luego vuelve a buscarla para devolver el objeto con
       // el mismo formato que usan las demas consultas.
-      const [result] = await pool.query(
+      const [resultado] = await pool.query(
         `
           INSERT INTO clases (titulo, descripcion, fecha, modalidad, id_mentor, id_materia, precio, ubicacion, cupo_maximo, cupo_actual)
           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0)
@@ -51,7 +51,8 @@ function crearRepositorioClase({ pool }) {
         [titulo, descripcion, fecha, modalidad, id_mentor, id_materia, precio, ubicacion, cupo_maximo]
       );
 
-      return this.buscarPorId(result.insertId);
+      const idClaseCreada = resultado.insertId;
+      return this.buscarPorId(idClaseCreada);
     },
 
     async buscarTodas(filtros = {}) {
@@ -160,7 +161,7 @@ function crearRepositorioClase({ pool }) {
     },
 
     async incrementarCupoActual(id) {
-      const [result] = await pool.query(
+      const [resultado] = await pool.query(
         `
           UPDATE clases
           SET cupo_actual = cupo_actual + 1
@@ -170,7 +171,7 @@ function crearRepositorioClase({ pool }) {
         [Number(id)]
       );
 
-      if (result.affectedRows === 0) return null;
+      if (resultado.affectedRows === 0) return null;
       return this.buscarPorId(id);
     },
 
