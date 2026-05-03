@@ -59,20 +59,19 @@ function crearServicioInscripcion({ inscripcionRepository, claseRepository, usua
       return inscripcionRepository.buscarSolicitudesDelMentor(id_mentor);
     },
 
-    async buscarInscripcion(id_inscripcion) {
+    async buscarInscripcionConClase(id_inscripcion) {
       const inscripcion = await inscripcionRepository.obtenerPorId(id_inscripcion);
       if (!inscripcion) {
         throw crearErrorApp('Inscripcion no encontrada.', 'NOT_FOUND');
       }
-      return inscripcion;
-    },
 
-    async buscarClaseDeInscripcion(id_clase) {
+      const id_clase = inscripcion.id_clase || inscripcion.claseId;
       const clase = await claseRepository.buscarPorId(id_clase);
       if (!clase) {
-        throw crearErrorApp('La clase indicada no existe.', 'NOT_FOUND');
+        throw crearErrorApp('Clase asociada no encontrada.', 'NOT_FOUND');
       }
-      return clase;
+
+      return { inscripcion, clase };
     },
 
     async validarMentorInscripcion(inscripcion, id_mentor) {
@@ -97,21 +96,6 @@ function crearServicioInscripcion({ inscripcionRepository, claseRepository, usua
       }
     },
 
-    async incrementarCupoInscripcion(id_clase, estadoInscripcion) {
-      if (estadoInscripcion === 'aceptada') return null;
-
-      const claseActualizada = await claseRepository.incrementarCupoActual(id_clase);
-      if (!claseActualizada) {
-        throw crearErrorApp('La clase ya no tiene cupos disponibles.', 'VALIDATION_ERROR');
-      }
-      return claseActualizada;
-    },
-
-    async decrementarCupoInscripcion(id_clase, estadoInscripcion) {
-      if (estadoInscripcion !== 'aceptada') return null;
-      return claseRepository.decrementarCupoActual(id_clase);
-    },
-
     async cambiarEstadoAceptada(id_inscripcion) {
       return inscripcionRepository.cambiarEstadoAceptada(id_inscripcion);
     },
@@ -125,34 +109,42 @@ function crearServicioInscripcion({ inscripcionRepository, claseRepository, usua
     },
 
     async aceptarInscripcion(id_inscripcion, id_mentor) {
-      const inscripcion = await this.buscarInscripcion(id_inscripcion);
+      const { inscripcion, clase } = await this.buscarInscripcionConClase(id_inscripcion);
       const id_clase = inscripcion.claseId || inscripcion.id_clase;
-      const clase = await this.buscarClaseDeInscripcion(id_clase);
       await this.validarMentorInscripcion(inscripcion, id_mentor);
 
       if (inscripcion.estado !== 'aceptada') {
         await this.verificarCupoDisponible(clase);
-        await this.incrementarCupoInscripcion(id_clase, inscripcion.estado);
+        const claseActualizada = await claseRepository.incrementarCupoActual(id_clase);
+        if (!claseActualizada) {
+          throw crearErrorApp('La clase ya no tiene cupos disponibles.', 'VALIDATION_ERROR');
+        }
       }
 
       return this.cambiarEstadoAceptada(id_inscripcion);
     },
 
     async rechazarInscripcion(id_inscripcion, id_mentor) {
-      const inscripcion = await this.buscarInscripcion(id_inscripcion);
+      const { inscripcion } = await this.buscarInscripcionConClase(id_inscripcion);
       const id_clase = inscripcion.claseId || inscripcion.id_clase;
-      await this.buscarClaseDeInscripcion(id_clase);
       await this.validarMentorInscripcion(inscripcion, id_mentor);
-      await this.decrementarCupoInscripcion(id_clase, inscripcion.estado);
+
+      if (inscripcion.estado === 'aceptada') {
+        await claseRepository.decrementarCupoActual(id_clase);
+      }
+
       return this.cambiarEstadoRechazada(id_inscripcion);
     },
 
     async marcarInscripcionPendiente(id_inscripcion, id_mentor) {
-      const inscripcion = await this.buscarInscripcion(id_inscripcion);
+      const { inscripcion } = await this.buscarInscripcionConClase(id_inscripcion);
       const id_clase = inscripcion.claseId || inscripcion.id_clase;
-      await this.buscarClaseDeInscripcion(id_clase);
       await this.validarMentorInscripcion(inscripcion, id_mentor);
-      await this.decrementarCupoInscripcion(id_clase, inscripcion.estado);
+
+      if (inscripcion.estado === 'aceptada') {
+        await claseRepository.decrementarCupoActual(id_clase);
+      }
+
       return this.cambiarEstadoPendiente(id_inscripcion);
     },
 
