@@ -51,8 +51,8 @@ function crearRepositorioClase({ pool }) {
         [titulo, descripcion, fecha, modalidad, id_mentor, id_materia, precio, ubicacion, cupo_maximo]
       );
 
-      const idClaseCreada = resultado.insertId;
-      return this.buscarPorId(idClaseCreada);
+      const id_clase_creada = resultado.insertId;
+      return this.buscarPorId(id_clase_creada);
     },
 
     async buscarTodas(filtros = {}) {
@@ -103,7 +103,7 @@ function crearRepositorioClase({ pool }) {
       return filasClases.map(mapearClase);
     },
 
-    async buscarPorId(claseId) {
+    async buscarPorId(id_clase) {
       // LIMIT 1 expresa que el identificador de clase es unico en la tabla.
       const [filasClase] = await pool.query(
         `
@@ -112,7 +112,7 @@ function crearRepositorioClase({ pool }) {
           ${baseGroup}
           LIMIT 1
         `,
-        [Number(claseId)]
+        [Number(id_clase)]
       );
 
       return filasClase.length ? mapearClase(filasClase[0]) : null;
@@ -160,7 +160,7 @@ function crearRepositorioClase({ pool }) {
       return clase;
     },
 
-    async incrementarCupoActual(claseId) {
+    async incrementarCupoActual(id_clase) {
       const [resultado] = await pool.query(
         `
           UPDATE clases
@@ -168,24 +168,24 @@ function crearRepositorioClase({ pool }) {
           WHERE id_clase = ?
             AND cupo_actual < cupo_maximo
         `,
-        [Number(claseId)]
+        [Number(id_clase)]
       );
 
       if (resultado.affectedRows === 0) return null;
-      return this.buscarPorId(claseId);
+      return this.buscarPorId(id_clase);
     },
 
-    async decrementarCupoActual(claseId) {
+    async decrementarCupoActual(id_clase) {
       await pool.query(
         `
           UPDATE clases
           SET cupo_actual = GREATEST(cupo_actual - 1, 0)
           WHERE id_clase = ?
         `,
-        [Number(claseId)]
+        [Number(id_clase)]
       );
 
-      return this.buscarPorId(claseId);
+      return this.buscarPorId(id_clase);
     },
   };
 }

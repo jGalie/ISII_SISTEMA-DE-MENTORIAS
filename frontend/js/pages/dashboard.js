@@ -291,9 +291,9 @@
 
     container.querySelectorAll('[data-action]').forEach((button) => {
       button.addEventListener('click', async function () {
-        const id = Number(this.getAttribute('data-id'));
+        const id_inscripcion = Number(this.getAttribute('data-id'));
         const estado = this.getAttribute('data-action');
-        if (!id || !estado) return;
+        if (!id_inscripcion || !estado) return;
         const esAceptacion = estado === 'aceptada';
         const confirmarCambio = await MentoriasUI.mostrarDialogoConfirmacion({
           title: esAceptacion ? 'Aceptar solicitud' : 'Rechazar solicitud',
@@ -310,7 +310,7 @@
         limpiarError();
 
         try {
-          await MentoriasApi.actualizarEstadoInscripcion(id, { estado, mentorId: user.id });
+          await MentoriasApi.actualizarEstadoInscripcion(id_inscripcion, { estado, id_mentor: user.id });
           await cargarDashboardMentor();
         } catch (error) {
           this.disabled = false;

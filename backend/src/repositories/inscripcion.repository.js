@@ -14,7 +14,7 @@ function crearRepositorioInscripcion({ pool }) {
       return this.obtenerPorId(resultadoCreacion.insertId);
     },
 
-    async obtenerPorId(idInscripcion) {
+    async obtenerPorId(id_inscripcion) {
       // Esta consulta recompone toda la informacion de contexto
       // necesaria para mostrar una inscripcion en las interfaces.
       const [filasInscripcion] = await pool.query(
@@ -39,13 +39,13 @@ function crearRepositorioInscripcion({ pool }) {
           WHERE i.id_inscripcion = ?
           LIMIT 1
         `,
-        [Number(idInscripcion)]
+        [Number(id_inscripcion)]
       );
 
       return filasInscripcion.length ? mapearInscripcion(filasInscripcion[0]) : null;
     },
 
-    async obtenerPorUsuario(idUsuario) {
+    async obtenerPorUsuario(id_usuario) {
       const [filasInscripcionesUsuario] = await pool.query(
         `
           SELECT
@@ -65,13 +65,13 @@ function crearRepositorioInscripcion({ pool }) {
           WHERE i.id_usuario = ?
           ORDER BY i.fecha_solicitud DESC
         `,
-        [Number(idUsuario)]
+        [Number(id_usuario)]
       );
 
       return filasInscripcionesUsuario.map(mapearInscripcion);
     },
 
-    async buscarSolicitudesDelMentor(mentorId) {
+    async buscarSolicitudesDelMentor(id_mentor) {
       // El orden prioriza pendientes para ayudar al mentor a resolver primero
       // las solicitudes que aun requieren accion.
       const [filasInscripcionesMentor] = await pool.query(
@@ -102,38 +102,38 @@ function crearRepositorioInscripcion({ pool }) {
             END,
             i.fecha_solicitud DESC
         `,
-        [Number(mentorId)]
+        [Number(id_mentor)]
       );
 
       return filasInscripcionesMentor.map(mapearInscripcion);
     },
 
-    async actualizarEstado(idInscripcion, estado) {
+    async actualizarEstado(id_inscripcion, estado) {
       await pool.query(
         `
           UPDATE inscripciones
           SET estado = ?
           WHERE id_inscripcion = ?
         `,
-        [estado, Number(idInscripcion)]
+        [estado, Number(id_inscripcion)]
       );
 
-      return this.obtenerPorId(idInscripcion);
+      return this.obtenerPorId(id_inscripcion);
     },
 
-    async cambiarEstadoAceptada(idInscripcion) {
-      return this.actualizarEstado(idInscripcion, 'aceptada');
+    async cambiarEstadoAceptada(id_inscripcion) {
+      return this.actualizarEstado(id_inscripcion, 'aceptada');
     },
 
-    async cambiarEstadoRechazada(idInscripcion) {
-      return this.actualizarEstado(idInscripcion, 'rechazada');
+    async cambiarEstadoRechazada(id_inscripcion) {
+      return this.actualizarEstado(id_inscripcion, 'rechazada');
     },
 
-    async cambiarEstadoPendiente(idInscripcion) {
-      return this.actualizarEstado(idInscripcion, 'pendiente');
+    async cambiarEstadoPendiente(id_inscripcion) {
+      return this.actualizarEstado(id_inscripcion, 'pendiente');
     },
 
-    async buscarSolicitudesPendientes(mentorId) {
+    async buscarSolicitudesPendientes(id_mentor) {
       const [filasSolicitudesPendientes] = await pool.query(
         `
           SELECT
@@ -157,13 +157,13 @@ function crearRepositorioInscripcion({ pool }) {
             AND i.estado = 'pendiente'
           ORDER BY i.fecha_solicitud DESC
         `,
-        [Number(mentorId)]
+        [Number(id_mentor)]
       );
 
       return filasSolicitudesPendientes.map(mapearInscripcion);
     },
 
-    async buscarExistente(idUsuario, idClase) {
+    async buscarExistente(id_usuario, id_clase) {
       const [filasInscripcionExistente] = await pool.query(
         `
           SELECT id_inscripcion, id_usuario, id_clase, estado, fecha_solicitud
@@ -171,7 +171,7 @@ function crearRepositorioInscripcion({ pool }) {
           WHERE id_usuario = ? AND id_clase = ?
           LIMIT 1
         `,
-        [Number(idUsuario), Number(idClase)]
+        [Number(id_usuario), Number(id_clase)]
       );
 
       return filasInscripcionExistente.length ? mapearInscripcion(filasInscripcionExistente[0]) : null;
