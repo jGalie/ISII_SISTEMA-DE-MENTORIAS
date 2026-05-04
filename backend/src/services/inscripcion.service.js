@@ -45,13 +45,17 @@ function crearServicioInscripcion({ inscripcionRepository, claseRepository, usua
 
     async buscarInscripcionesDelEstudiante(id_usuario) {
       const usuario = await usuarioRepository.buscarPorId(id_usuario);
+      this.validarUsuarioEstudiante(usuario);
+      return inscripcionRepository.consultarInscripcionesDelEstudiante(id_usuario);
+    },
+
+    validarUsuarioEstudiante(usuario) {
       if (!usuario) {
         throw crearErrorApp('Usuario no encontrado.', 'NOT_FOUND');
       }
       if (usuario.rol !== 'estudiante') {
         throw crearErrorApp('Usuario no valido para consultar inscripciones.', 'VALIDATION_ERROR');
       }
-      return inscripcionRepository.consultarInscripcionesDelEstudiante(id_usuario);
     },
 
     async buscarSolicitudesDelMentor(id_mentor) {
