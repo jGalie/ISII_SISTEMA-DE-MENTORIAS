@@ -235,7 +235,7 @@
             id_usuario: user.id,
             id_clase: classId,
           });
-          const response = await MentoriasApi.obtenerInscripcionesUsuario(user.id);
+          const response = await MentoriasApi.buscarInscripcionesDelEstudiante(user.id);
           const items = Array.isArray(response.data) ? response.data : [];
           inscripcionesPorClase = Object.fromEntries(items.map((item) => [item.claseId, item]));
           mostrarExito('Tu solicitud fue enviada al mentor.');
@@ -304,7 +304,7 @@
             id_materia: urlParams.get('id_materia') || '',
           }),
       user && user.rol === 'estudiante'
-        ? MentoriasApi.obtenerInscripcionesUsuario(user.id)
+        ? MentoriasApi.buscarInscripcionesDelEstudiante(user.id)
         : Promise.resolve({ data: [] }),
     ]);
 

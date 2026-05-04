@@ -4,7 +4,7 @@ function crearRutasInscripcion({ inscripcionController }) {
   const router = Router();
 
   router.post('/', inscripcionController.crear);
-  router.get('/usuario/:id', inscripcionController.obtenerPorUsuario);
+  router.get('/usuario/:id', inscripcionController.buscarInscripcionesDelEstudiante);
   router.get('/mentor/:id', inscripcionController.buscarSolicitudesDelMentor);
   router.put('/:id/estado', inscripcionController.actualizarEstado);
 

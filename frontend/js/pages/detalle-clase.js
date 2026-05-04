@@ -94,7 +94,7 @@
 
     if (user && user.rol === 'estudiante') {
       // Si ya existe una solicitud previa, no se vuelve a ofrecer la misma accion.
-      const inscripcionesResponse = await MentoriasApi.obtenerInscripcionesUsuario(user.id);
+      const inscripcionesResponse = await MentoriasApi.buscarInscripcionesDelEstudiante(user.id);
       const inscripciones = Array.isArray(inscripcionesResponse.data) ? inscripcionesResponse.data : [];
       const existing = inscripciones.find((item) => Number(item.claseId) === Number(data.id));
 
@@ -136,7 +136,7 @@
     if (user && user.rol === 'estudiante' && currentUserReview) {
       reviewForm.classList.add('d-none');
     } else if (user && user.rol === 'estudiante') {
-      const inscripcionesResponse = await MentoriasApi.obtenerInscripcionesUsuario(user.id);
+      const inscripcionesResponse = await MentoriasApi.buscarInscripcionesDelEstudiante(user.id);
       const inscripciones = Array.isArray(inscripcionesResponse.data) ? inscripcionesResponse.data : [];
       const accepted = inscripciones.some((item) => Number(item.claseId) === Number(data.id) && item.estado === 'aceptada');
       if (accepted) reviewForm.classList.remove('d-none');

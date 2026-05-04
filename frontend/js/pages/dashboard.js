@@ -268,7 +268,7 @@
     // Se separan las inscripciones por estado para ordenar mejor el seguimiento.
     if (studentDashboard) studentDashboard.classList.remove('d-none');
 
-    const response = await MentoriasApi.obtenerInscripcionesUsuario(user.id);
+    const response = await MentoriasApi.buscarInscripcionesDelEstudiante(user.id);
     const items = Array.isArray(response.data) ? response.data : [];
     actualizarMetricas(items);
 

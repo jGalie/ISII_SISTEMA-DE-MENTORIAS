@@ -557,7 +557,7 @@
     // Las inscripciones solo se necesitan para estudiantes; por eso se evita
     // una llamada innecesaria cuando navega un mentor o una persona no logueada.
     if (!state.user || state.user.rol !== 'estudiante') return;
-    const response = await MentoriasApi.obtenerInscripcionesUsuario(state.user.id);
+    const response = await MentoriasApi.buscarInscripcionesDelEstudiante(state.user.id);
     const items = Array.isArray(response.data) ? response.data : [];
     state.enrollmentByClassId = Object.fromEntries(items.map((item) => [item.claseId, item]));
   }

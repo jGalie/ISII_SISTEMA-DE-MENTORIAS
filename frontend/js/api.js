@@ -92,8 +92,8 @@
         body: JSON.stringify(payload),
       });
     },
-    obtenerInscripcionesUsuario(idUsuario) {
-      return pedirJson(`/inscripciones/usuario/${encodeURIComponent(idUsuario)}`);
+    buscarInscripcionesDelEstudiante(id_usuario) {
+      return pedirJson(`/inscripciones/usuario/${encodeURIComponent(id_usuario)}`);
     },
     buscarSolicitudesDelMentor(id_mentor) {
       return pedirJson(`/inscripciones/mentor/${encodeURIComponent(id_mentor)}`);

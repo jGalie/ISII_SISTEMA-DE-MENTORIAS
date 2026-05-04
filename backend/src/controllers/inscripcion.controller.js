@@ -16,10 +16,10 @@ function crearControladorInscripcion({ inscripcionService }) {
       }
     },
 
-    async obtenerPorUsuario(req, res) {
+    async buscarInscripcionesDelEstudiante(req, res) {
       try {
-        const inscripcionesUsuario = await inscripcionService.obtenerInscripcionesUsuario(req.params.id);
-        res.json({ success: true, data: inscripcionesUsuario });
+        const inscripcionesEstudiante = await inscripcionService.buscarInscripcionesDelEstudiante(req.params.id);
+        res.json({ success: true, data: inscripcionesEstudiante });
       } catch (err) {
         res.status(resolverEstadoHttp(err)).json({ success: false, error: err.message });
       }

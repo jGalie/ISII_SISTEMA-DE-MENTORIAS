@@ -45,8 +45,8 @@ function crearRepositorioInscripcion({ pool }) {
       return filasInscripcion.length ? mapearInscripcion(filasInscripcion[0]) : null;
     },
 
-    async obtenerPorUsuario(id_usuario) {
-      const [filasInscripcionesUsuario] = await pool.query(
+    async consultarInscripcionesDelEstudiante(id_usuario) {
+      const [filasInscripcionesEstudiante] = await pool.query(
         `
           SELECT
             i.id_inscripcion,
@@ -68,7 +68,7 @@ function crearRepositorioInscripcion({ pool }) {
         [Number(id_usuario)]
       );
 
-      return filasInscripcionesUsuario.map(mapearInscripcion);
+      return filasInscripcionesEstudiante.map(mapearInscripcion);
     },
 
     async buscarSolicitudesDelMentor(id_mentor) {
