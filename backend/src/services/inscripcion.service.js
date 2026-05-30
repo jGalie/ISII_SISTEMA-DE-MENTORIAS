@@ -1,3 +1,5 @@
+const { crearEstrategiasEstadoInscripcion } = require('../strategies/inscripcion');
+
 function crearErrorApp(message, code) {
   const error = new Error(message);
   error.code = code;
@@ -5,6 +7,12 @@ function crearErrorApp(message, code) {
 }
 
 function crearServicioInscripcion({ inscripcionRepository, claseRepository, usuarioRepository }) {
+  const estrategiasEstado = crearEstrategiasEstadoInscripcion({
+    inscripcionRepository,
+    claseRepository,
+    usuarioRepository,
+  });
+
   return {
     async solicitarInscripcion(solicitudInscripcion) {
       /**
@@ -66,112 +74,30 @@ function crearServicioInscripcion({ inscripcionRepository, claseRepository, usua
       return inscripcionRepository.buscarSolicitudesDelMentor(id_mentor);
     },
 
-    async buscarInscripcionConClase(id_inscripcion) {
-      const inscripcion = await inscripcionRepository.obtenerPorId(id_inscripcion);
-      if (!inscripcion) {
-        throw crearErrorApp('Inscripcion no encontrada.', 'NOT_FOUND');
+    async cambiarEstadoInscripcion(id_inscripcion, datosInscripcion) {
+      // Metodo donde se aplica Strategy: selecciona la estrategia concreta y
+      // delega el algoritmo de cambio de estado.
+      const estado = String(datosInscripcion?.estado || '').trim().toLowerCase();
+      const id_mentor = Number(datosInscripcion?.id_mentor || datosInscripcion?.mentorId);
+      const estrategia = estrategiasEstado[estado];
+
+      if (!estrategia) {
+        throw crearErrorApp('Estado de inscripcion invalido.', 'VALIDATION_ERROR');
       }
 
-      const id_clase = inscripcion.id_clase || inscripcion.claseId;
-      const clase = await claseRepository.buscarPorId(id_clase);
-      if (!clase) {
-        throw crearErrorApp('Clase asociada no encontrada.', 'NOT_FOUND');
-      }
-
-      return { inscripcion, clase };
-    },
-
-    async validarMentorInscripcion(inscripcion, id_mentor) {
-      const id_mentor_normalizado = Number(id_mentor);
-      if (!id_mentor_normalizado) {
-        throw crearErrorApp('Debes indicar el mentor para gestionar la inscripcion.', 'VALIDATION_ERROR');
-      }
-
-      const mentor = await usuarioRepository.buscarPorId(id_mentor_normalizado);
-      if (!mentor || mentor.rol !== 'mentor') {
-        throw crearErrorApp('Mentor no valido para actualizar la inscripcion.', 'VALIDATION_ERROR');
-      }
-
-      if (Number(inscripcion.mentorId || inscripcion.id_mentor) !== id_mentor_normalizado) {
-        throw crearErrorApp('No puedes gestionar inscripciones de otra clase.', 'FORBIDDEN');
-      }
-    },
-
-    async verificarCupoDisponible(clase) {
-      if (clase.completa) {
-        throw crearErrorApp('La clase ya no tiene cupos disponibles.', 'VALIDATION_ERROR');
-      }
-    },
-
-    async cambiarEstadoAceptada(id_inscripcion) {
-      return inscripcionRepository.cambiarEstadoAceptada(id_inscripcion);
-    },
-
-    async cambiarEstadoRechazada(id_inscripcion) {
-      return inscripcionRepository.cambiarEstadoRechazada(id_inscripcion);
-    },
-
-    async cambiarEstadoPendiente(id_inscripcion) {
-      return inscripcionRepository.cambiarEstadoPendiente(id_inscripcion);
+      return estrategia.ejecutar(Number(id_inscripcion), id_mentor);
     },
 
     async aceptarInscripcion(id_inscripcion, id_mentor) {
-      const { inscripcion, clase } = await this.buscarInscripcionConClase(id_inscripcion);
-      const id_clase = inscripcion.claseId || inscripcion.id_clase;
-      await this.validarMentorInscripcion(inscripcion, id_mentor);
-
-      if (inscripcion.estado !== 'aceptada') {
-        await this.verificarCupoDisponible(clase);
-        const claseActualizada = await claseRepository.incrementarCupoActual(id_clase);
-        if (!claseActualizada) {
-          throw crearErrorApp('La clase ya no tiene cupos disponibles.', 'VALIDATION_ERROR');
-        }
-      }
-
-      return this.cambiarEstadoAceptada(id_inscripcion);
+      return this.cambiarEstadoInscripcion(id_inscripcion, { estado: 'aceptada', id_mentor });
     },
 
     async rechazarInscripcion(id_inscripcion, id_mentor) {
-      const { inscripcion } = await this.buscarInscripcionConClase(id_inscripcion);
-      const id_clase = inscripcion.claseId || inscripcion.id_clase;
-      await this.validarMentorInscripcion(inscripcion, id_mentor);
-
-      if (inscripcion.estado === 'aceptada') {
-        await claseRepository.decrementarCupoActual(id_clase);
-      }
-
-      return this.cambiarEstadoRechazada(id_inscripcion);
+      return this.cambiarEstadoInscripcion(id_inscripcion, { estado: 'rechazada', id_mentor });
     },
 
     async marcarInscripcionPendiente(id_inscripcion, id_mentor) {
-      const { inscripcion } = await this.buscarInscripcionConClase(id_inscripcion);
-      const id_clase = inscripcion.claseId || inscripcion.id_clase;
-      await this.validarMentorInscripcion(inscripcion, id_mentor);
-
-      if (inscripcion.estado === 'aceptada') {
-        await claseRepository.decrementarCupoActual(id_clase);
-      }
-
-      return this.cambiarEstadoPendiente(id_inscripcion);
-    },
-
-    async cambiarEstadoInscripcion(id_inscripcion, datosInscripcion) {
-      const estado = String(datosInscripcion?.estado || '').trim().toLowerCase();
-      const id_mentor = Number(datosInscripcion?.id_mentor || datosInscripcion?.mentorId);
-
-      if (estado === 'aceptada') {
-        return this.aceptarInscripcion(id_inscripcion, id_mentor);
-      }
-
-      if (estado === 'rechazada') {
-        return this.rechazarInscripcion(id_inscripcion, id_mentor);
-      }
-
-      if (estado === 'pendiente') {
-        return this.marcarInscripcionPendiente(id_inscripcion, id_mentor);
-      }
-
-      throw crearErrorApp('Estado de inscripcion invalido.', 'VALIDATION_ERROR');
+      return this.cambiarEstadoInscripcion(id_inscripcion, { estado: 'pendiente', id_mentor });
     },
   };
 }
