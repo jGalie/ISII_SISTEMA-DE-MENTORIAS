@@ -5,7 +5,8 @@
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
-    "dev": "node --watch src/server.js"
+    "dev": "node --watch src/server.js",
+    "test": "jest --runInBand"
   },
   "engines": {
     "node": ">=18"
@@ -15,5 +16,8 @@
     "cors": "^2.8.5",
     "express": "^4.21.0",
     "mysql2": "^3.15.2"
+  },
+  "devDependencies": {
+    "jest": "^30.4.2"
   }
 }
