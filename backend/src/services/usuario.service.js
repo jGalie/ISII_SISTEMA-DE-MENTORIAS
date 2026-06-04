@@ -75,11 +75,11 @@ function construirRespuestaPerfil(user, materias = []) {
 
 function crearServicioUsuario({ usuarioRepository, claseRepository, valoracionRepository }) {
   return {
-    async listar() {
+    async listarUsuarios() {
       return usuarioRepository.buscarTodos();
     },
 
-    async obtener(id) {
+    async obtenerUsuario(id) {
       const user = await usuarioRepository.buscarPorId(id);
       if (!user) {
         throw crearErrorApp('Usuario no encontrado.', 'NOT_FOUND');
@@ -134,7 +134,7 @@ function crearServicioUsuario({ usuarioRepository, claseRepository, valoracionRe
       };
     },
 
-    async crear(body) {
+    async crearUsuario(body) {
       requerirCampos(body, ['nombre', 'email', 'password_hash']);
       const rol = body.rol === 'mentor' ? 'mentor' : 'estudiante';
       return usuarioRepository.crear({
@@ -145,7 +145,7 @@ function crearServicioUsuario({ usuarioRepository, claseRepository, valoracionRe
       });
     },
 
-    async actualizar(id, body) {
+    async actualizarUsuario(id, body) {
       const actorId = Number(body?.actorId || body?.id);
       const targetId = Number(id);
 

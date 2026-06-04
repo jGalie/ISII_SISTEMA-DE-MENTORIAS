@@ -10,7 +10,7 @@ function requerirCampos(body, fields) {
   }
 }
 
-async function listar(filtros = {}) {
+async function listarMateriasDelMentor(filtros = {}) {
   if (filtros.mentorId) {
     return mentorMateriaRepository.buscarPorMentorId(filtros.mentorId);
   }
@@ -18,7 +18,7 @@ async function listar(filtros = {}) {
   return mentorMateriaRepository.buscarTodos();
 }
 
-async function crear(body) {
+async function asociarMateriaMentor(body) {
   requerirCampos(body, ['mentorId', 'materiaId']);
 
   const mentor = await usuarioRepository.buscarPorId(body.mentorId);
@@ -35,6 +35,6 @@ async function crear(body) {
 }
 
 module.exports = {
-  listar,
-  crear,
+  listarMateriasDelMentor,
+  asociarMateriaMentor,
 };

@@ -48,11 +48,11 @@ function crearServicioValoracion({ valoracionRepository, claseRepository, usuari
       });
     },
 
-    async listarPorClase(id_clase) {
+    async listarValoracionesPorClase(id_clase) {
       return valoracionRepository.buscarPorClase(id_clase);
     },
 
-    async listarPorMentor(id_mentor) {
+    async listarValoracionesPorMentor(id_mentor) {
       return valoracionRepository.buscarPorMentor(id_mentor);
     },
   };

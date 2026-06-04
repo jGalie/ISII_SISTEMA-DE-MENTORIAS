@@ -9,11 +9,11 @@ function requerirCampos(body, fields) {
   }
 }
 
-function listar() {
+function listarMensajes() {
   return mensajeRepository.buscarTodos();
 }
 
-function crear(body) {
+function enviarMensaje(body) {
   requerirCampos(body, ['remitenteId', 'destinatarioId', 'contenido']);
   if (!usuarioRepository.buscarPorId(body.remitenteId)) {
     throw new Error('remitenteId no válido');
@@ -25,6 +25,6 @@ function crear(body) {
 }
 
 module.exports = {
-  listar,
-  crear,
+  listarMensajes,
+  enviarMensaje,
 };

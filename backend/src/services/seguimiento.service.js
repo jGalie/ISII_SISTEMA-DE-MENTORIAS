@@ -9,11 +9,11 @@ function requerirCampos(body, fields) {
   }
 }
 
-function listar() {
+function listarSeguimientos() {
   return seguimientoRepository.buscarTodos();
 }
 
-function crear(body) {
+function registrarSeguimiento(body) {
   requerirCampos(body, ['inscripcionId', 'notas']);
   const ins = inscripcionRepository.buscarPorId(body.inscripcionId);
   if (!ins) throw new Error('inscripcionId no válido');
@@ -21,6 +21,6 @@ function crear(body) {
 }
 
 module.exports = {
-  listar,
-  crear,
+  listarSeguimientos,
+  registrarSeguimiento,
 };

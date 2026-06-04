@@ -8,16 +8,16 @@ function requerirCampos(body, fields) {
   }
 }
 
-async function listar() {
+async function listarMaterias() {
   return materiaRepository.buscarTodos();
 }
 
-async function crear(body) {
+async function crearMateria(body) {
   requerirCampos(body, ['nombre', 'codigo']);
   return materiaRepository.crear(body);
 }
 
 module.exports = {
-  listar,
-  crear,
+  listarMaterias,
+  crearMateria,
 };

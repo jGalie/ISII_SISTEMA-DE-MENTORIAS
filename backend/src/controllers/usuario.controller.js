@@ -9,7 +9,7 @@ function crearControladorUsuario({ usuarioService }) {
   return {
     async listar(req, res) {
       try {
-        const data = await usuarioService.listar();
+        const data = await usuarioService.listarUsuarios();
         res.json({ data });
       } catch (err) {
         res.status(500).json({ error: err.message });
@@ -18,7 +18,7 @@ function crearControladorUsuario({ usuarioService }) {
 
     async obtenerPorId(req, res) {
       try {
-        const data = await usuarioService.obtener(req.params.id);
+        const data = await usuarioService.obtenerUsuario(req.params.id);
         res.json({ data });
       } catch (err) {
         res.status(resolverEstadoHttp(err)).json({ error: err.message });
@@ -36,7 +36,7 @@ function crearControladorUsuario({ usuarioService }) {
 
     async crear(req, res) {
       try {
-        const data = await usuarioService.crear(req.body || {});
+        const data = await usuarioService.crearUsuario(req.body || {});
         res.status(201).json({ data });
       } catch (err) {
         res.status(400).json({ error: err.message });
@@ -45,7 +45,7 @@ function crearControladorUsuario({ usuarioService }) {
 
     async actualizar(req, res) {
       try {
-        const data = await usuarioService.actualizar(req.params.id, req.body || {});
+        const data = await usuarioService.actualizarUsuario(req.params.id, req.body || {});
         res.json({ data });
       } catch (err) {
         res.status(resolverEstadoHttp(err)).json({ error: err.message });

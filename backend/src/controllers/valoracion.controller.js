@@ -16,18 +16,18 @@ function crearControladorValoracion({ valoracionService }) {
       }
     },
 
-    async listarPorClase(req, res) {
+    async listarValoracionesPorClase(req, res) {
       try {
-        const data = await valoracionService.listarPorClase(req.params.idClase);
+        const data = await valoracionService.listarValoracionesPorClase(req.params.idClase);
         res.json({ success: true, data });
       } catch (error) {
         res.status(resolverEstadoHttp(error)).json({ success: false, error: error.message });
       }
     },
 
-    async listarPorMentor(req, res) {
+    async listarValoracionesPorMentor(req, res) {
       try {
-        const data = await valoracionService.listarPorMentor(req.params.idMentor);
+        const data = await valoracionService.listarValoracionesPorMentor(req.params.idMentor);
         res.json({ success: true, data });
       } catch (error) {
         res.status(resolverEstadoHttp(error)).json({ success: false, error: error.message });

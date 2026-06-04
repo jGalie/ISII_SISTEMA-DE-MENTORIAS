@@ -2,7 +2,7 @@ const seguimientoService = require('../services/seguimiento.service');
 
 function listar(req, res) {
   try {
-    const data = seguimientoService.listar();
+    const data = seguimientoService.listarSeguimientos();
     res.json({ data });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -11,7 +11,7 @@ function listar(req, res) {
 
 function crear(req, res) {
   try {
-    const data = seguimientoService.crear(req.body || {});
+    const data = seguimientoService.registrarSeguimiento(req.body || {});
     res.status(201).json({ data });
   } catch (err) {
     res.status(400).json({ error: err.message });

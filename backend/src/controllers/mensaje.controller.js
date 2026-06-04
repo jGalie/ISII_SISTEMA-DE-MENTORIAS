@@ -2,7 +2,7 @@ const mensajeService = require('../services/mensaje.service');
 
 function listar(req, res) {
   try {
-    const data = mensajeService.listar();
+    const data = mensajeService.listarMensajes();
     res.json({ data });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -11,7 +11,7 @@ function listar(req, res) {
 
 function crear(req, res) {
   try {
-    const data = mensajeService.crear(req.body || {});
+    const data = mensajeService.enviarMensaje(req.body || {});
     res.status(201).json({ data });
   } catch (err) {
     res.status(400).json({ error: err.message });

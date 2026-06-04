@@ -19,11 +19,11 @@ function requerirCampos(body, fields) {
   }
 }
 
-function listar() {
+function listarMateriales() {
   return materialRepository.buscarTodos();
 }
 
-async function crear(body) {
+async function crearMaterial(body) {
   requerirCampos(body, ['claseId', 'titulo']);
   // El material no debe existir aislado: siempre se vincula a una clase valida.
   const clase = await claseRepository.buscarPorId(body.claseId);
@@ -32,6 +32,6 @@ async function crear(body) {
 }
 
 module.exports = {
-  listar,
-  crear,
+  listarMateriales,
+  crearMaterial,
 };
