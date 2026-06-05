@@ -33,9 +33,146 @@ async function tieneColumna(tableName, columnName) {
   return rows.length > 0;
 }
 
+async function tieneTabla(tableName) {
+  const [rows] = await pool.query(
+    `
+      SELECT 1
+      FROM information_schema.TABLES
+      WHERE TABLE_SCHEMA = ?
+        AND TABLE_NAME = ?
+      LIMIT 1
+    `,
+    [dbConfig.database, tableName]
+  );
+
+  return rows.length > 0;
+}
+
 async function asegurarColumna(tableName, columnName, sql) {
   if (!(await tieneColumna(tableName, columnName))) {
     await pool.query(sql);
+  }
+}
+
+async function obtenerForeignKeys(tableName, columnName) {
+  const [rows] = await pool.query(
+    `
+      SELECT CONSTRAINT_NAME
+      FROM information_schema.KEY_COLUMN_USAGE
+      WHERE TABLE_SCHEMA = ?
+        AND TABLE_NAME = ?
+        AND COLUMN_NAME = ?
+        AND REFERENCED_TABLE_NAME IS NOT NULL
+    `,
+    [dbConfig.database, tableName, columnName]
+  );
+
+  return rows.map((row) => row.CONSTRAINT_NAME);
+}
+
+async function eliminarForeignKeys(tableName, columnName) {
+  const constraints = await obtenerForeignKeys(tableName, columnName);
+  for (const constraintName of constraints) {
+    await pool.query(`ALTER TABLE \`${tableName}\` DROP FOREIGN KEY \`${constraintName}\``);
+  }
+}
+
+async function asegurarTablaMensajes() {
+  if (!(await tieneTabla('mensajes'))) {
+    await pool.query(`
+      CREATE TABLE mensajes (
+        id_mensaje INT AUTO_INCREMENT PRIMARY KEY,
+        id_inscripcion INT NOT NULL,
+        id_remitente INT NOT NULL,
+        id_destinatario INT NOT NULL,
+        contenido TEXT NOT NULL,
+        fecha_envio DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        fecha_lectura DATETIME NULL,
+        FOREIGN KEY (id_inscripcion) REFERENCES inscripciones(id_inscripcion) ON DELETE CASCADE,
+        FOREIGN KEY (id_remitente) REFERENCES usuarios(id_usuario),
+        FOREIGN KEY (id_destinatario) REFERENCES usuarios(id_usuario)
+      )
+    `);
+    return;
+  }
+
+  await asegurarColumna(
+    'mensajes',
+    'id_inscripcion',
+    'ALTER TABLE mensajes ADD COLUMN id_inscripcion INT NULL AFTER id_mensaje'
+  );
+
+  if ((await tieneColumna('mensajes', 'fecha')) && !(await tieneColumna('mensajes', 'fecha_envio'))) {
+    await pool.query('ALTER TABLE mensajes CHANGE COLUMN fecha fecha_envio DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP');
+  } else {
+    await asegurarColumna(
+      'mensajes',
+      'fecha_envio',
+      'ALTER TABLE mensajes ADD COLUMN fecha_envio DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP AFTER contenido'
+    );
+  }
+
+  await asegurarColumna(
+    'mensajes',
+    'fecha_lectura',
+    'ALTER TABLE mensajes ADD COLUMN fecha_lectura DATETIME NULL AFTER fecha_envio'
+  );
+
+  // Para datos viejos asociados a clase, se intenta encontrar la inscripcion
+  // donde participe alguno de los usuarios del mensaje.
+  if (await tieneColumna('mensajes', 'id_clase')) {
+    await pool.query(`
+      UPDATE mensajes m
+      INNER JOIN (
+        SELECT
+          m2.id_mensaje,
+          MIN(i.id_inscripcion) AS id_inscripcion
+        FROM mensajes m2
+        INNER JOIN inscripciones i ON i.id_clase = m2.id_clase
+        WHERE m2.id_inscripcion IS NULL
+          AND (
+            i.id_usuario = m2.id_remitente
+            OR i.id_usuario = m2.id_destinatario
+          )
+        GROUP BY m2.id_mensaje
+      ) x ON x.id_mensaje = m.id_mensaje
+      SET m.id_inscripcion = x.id_inscripcion
+    `);
+  }
+
+  const [sinInscripcion] = await pool.query(
+    'SELECT COUNT(*) AS total FROM mensajes WHERE id_inscripcion IS NULL'
+  );
+  if (Number(sinInscripcion[0]?.total || 0) > 0) {
+    throw new Error('No se puede migrar mensajes: existen registros sin inscripcion asociable.');
+  }
+
+  await pool.query('ALTER TABLE mensajes MODIFY COLUMN id_inscripcion INT NOT NULL');
+
+  const fksInscripcion = await obtenerForeignKeys('mensajes', 'id_inscripcion');
+  if (!fksInscripcion.length) {
+    await pool.query(
+      'ALTER TABLE mensajes ADD CONSTRAINT fk_mensajes_inscripcion FOREIGN KEY (id_inscripcion) REFERENCES inscripciones(id_inscripcion) ON DELETE CASCADE'
+    );
+  }
+
+  const fksRemitente = await obtenerForeignKeys('mensajes', 'id_remitente');
+  if (!fksRemitente.length) {
+    await pool.query(
+      'ALTER TABLE mensajes ADD CONSTRAINT fk_mensajes_remitente FOREIGN KEY (id_remitente) REFERENCES usuarios(id_usuario)'
+    );
+  }
+
+  const fksDestinatario = await obtenerForeignKeys('mensajes', 'id_destinatario');
+  if (!fksDestinatario.length) {
+    await pool.query(
+      'ALTER TABLE mensajes ADD CONSTRAINT fk_mensajes_destinatario FOREIGN KEY (id_destinatario) REFERENCES usuarios(id_usuario)'
+    );
+  }
+
+  if (await tieneColumna('mensajes', 'id_clase')) {
+    await eliminarForeignKeys('mensajes', 'id_clase');
+    await pool.query('ALTER TABLE mensajes DROP COLUMN id_clase');
   }
 }
 
@@ -223,6 +360,8 @@ async function asegurarEsquemaBaseDatos() {
       CONSTRAINT chk_valoracion_estrellas CHECK (estrellas BETWEEN 1 AND 5)
     )
   `);
+
+  await asegurarTablaMensajes();
 
   await pool.query(`
     UPDATE clases c

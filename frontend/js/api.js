@@ -104,6 +104,17 @@
         body: JSON.stringify(datosInscripcion),
       });
     },
+    obtenerMensajesInscripcion(id_inscripcion, id_usuario) {
+      const search = new URLSearchParams();
+      search.set('id_usuario', id_usuario);
+      return pedirJson(`/inscripciones/${encodeURIComponent(id_inscripcion)}/mensajes?${search.toString()}`);
+    },
+    enviarMensajeInscripcion(id_inscripcion, payload) {
+      return pedirJson(`/inscripciones/${encodeURIComponent(id_inscripcion)}/mensajes`, {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      });
+    },
     obtenerUsuarios() {
       return pedirJson('/usuarios');
     },

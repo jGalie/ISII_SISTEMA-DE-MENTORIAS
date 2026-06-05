@@ -83,3 +83,48 @@ body {
 .mentor-actions .btn {
   min-width: 110px;
 }
+
+.mensaje-modal-content {
+  border: 0;
+  border-radius: 1rem;
+}
+
+.mensaje-inscripcion-info {
+  border: 1px solid #f0e7ff;
+  border-radius: 1rem;
+  background: #fbf8ff;
+  padding: 1rem;
+}
+
+.mensajes-list {
+  min-height: 180px;
+  max-height: 48vh;
+  overflow-y: auto;
+  padding: 0.75rem;
+  border: 1px solid #f0e7ff;
+  border-radius: 1rem;
+  background: #fff;
+}
+
+.mensaje-burbuja {
+  max-width: min(82%, 32rem);
+  border-radius: 1rem;
+  padding: 0.8rem 1rem;
+  border: 1px solid #ece5f8;
+  background: #f8f9fa;
+}
+
+.mensaje-burbuja--propio {
+  justify-self: end;
+  background: #ede3ff;
+  border-color: #dcc8ff;
+}
+
+.mensaje-burbuja--recibido {
+  justify-self: start;
+}
+
+.mensaje-meta {
+  color: var(--text-muted);
+  font-size: 0.78rem;
+}

@@ -68,6 +68,19 @@ CREATE TABLE inscripciones (
   CONSTRAINT uq_inscripcion_usuario_clase UNIQUE (id_usuario, id_clase)
 );
 
+CREATE TABLE mensajes (
+  id_mensaje INT AUTO_INCREMENT PRIMARY KEY,
+  id_inscripcion INT NOT NULL,
+  id_remitente INT NOT NULL,
+  id_destinatario INT NOT NULL,
+  contenido TEXT NOT NULL,
+  fecha_envio DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  fecha_lectura DATETIME NULL,
+  FOREIGN KEY (id_inscripcion) REFERENCES inscripciones(id_inscripcion) ON DELETE CASCADE,
+  FOREIGN KEY (id_remitente) REFERENCES usuarios(id_usuario),
+  FOREIGN KEY (id_destinatario) REFERENCES usuarios(id_usuario)
+);
+
 CREATE TABLE valoraciones (
   id_valoracion INT AUTO_INCREMENT PRIMARY KEY,
   id_clase INT NOT NULL,

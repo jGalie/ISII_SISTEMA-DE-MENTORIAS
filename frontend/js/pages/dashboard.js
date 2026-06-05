@@ -22,10 +22,21 @@
   const mentorList = document.getElementById('mentor-list');
   const mentorHistoryList = document.getElementById('mentor-history-list');
   const mentorClassesList = document.getElementById('mentor-classes-list');
+  const mensajesModalElement = document.getElementById('mensajes-modal');
+  const mensajesModalTitle = document.getElementById('mensajes-modal-title');
+  const mensajesModalSubtitle = document.getElementById('mensajes-modal-subtitle');
+  const mensajesInfo = document.getElementById('mensajes-inscripcion-info');
+  const mensajesList = document.getElementById('mensajes-list');
+  const mensajesAlert = document.getElementById('mensajes-alert');
+  const mensajesForm = document.getElementById('mensajes-form');
+  const mensajesContenido = document.getElementById('mensajes-contenido');
+  const mensajesEnviar = document.getElementById('mensajes-enviar');
 
   const metricPendiente = document.getElementById('metric-pendiente');
   const metricAceptada = document.getElementById('metric-aceptada');
   const metricRechazada = document.getElementById('metric-rechazada');
+  const inscripcionesPorId = new Map();
+  let inscripcionActiva = null;
 
   if (welcome && user) {
     welcome.textContent =
@@ -80,6 +91,115 @@
     });
   }
 
+  function construirBotonMensajes(item) {
+    return `
+      <button class="btn btn-outline-dark btn-sm rounded-pill px-3" data-message-id="${escaparHtml(item.id)}" type="button">
+        <i class="bi bi-chat-left-text me-1"></i>Mensajes
+      </button>
+    `;
+  }
+
+  function obtenerNombreContraparte(item) {
+    if (!item) return 'Mentorix';
+    if (user.rol === 'mentor') return item.usuarioNombre || item.usuarioEmail || 'Estudiante';
+    return item.mentorNombre || 'Mentor';
+  }
+
+  function limpiarErrorMensajes() {
+    if (!mensajesAlert) return;
+    mensajesAlert.classList.add('d-none');
+    mensajesAlert.textContent = '';
+  }
+
+  function mostrarErrorMensajes(message) {
+    if (!mensajesAlert) return;
+    mensajesAlert.textContent = message;
+    mensajesAlert.classList.remove('d-none');
+  }
+
+  function renderizarInfoInscripcion(item) {
+    if (!mensajesInfo) return;
+    mensajesInfo.innerHTML = `
+      <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
+        <div>
+          <div class="fw-bold">${escaparHtml(item?.claseTitulo || 'Clase')}</div>
+          <div class="text-muted small">${escaparHtml(obtenerNombreContraparte(item))}</div>
+        </div>
+        <span class="status-badge ${claseEstado(item?.estado)}">${escaparHtml(item?.estado || 'inscripcion')}</span>
+      </div>
+      <div class="text-muted small mt-2">
+        <i class="bi bi-calendar-event me-1"></i>${escaparHtml(formatearFecha(item?.claseFecha))}
+      </div>
+    `;
+  }
+
+  function renderizarMensajes(mensajes) {
+    if (!mensajesList) return;
+    if (!Array.isArray(mensajes) || !mensajes.length) {
+      mensajesList.innerHTML = '<div class="text-muted text-center py-4">Todavia no hay mensajes en esta inscripcion.</div>';
+      return;
+    }
+
+    mensajesList.innerHTML = mensajes
+      .map((mensaje) => {
+        const esPropio = Number(mensaje.id_remitente ?? mensaje.remitenteId) === Number(user.id);
+        const nombre = esPropio ? 'Vos' : (mensaje.remitenteNombre || obtenerNombreContraparte(inscripcionActiva));
+        return `
+          <article class="mensaje-burbuja ${esPropio ? 'mensaje-burbuja--propio' : 'mensaje-burbuja--recibido'}">
+            <div class="mensaje-meta mb-1">${escaparHtml(nombre)} · ${escaparHtml(formatearFecha(mensaje.fechaEnvio))}</div>
+            <div>${escaparHtml(mensaje.contenido)}</div>
+          </article>
+        `;
+      })
+      .join('');
+
+    mensajesList.scrollTop = mensajesList.scrollHeight;
+  }
+
+  async function cargarConversacionActiva() {
+    if (!inscripcionActiva) return;
+    limpiarErrorMensajes();
+    if (mensajesList) {
+      mensajesList.innerHTML = '<div class="text-muted text-center py-4">Cargando mensajes...</div>';
+    }
+
+    const response = await MentoriasApi.obtenerMensajesInscripcion(inscripcionActiva.id, user.id);
+    renderizarMensajes(Array.isArray(response.data) ? response.data : []);
+  }
+
+  async function abrirMensajes(idInscripcion) {
+    const item = inscripcionesPorId.get(Number(idInscripcion));
+    if (!item || !mensajesModalElement) return;
+
+    inscripcionActiva = item;
+    limpiarErrorMensajes();
+    if (mensajesContenido) mensajesContenido.value = '';
+    if (mensajesModalTitle) mensajesModalTitle.textContent = 'Mensajes';
+    if (mensajesModalSubtitle) {
+      mensajesModalSubtitle.textContent = `Conversacion con ${obtenerNombreContraparte(item)}`;
+    }
+    renderizarInfoInscripcion(item);
+
+    const modal = bootstrap.Modal.getOrCreateInstance(mensajesModalElement);
+    modal.show();
+
+    try {
+      await cargarConversacionActiva();
+    } catch (error) {
+      renderizarMensajes([]);
+      mostrarErrorMensajes(error.message || 'No se pudieron cargar los mensajes.');
+    }
+  }
+
+  function adjuntarAccionesMensajes(container) {
+    if (!container) return;
+    container.querySelectorAll('[data-message-id]').forEach((button) => {
+      button.addEventListener('click', () => {
+        abrirMensajes(button.getAttribute('data-message-id'));
+      });
+    });
+  }
+
   function claseEstado(estado) {
     return {
       pendiente: 'status-pendiente',
@@ -96,7 +216,7 @@
     };
     const acceptedAction =
       item.estado === 'aceptada'
-        ? `<a class="btn btn-outline-dark btn-sm rounded-pill px-3 mt-3" href="/pages/detalle-clase.html?id=${encodeURIComponent(item.claseId)}">Ver clase</a>`
+        ? `<a class="btn btn-outline-dark btn-sm rounded-pill px-3" href="/pages/detalle-clase.html?id=${encodeURIComponent(item.claseId)}">Ver clase</a>`
         : '';
     const helperText = statusMessages[item.estado]
       ? `<p class="text-muted small mb-0 mt-2">${escaparHtml(statusMessages[item.estado])}</p>`
@@ -118,7 +238,10 @@
         <p class="text-muted small mb-0">
           <i class="bi bi-clock-history me-1"></i>Solicitada: ${escaparHtml(formatearFecha(item.fechaSolicitud))}
         </p>
-        ${acceptedAction}
+        <div class="d-flex gap-2 flex-wrap mt-3">
+          ${acceptedAction}
+          ${construirBotonMensajes(item)}
+        </div>
       </article>
     `;
   }
@@ -137,6 +260,7 @@
         </div>
         <p class="text-muted small mb-3">${escaparHtml(item.claseDescripcion || '')}</p>
         <div class="mentor-actions d-flex gap-2 flex-wrap">
+          ${construirBotonMensajes(item)}
           <button class="btn btn-success" data-action="aceptada" data-id="${item.id}" type="button">
             Aceptar
           </button>
@@ -165,6 +289,7 @@
         </div>
         <p class="text-muted small mb-3">${escaparHtml(item.claseDescripcion || '')}</p>
         <div class="mentor-actions d-flex gap-2 flex-wrap">
+          ${construirBotonMensajes(item)}
           <button class="btn ${actionClass}" data-action="${nextStatus}" data-id="${item.id}" type="button">
             ${actionLabel}
           </button>
@@ -270,6 +395,8 @@
 
     const response = await MentoriasApi.buscarInscripcionesDelEstudiante(user.id);
     const items = Array.isArray(response.data) ? response.data : [];
+    inscripcionesPorId.clear();
+    items.forEach((item) => inscripcionesPorId.set(Number(item.id), item));
     actualizarMetricas(items);
 
     const pending = items.filter((item) => item.estado === 'pendiente');
@@ -283,6 +410,10 @@
     if (!pending.length) renderizarVacioConAccion(pendingList, 'No tenes inscripciones pendientes.', 'Explorar clases', '/pages/clases.html');
     if (!accepted.length) renderizarVacioConAccion(acceptedList, 'Todavia no tenes clases aceptadas.', 'Explorar clases', '/pages/clases.html');
     if (!rejected.length) renderizarVacio(rejectedList, 'No hay solicitudes rechazadas.');
+
+    adjuntarAccionesMensajes(pendingList);
+    adjuntarAccionesMensajes(acceptedList);
+    adjuntarAccionesMensajes(rejectedList);
   }
 
   function adjuntarAccionesMentor(container) {
@@ -351,6 +482,8 @@
 
     const response = await MentoriasApi.buscarSolicitudesDelMentor(user.id);
     const items = Array.isArray(response.data) ? response.data : [];
+    inscripcionesPorId.clear();
+    items.forEach((item) => inscripcionesPorId.set(Number(item.id), item));
     actualizarMetricas(items);
 
     const pendingItems = items.filter((item) => item.estado === 'pendiente');
@@ -361,6 +494,7 @@
     } else {
       if (mentorList) mentorList.innerHTML = pendingItems.map(construirTarjetaPendienteMentor).join('');
       adjuntarAccionesMentor(mentorList);
+      adjuntarAccionesMensajes(mentorList);
     }
 
     if (!managedItems.length) {
@@ -368,6 +502,7 @@
     } else {
       if (mentorHistoryList) mentorHistoryList.innerHTML = managedItems.map(construirTarjetaHistorialMentor).join('');
       adjuntarAccionesMentor(mentorHistoryList);
+      adjuntarAccionesMensajes(mentorHistoryList);
     }
 
     await cargarClasesMentor();
@@ -383,5 +518,34 @@
     }
   } catch (error) {
     mostrarError(error.message || 'No pudimos cargar tu dashboard.');
+  }
+
+  if (mensajesForm) {
+    mensajesForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      if (!inscripcionActiva) return;
+
+      const contenido = String(mensajesContenido?.value || '').trim();
+      if (!contenido) {
+        mostrarErrorMensajes('Escribi un mensaje antes de enviarlo.');
+        return;
+      }
+
+      limpiarErrorMensajes();
+      if (mensajesEnviar) mensajesEnviar.disabled = true;
+
+      try {
+        await MentoriasApi.enviarMensajeInscripcion(inscripcionActiva.id, {
+          id_usuario: user.id,
+          contenido,
+        });
+        if (mensajesContenido) mensajesContenido.value = '';
+        await cargarConversacionActiva();
+      } catch (error) {
+        mostrarErrorMensajes(error.message || 'No se pudo enviar el mensaje.');
+      } finally {
+        if (mensajesEnviar) mensajesEnviar.disabled = false;
+      }
+    });
   }
 })();

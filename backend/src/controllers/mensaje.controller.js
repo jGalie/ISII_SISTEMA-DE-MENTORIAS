@@ -1,21 +1,46 @@
-const mensajeService = require('../services/mensaje.service');
-
-function listar(req, res) {
-  try {
-    const data = mensajeService.listarMensajes();
-    res.json({ data });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+function resolverEstadoHttp(error, fallbackStatus = 500) {
+  if (error.code === 'VALIDATION_ERROR') return 400;
+  if (error.code === 'FORBIDDEN') return 403;
+  if (error.code === 'NOT_FOUND') return 404;
+  return fallbackStatus;
 }
 
-function crear(req, res) {
-  try {
-    const data = mensajeService.enviarMensaje(req.body || {});
-    res.status(201).json({ data });
-  } catch (err) {
-    res.status(400).json({ error: err.message });
-  }
+function obtenerDatosActor(req) {
+  return {
+    ...(req.query || {}),
+    ...(req.body || {}),
+    id_usuario:
+      req.user?.id
+      || req.user?.id_usuario
+      || req.body?.id_usuario
+      || req.body?.usuarioId
+      || req.query?.id_usuario
+      || req.query?.usuarioId,
+  };
 }
 
-module.exports = { listar, crear };
+function crearControladorMensaje({ mensajeService }) {
+  return {
+    async crear(req, res) {
+      try {
+        const data = await mensajeService.enviarMensaje(req.params.idInscripcion, obtenerDatosActor(req));
+        res.status(201).json({ success: true, data });
+      } catch (err) {
+        res.status(resolverEstadoHttp(err)).json({ success: false, error: err.message });
+      }
+    },
+
+    async listarPorInscripcion(req, res) {
+      try {
+        const data = await mensajeService.listarConversacion(req.params.idInscripcion, obtenerDatosActor(req));
+        res.json({ success: true, data });
+      } catch (err) {
+        res.status(resolverEstadoHttp(err)).json({ success: false, error: err.message });
+      }
+    },
+  };
+}
+
+module.exports = {
+  crearControladorMensaje,
+};

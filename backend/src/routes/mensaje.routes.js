@@ -1,9 +1,14 @@
 const { Router } = require('express');
-const mensajeController = require('../controllers/mensaje.controller');
 
-const router = Router();
+function crearRutasMensaje({ mensajeController }) {
+  const router = Router();
 
-router.get('/', mensajeController.listar);
-router.post('/', mensajeController.crear);
+  router.post('/:idInscripcion/mensajes', mensajeController.crear);
+  router.get('/:idInscripcion/mensajes', mensajeController.listarPorInscripcion);
 
-module.exports = router;
+  return router;
+}
+
+module.exports = {
+  crearRutasMensaje,
+};

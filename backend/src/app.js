@@ -7,33 +7,37 @@ const { crearRepositorioUsuario } = require('./repositories/usuario.repository')
 const { crearRepositorioClase } = require('./repositories/clase.repository');
 const { crearRepositorioInscripcion } = require('./repositories/inscripcion.repository');
 const { crearRepositorioValoracion } = require('./repositories/valoracion.repository');
+const { crearRepositorioMensaje } = require('./repositories/mensaje.repository');
 const mentorMateriaRepository = require('./repositories/mentor-materia.repository');
 const { crearServicioUsuario } = require('./services/usuario.service');
 const { crearServicioClase } = require('./services/clase.service');
 const { crearServicioInscripcion } = require('./services/inscripcion.service');
 const { crearServicioValoracion } = require('./services/valoracion.service');
+const { crearServicioMensaje } = require('./services/mensaje.service');
 const { crearServicioAuth } = require('./services/auth.service');
 const { crearControladorUsuario } = require('./controllers/usuario.controller');
 const { crearControladorClase } = require('./controllers/clase.controller');
 const { crearControladorInscripcion } = require('./controllers/inscripcion.controller');
 const { crearControladorValoracion } = require('./controllers/valoracion.controller');
+const { crearControladorMensaje } = require('./controllers/mensaje.controller');
 const { crearControladorAuth } = require('./controllers/auth.controller');
 const { crearRutasUsuario } = require('./routes/usuario.routes');
 const { crearRutasClase } = require('./routes/clase.routes');
 const { crearRutasInscripcion } = require('./routes/inscripcion.routes');
 const { crearRutasValoracion } = require('./routes/valoracion.routes');
+const { crearRutasMensaje } = require('./routes/mensaje.routes');
 const { crearRutasAuth } = require('./routes/auth.routes');
 
 const materiaRoutes = require('./routes/materia.routes');
 const seguimientoRoutes = require('./routes/seguimiento.routes');
 const materialRoutes = require('./routes/material.routes');
-const mensajeRoutes = require('./routes/mensaje.routes');
 const mentorMateriaRoutes = require('./routes/mentor-materia.routes');
 
 const usuarioRepository = crearRepositorioUsuario({ pool });
 const claseRepository = crearRepositorioClase({ pool });
 const inscripcionRepository = crearRepositorioInscripcion({ pool });
 const valoracionRepository = crearRepositorioValoracion({ pool });
+const mensajeRepository = crearRepositorioMensaje({ pool });
 
 // En esta seccion se realiza la inyeccion manual de dependencias. Cada capa
 // recibe solamente los objetos que necesita, lo que disminuye el acoplamiento y
@@ -55,12 +59,18 @@ const valoracionService = crearServicioValoracion({
   usuarioRepository,
   inscripcionRepository,
 });
+const mensajeService = crearServicioMensaje({
+  mensajeRepository,
+  inscripcionRepository,
+  usuarioRepository,
+});
 const authService = crearServicioAuth({ usuarioRepository });
 
 const usuarioController = crearControladorUsuario({ usuarioService });
 const claseController = crearControladorClase({ claseService });
 const inscripcionController = crearControladorInscripcion({ inscripcionService });
 const valoracionController = crearControladorValoracion({ valoracionService });
+const mensajeController = crearControladorMensaje({ mensajeService });
 const authController = crearControladorAuth({ authService });
 
 const app = express();
@@ -82,11 +92,11 @@ app.use('/auth', crearRutasAuth({ authController }));
 app.use('/usuarios', crearRutasUsuario({ usuarioController }));
 app.use('/clases', crearRutasClase({ claseController }));
 app.use('/inscripciones', crearRutasInscripcion({ inscripcionController }));
+app.use('/inscripciones', crearRutasMensaje({ mensajeController }));
 app.use('/valoraciones', crearRutasValoracion({ valoracionController }));
 app.use('/materias', materiaRoutes);
 app.use('/seguimientos', seguimientoRoutes);
 app.use('/materiales', materialRoutes);
-app.use('/mensajes', mensajeRoutes);
 app.use('/mentor-materias', mentorMateriaRoutes);
 
 const frontendRoot = path.join(__dirname, '..', '..', 'frontend');

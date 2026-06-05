@@ -1,32 +1,63 @@
 const { mapearMensaje } = require('../models/mensaje.model');
 
-let nextId = 1;
-const store = [];
+function crearRepositorioMensaje({ pool }) {
+  const selectBase = `
+    SELECT
+      m.id_mensaje,
+      m.id_inscripcion,
+      m.id_remitente,
+      m.id_destinatario,
+      m.contenido,
+      m.fecha_envio,
+      m.fecha_lectura,
+      remitente.nombre AS remitente_nombre,
+      destinatario.nombre AS destinatario_nombre
+    FROM mensajes m
+    INNER JOIN usuarios remitente ON remitente.id_usuario = m.id_remitente
+    INNER JOIN usuarios destinatario ON destinatario.id_usuario = m.id_destinatario
+  `;
 
-function buscarTodos() {
-  return store.map((r) => mapearMensaje(r));
-}
+  return {
+    async crearMensaje({ id_inscripcion, id_remitente, id_destinatario, contenido }) {
+      const [resultado] = await pool.query(
+        `
+          INSERT INTO mensajes (id_inscripcion, id_remitente, id_destinatario, contenido)
+          VALUES (?, ?, ?, ?)
+        `,
+        [Number(id_inscripcion), Number(id_remitente), Number(id_destinatario), contenido]
+      );
 
-function buscarPorId(id) {
-  const row = store.find((r) => r.id === Number(id));
-  return row ? mapearMensaje(row) : null;
-}
+      return this.buscarPorId(resultado.insertId);
+    },
 
-function crear(data) {
-  const row = {
-    id: nextId++,
-    remitenteId: Number(data.remitenteId),
-    destinatarioId: Number(data.destinatarioId),
-    contenido: data.contenido,
-    fecha: data.fecha || new Date().toISOString(),
-    claseId: data.claseId != null ? Number(data.claseId) : null,
+    async buscarPorId(id_mensaje) {
+      const [filasMensaje] = await pool.query(
+        `
+          ${selectBase}
+          WHERE m.id_mensaje = ?
+          LIMIT 1
+        `,
+        [Number(id_mensaje)]
+      );
+
+      return filasMensaje.length ? mapearMensaje(filasMensaje[0]) : null;
+    },
+
+    async buscarPorInscripcion(id_inscripcion) {
+      const [filasMensajes] = await pool.query(
+        `
+          ${selectBase}
+          WHERE m.id_inscripcion = ?
+          ORDER BY m.fecha_envio ASC, m.id_mensaje ASC
+        `,
+        [Number(id_inscripcion)]
+      );
+
+      return filasMensajes.map(mapearMensaje);
+    },
   };
-  store.push(row);
-  return mapearMensaje(row);
 }
 
 module.exports = {
-  buscarTodos,
-  buscarPorId,
-  crear,
+  crearRepositorioMensaje,
 };
