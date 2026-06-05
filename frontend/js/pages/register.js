@@ -356,7 +356,7 @@
     const customSubjects = normalizar(otrasMateriasEl?.value)
       ? normalizar(otrasMateriasEl?.value).split(',').map((item) => item.trim()).filter(Boolean)
       : [];
-    const studentLevelsOk = rol !== 'estudiante' || nivelesEducativos.length > 0;
+    const studentLevelsOk = rol !== 'estudiante' || nivelesEducativos.length === 1;
     const mentorSubjectsOk = rol !== 'mentor' || materias.length > 0 || customSubjects.length > 0;
     const mentorLevelsOk = rol !== 'mentor' || nivelesEducativos.length > 0;
 
@@ -401,8 +401,8 @@
         mostrarError('Selecciona al menos un nivel educativo para el mentor.');
         return;
       }
-    } else if (nivelesEducativos.length === 0) {
-      mostrarError('Selecciona al menos un nivel educativo de interes para el estudiante.');
+    } else if (nivelesEducativos.length !== 1) {
+      mostrarError('Selecciona un unico nivel educativo de interes para el estudiante.');
       return;
     }
 

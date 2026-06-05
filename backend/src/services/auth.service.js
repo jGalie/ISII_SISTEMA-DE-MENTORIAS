@@ -112,9 +112,9 @@ function crearServicioAuth({ usuarioRepository }) {
       if (!PASSWORD_LETTER_REGEX.test(password) || !PASSWORD_NUMBER_REGEX.test(password)) {
         throw crearErrorApp('La contrasena debe contener letras y numeros.', 'VALIDATION_ERROR');
       }
-      if (rol === 'estudiante' && nivelesEducativos.length === 0) {
+      if (rol === 'estudiante' && nivelesEducativos.length !== 1) {
         throw crearErrorApp(
-          'Debes seleccionar al menos un nivel educativo de interes si te registras como estudiante.',
+          'Debes seleccionar un unico nivel educativo de interes si te registras como estudiante.',
           'VALIDATION_ERROR'
         );
       }

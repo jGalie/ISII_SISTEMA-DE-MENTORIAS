@@ -27,6 +27,10 @@
   const subtitle = document.getElementById('clases-subtitle');
   const user = MentoriasAuth.obtenerUsuario();
   const urlParams = new URLSearchParams(window.location.search);
+  const studentLevel =
+    user && user.rol === 'estudiante' && Array.isArray(user.nivelesEducativos)
+      ? user.nivelesEducativos[0]
+      : '';
 
   let clases = [];
   let inscripcionesPorClase = {};
@@ -270,7 +274,8 @@
       const matchesModality = activeFilter === 'todas' || normalizar(clase.modalidad) === activeFilter;
       const matchesSubject = !materiaFilter.value || String(clase.materiaId) === materiaFilter.value;
       const mentorLevels = Array.isArray(clase.mentorNivelesEducativos) ? clase.mentorNivelesEducativos : [];
-      const matchesLevel = !nivelFilter.value || mentorLevels.includes(nivelFilter.value);
+      const requiredLevel = studentLevel || nivelFilter.value;
+      const matchesLevel = !requiredLevel || mentorLevels.includes(requiredLevel);
       const maxPrice = Number(precioFilter.value);
       const matchesPrice = !precioFilter.value || (clase.precio != null && Number(clase.precio) <= maxPrice);
       const claseFecha = clase.fecha ? new Date(clase.fecha) : null;
@@ -318,6 +323,10 @@
     }
     const idMateriaInicial = urlParams.get('id_materia');
     if (idMateriaInicial) materiaFilter.value = idMateriaInicial;
+    if (studentLevel && nivelFilter) {
+      nivelFilter.value = studentLevel;
+      nivelFilter.disabled = true;
+    }
     const inscripciones = Array.isArray(inscripcionesResponse.data) ? inscripcionesResponse.data : [];
     inscripcionesPorClase = Object.fromEntries(inscripciones.map((item) => [item.claseId, item]));
     ocultarError();

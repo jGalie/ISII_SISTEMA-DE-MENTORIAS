@@ -42,3 +42,48 @@ describe('Autenticacion: login', () => {
     expect(resultado).not.toHaveProperty('password_hash');
   });
 });
+
+describe('Autenticacion: registro', () => {
+  test('rechaza estudiantes con mas de un nivel educativo', async () => {
+    const usuarioRepository = {
+      buscarPorEmail: jest.fn(),
+    };
+    const servicio = crearServicioAuth({ usuarioRepository });
+
+    await expect(
+      servicio.registrar({
+        nombre: 'Ana Estudiante',
+        email: 'ana@mentorix.com',
+        password: 'Clave123',
+        rol: 'estudiante',
+        nivelesEducativos: ['secundaria', 'universitario'],
+      })
+    ).rejects.toMatchObject({
+      code: 'VALIDATION_ERROR',
+      message: 'Debes seleccionar un unico nivel educativo de interes si te registras como estudiante.',
+    });
+    expect(usuarioRepository.buscarPorEmail).not.toHaveBeenCalled();
+  });
+
+  test('rechaza mentores sin nivel educativo', async () => {
+    const usuarioRepository = {
+      buscarPorEmail: jest.fn(),
+    };
+    const servicio = crearServicioAuth({ usuarioRepository });
+
+    await expect(
+      servicio.registrar({
+        nombre: 'Bruno Mentor',
+        email: 'bruno@mentorix.com',
+        password: 'Clave123',
+        rol: 'mentor',
+        materias: ['Matematica'],
+        nivelesEducativos: [],
+      })
+    ).rejects.toMatchObject({
+      code: 'VALIDATION_ERROR',
+      message: 'Debes seleccionar al menos un nivel educativo para registrarte como mentor.',
+    });
+    expect(usuarioRepository.buscarPorEmail).not.toHaveBeenCalled();
+  });
+});
