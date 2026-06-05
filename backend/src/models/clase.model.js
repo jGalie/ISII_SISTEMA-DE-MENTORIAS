@@ -46,6 +46,7 @@ function mapearClase(row) {
     descripcion: row.descripcion,
     fecha: row.fecha,
     modalidad: row.modalidad || 'virtual',
+    id_mentor: row.id_mentor ?? row.mentorId,
     mentorId: row.mentorId ?? row.id_mentor,
     materiaId: row.materiaId ?? row.id_materia ?? null,
     materiaNombre: row.materiaNombre ?? row.materia_nombre ?? null,
