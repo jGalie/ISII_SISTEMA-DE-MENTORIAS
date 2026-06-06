@@ -273,7 +273,7 @@ describe('Clases - contrato crearClase', () => {
 });
 
 describe('Clases - otros metodos del servicio', () => {
-  test('actualiza una clase con contrato snake_case', async () => {
+  test('modifica una clase existente con datos validos', async () => {
     const claseExistente = {
       id: 45,
       id_mentor: 7,
@@ -296,6 +296,9 @@ describe('Clases - otros metodos del servicio', () => {
       titulo: 'Algebra avanzada',
     }));
 
+    expect(dependencias.claseRepository.buscarPorId).toHaveBeenCalledWith(45);
+    expect(dependencias.mentorMateriaRepository.buscarAsociacion).toHaveBeenCalledWith(7, 3);
+
     expect(dependencias.claseRepository.actualizarClase).toHaveBeenCalledWith(
       45,
       expect.objectContaining({
@@ -306,6 +309,34 @@ describe('Clases - otros metodos del servicio', () => {
     );
 
     expect(resultado.titulo).toBe('Algebra avanzada');
+  });
+
+  test('rechaza modificar una clase que no pertenece al mentor', async () => {
+    const claseExistente = {
+      id: 45,
+      id_mentor: 9,
+      cupo_actual: 2,
+    };
+
+    const dependencias = crearDependencias({
+      claseRepository: {
+        buscarPorId: jest.fn().mockResolvedValue(claseExistente),
+        actualizarClase: jest.fn(),
+      },
+    });
+
+    const servicio = crearServicioClase(dependencias);
+
+    await expect(servicio.actualizarClase(45, datosClase({
+      id_mentor: 7,
+      titulo: 'Algebra avanzada',
+    }))).rejects.toMatchObject({
+      code: 'FORBIDDEN',
+    });
+
+    expect(dependencias.claseRepository.buscarPorId).toHaveBeenCalledWith(45);
+    expect(dependencias.mentorMateriaRepository.buscarAsociacion).not.toHaveBeenCalled();
+    expect(dependencias.claseRepository.actualizarClase).not.toHaveBeenCalled();
   });
 
   test('elimina una clase propia con id_mentor', async () => {
