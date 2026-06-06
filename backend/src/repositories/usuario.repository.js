@@ -2,13 +2,6 @@ const { mapearUsuario, mapearUsuarioConPassword } = require('../models/usuario.m
 
 function crearRepositorioUsuario({ pool }) {
   return {
-    async buscarTodos() {
-      const [rows] = await pool.query(
-        'SELECT id_usuario, nombre, email, rol, niveles_educativos, ubicacion, telefono, mentor_bio, mentor_experiencia, mentor_link FROM usuarios ORDER BY id_usuario ASC'
-      );
-      return rows.map(mapearUsuario);
-    },
-
     async buscarPorId(id) {
       const [rows] = await pool.query(
         'SELECT id_usuario, nombre, email, rol, niveles_educativos, ubicacion, telefono, mentor_bio, mentor_experiencia, mentor_link FROM usuarios WHERE id_usuario = ? LIMIT 1',

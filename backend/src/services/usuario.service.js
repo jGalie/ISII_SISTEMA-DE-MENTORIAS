@@ -67,10 +67,6 @@ function construirRespuestaPerfil(user, materias = []) {
 
 function crearServicioUsuario({ usuarioRepository, claseRepository, valoracionRepository }) {
   return {
-    async listarUsuarios() {
-      return usuarioRepository.buscarTodos();
-    },
-
     async obtenerUsuario(id) {
       const user = await usuarioRepository.buscarPorId(id);
       if (!user) {

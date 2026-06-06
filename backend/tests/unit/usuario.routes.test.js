@@ -3,7 +3,6 @@ const { crearRutasUsuario } = require('../../src/routes/usuario.routes');
 describe('Rutas de usuarios', () => {
   test('POST /usuarios no permite password_hash directo', () => {
     const usuarioController = {
-      listar: jest.fn(),
       obtenerPerfilPublicoMentor: jest.fn(),
       obtenerPorId: jest.fn(),
       actualizar: jest.fn(),

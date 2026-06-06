@@ -135,9 +135,6 @@
         body: JSON.stringify(body),
       });
     },
-    obtenerUsuarios() {
-      return pedirJson('/usuarios');
-    },
     obtenerUsuario(id) {
       return pedirJson(`/usuarios/${encodeURIComponent(id)}`);
     },

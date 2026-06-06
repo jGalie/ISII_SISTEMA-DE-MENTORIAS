@@ -7,15 +7,6 @@ function resolverEstadoHttp(error, fallbackStatus = 500) {
 
 function crearControladorUsuario({ usuarioService }) {
   return {
-    async listar(req, res) {
-      try {
-        const data = await usuarioService.listarUsuarios();
-        res.json({ data });
-      } catch (err) {
-        res.status(500).json({ error: err.message });
-      }
-    },
-
     async obtenerPorId(req, res) {
       try {
         const data = await usuarioService.obtenerUsuario(req.params.id);
