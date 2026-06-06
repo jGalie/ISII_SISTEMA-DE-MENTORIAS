@@ -4,9 +4,8 @@ function crearErrorApp(message, code) {
   return error;
 }
 
-function rechazarAliasesCamelCase(datosMensaje = {}) {
-  const camposCamelCase = ['usuarioId', 'remitenteId', 'destinatarioId', 'inscripcionId', 'mensajeId'];
-  const campoInvalido = camposCamelCase.find((field) => Object.prototype.hasOwnProperty.call(datosMensaje, field));
+function rechazarCamposFueraDeContrato(datosMensaje = {}) {
+  const campoInvalido = Object.keys(datosMensaje).find((campo) => /[A-Z]/.test(campo));
   if (campoInvalido) {
     throw crearErrorApp(`Usa identificadores snake_case del dominio en lugar de ${campoInvalido}.`, 'VALIDATION_ERROR');
   }
@@ -89,7 +88,7 @@ function crearServicioMensaje({ mensajeRepository, inscripcionRepository, usuari
     },
 
     async enviarMensaje(datosMensaje = {}) {
-      rechazarAliasesCamelCase(datosMensaje);
+      rechazarCamposFueraDeContrato(datosMensaje);
       rechazarDestinatarioManual(datosMensaje);
       const contenido = validarContenido(datosMensaje?.contenido);
       const id_inscripcion = Number(datosMensaje.id_inscripcion);
@@ -107,7 +106,7 @@ function crearServicioMensaje({ mensajeRepository, inscripcionRepository, usuari
     },
 
     async listarMensajesPorInscripcion(id_inscripcion, datosConsulta = {}) {
-      rechazarAliasesCamelCase(datosConsulta);
+      rechazarCamposFueraDeContrato(datosConsulta);
       await obtenerInscripcionConActor(id_inscripcion, obtenerIdUsuarioActor(datosConsulta));
       return mensajeRepository.buscarPorInscripcion(id_inscripcion);
     },

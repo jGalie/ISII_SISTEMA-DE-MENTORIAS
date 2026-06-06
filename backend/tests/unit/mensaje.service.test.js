@@ -99,14 +99,21 @@ describe('Mensajeria interna asociada a inscripcion', () => {
     expect(dependencias.mensajeRepository.crear).not.toHaveBeenCalled();
   });
 
-  test('rechaza alias de remitente para evitar manipulacion desde el frontend', async () => {
+  test.each([
+    ['usuarioId', { usuarioId: 9 }],
+    ['remitenteId', { remitenteId: 9 }],
+    ['destinatarioId', { destinatarioId: 3 }],
+    ['inscripcionId', { inscripcionId: 7 }],
+    ['fechaEnvio', { fechaEnvio: '2026-06-06T12:00:00.000Z' }],
+  ])('rechaza el alias camelCase %s', async (alias, campoInvalido) => {
     const dependencias = crearDependencias();
     const servicio = crearServicioMensaje(dependencias);
 
     await expect(servicio.enviarMensaje({
       id_inscripcion: 7,
-      remitenteId: 9,
+      id_usuario: 9,
       contenido: 'Hola',
+      ...campoInvalido,
     })).rejects.toMatchObject({
       code: 'VALIDATION_ERROR',
     });

@@ -1,6 +1,80 @@
 const { crearServicioInscripcion } = require('../../src/services/inscripcion.service');
 
 describe('Inscripciones: cambio de estado', () => {
+  test('crea una solicitud con id_usuario e id_clase', async () => {
+    const inscripcionCreada = {
+      id: 30,
+      id_inscripcion: 30,
+      id_usuario: 8,
+      id_clase: 12,
+      estado: 'pendiente',
+    };
+    const inscripcionRepository = {
+      buscarExistente: jest.fn().mockResolvedValue(null),
+      crearInscripcion: jest.fn().mockResolvedValue(inscripcionCreada),
+    };
+    const claseRepository = {
+      buscarPorId: jest.fn().mockResolvedValue({
+        id: 12,
+        id_clase: 12,
+        id_mentor: 4,
+        completa: false,
+      }),
+    };
+    const usuarioRepository = {
+      buscarPorId: jest.fn().mockResolvedValue({
+        id: 8,
+        rol: 'estudiante',
+      }),
+    };
+    const servicio = crearServicioInscripcion({
+      inscripcionRepository,
+      claseRepository,
+      usuarioRepository,
+    });
+
+    const resultado = await servicio.solicitarInscripcion({
+      id_usuario: 8,
+      id_clase: 12,
+    });
+
+    expect(usuarioRepository.buscarPorId).toHaveBeenCalledWith(8);
+    expect(claseRepository.buscarPorId).toHaveBeenCalledWith(12);
+    expect(inscripcionRepository.buscarExistente).toHaveBeenCalledWith(8, 12);
+    expect(inscripcionRepository.crearInscripcion).toHaveBeenCalledWith({
+      id_usuario: 8,
+      id_clase: 12,
+      estado: 'pendiente',
+    });
+    expect(resultado).toEqual(inscripcionCreada);
+  });
+
+  test.each([
+    ['usuarioId', { usuarioId: 8, id_clase: 12 }],
+    ['claseId', { id_usuario: 8, claseId: 12 }],
+  ])('rechaza el alias camelCase %s al solicitar una inscripcion', async (alias, solicitud) => {
+    const inscripcionRepository = {
+      buscarExistente: jest.fn(),
+      crearInscripcion: jest.fn(),
+    };
+    const claseRepository = {
+      buscarPorId: jest.fn(),
+    };
+    const usuarioRepository = {
+      buscarPorId: jest.fn(),
+    };
+    const servicio = crearServicioInscripcion({
+      inscripcionRepository,
+      claseRepository,
+      usuarioRepository,
+    });
+
+    await expect(servicio.solicitarInscripcion(solicitud)).rejects.toMatchObject({
+      code: 'VALIDATION_ERROR',
+    });
+    expect(usuarioRepository.buscarPorId).not.toHaveBeenCalled();
+  });
+
   test('incrementa el cupo al aceptar una inscripcion', async () => {
     const inscripcionAceptada = {
       id: 21,

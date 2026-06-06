@@ -105,8 +105,8 @@
     const materias = Array.from(
       new Map(
         items
-          .filter((clase) => clase.materiaId && clase.materiaNombre)
-          .map((clase) => [String(clase.materiaId), clase.materiaNombre])
+          .filter((clase) => clase.id_materia && clase.materiaNombre)
+          .map((clase) => [String(clase.id_materia), clase.materiaNombre])
       ).entries()
     );
 
@@ -120,11 +120,11 @@
     const canManage =
       user &&
       user.rol === 'mentor' &&
-      Number(user.id) === Number(clase.mentorId);
+      Number(user.id) === Number(clase.id_mentor);
     const canEnroll =
       user &&
       user.rol === 'estudiante' &&
-      Number(user.id) !== Number(clase.mentorId);
+      Number(user.id) !== Number(clase.id_mentor);
     const enrollment = inscripcionesPorClase[clase.id];
     const enrollmentLabels = {
       pendiente: 'Solicitud pendiente',
@@ -154,7 +154,7 @@
         <div class="class-meta">
           <div class="class-meta__item">
             <i class="bi bi-person-circle"></i>
-            <a href="/pages/mentor.html?id=${encodeURIComponent(clase.mentorId)}">${escaparHtml(clase.mentorNombre || 'Mentor')}</a>
+            <a href="/pages/mentor.html?id=${encodeURIComponent(clase.id_mentor)}">${escaparHtml(clase.mentorNombre || 'Mentor')}</a>
           </div>
           <div class="class-meta__item">
             <i class="bi bi-journal-bookmark"></i>
@@ -201,8 +201,8 @@
     // backend vuelve a validar que sean propietarios de la clase.
     box.querySelectorAll('.delete-clase-btn').forEach((button) => {
       button.addEventListener('click', async function () {
-        const classId = this.getAttribute('data-id');
-        if (!classId || !user) return;
+        const id_clase = this.getAttribute('data-id');
+        if (!id_clase || !user) return;
         const confirmarEliminacion = await MentoriasUI.mostrarDialogoConfirmacion({
           title: 'Eliminar clase',
           message: 'Esta accion no se puede deshacer. Queres eliminar la clase?',
@@ -214,8 +214,8 @@
 
         try {
           this.disabled = true;
-          await MentoriasApi.eliminarClase(classId, { mentorId: user.id });
-          clases = clases.filter((item) => String(item.id) !== String(classId));
+          await MentoriasApi.eliminarClase(id_clase, { id_mentor: user.id });
+          clases = clases.filter((item) => String(item.id) !== String(id_clase));
           aplicarFiltro();
         } catch (error) {
           mostrarError(error.message);
@@ -230,18 +230,18 @@
     // estado para reflejar la respuesta real del sistema.
     box.querySelectorAll('.enroll-clase-btn').forEach((button) => {
       button.addEventListener('click', async function () {
-        const classId = Number(this.getAttribute('data-id'));
-        if (!classId || !user || user.rol !== 'estudiante') return;
+        const id_clase = Number(this.getAttribute('data-id'));
+        if (!id_clase || !user || user.rol !== 'estudiante') return;
 
         try {
           this.disabled = true;
           await MentoriasApi.crearInscripcion({
             id_usuario: user.id,
-            id_clase: classId,
+            id_clase,
           });
           const response = await MentoriasApi.buscarInscripcionesDelEstudiante(user.id);
           const items = Array.isArray(response.data) ? response.data : [];
-          inscripcionesPorClase = Object.fromEntries(items.map((item) => [item.claseId, item]));
+          inscripcionesPorClase = Object.fromEntries(items.map((item) => [item.id_clase, item]));
           mostrarExito('Tu solicitud fue enviada al mentor.');
           aplicarFiltro();
         } catch (error) {
@@ -272,7 +272,7 @@
       const searchable = [clase.titulo, clase.descripcion, clase.mentorNombre, clase.materiaNombre].map(normalizar).join(' ');
       const matchesSearch = !term || searchable.includes(term);
       const matchesModality = activeFilter === 'todas' || normalizar(clase.modalidad) === activeFilter;
-      const matchesSubject = !materiaFilter.value || String(clase.materiaId) === materiaFilter.value;
+      const matchesSubject = !materiaFilter.value || String(clase.id_materia) === materiaFilter.value;
       const mentorLevels = Array.isArray(clase.mentorNivelesEducativos) ? clase.mentorNivelesEducativos : [];
       const requiredLevel = studentLevel || nivelFilter.value;
       const matchesLevel = !requiredLevel || mentorLevels.includes(requiredLevel);
@@ -328,7 +328,7 @@
       nivelFilter.disabled = true;
     }
     const inscripciones = Array.isArray(inscripcionesResponse.data) ? inscripcionesResponse.data : [];
-    inscripcionesPorClase = Object.fromEntries(inscripciones.map((item) => [item.claseId, item]));
+    inscripcionesPorClase = Object.fromEntries(inscripciones.map((item) => [item.id_clase, item]));
     ocultarError();
     aplicarFiltro();
   } catch (error) {

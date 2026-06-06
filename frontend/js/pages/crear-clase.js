@@ -93,7 +93,11 @@
     }
 
     selectorMateria.innerHTML = items
-      .map((item) => `<option value="${item.materiaId || item.id}" ${Number(idSeleccionado) === Number(item.materiaId || item.id) ? 'selected' : ''}>${item.materiaNombre || item.nombre}</option>`)
+      .map((item) => {
+        const id_materia = item.id_materia ?? item.id;
+        const nombre = item.materia_nombre ?? item.materiaNombre ?? item.nombre;
+        return `<option value="${id_materia}" ${Number(idSeleccionado) === Number(id_materia) ? 'selected' : ''}>${nombre}</option>`;
+      })
       .join('');
   }
 
@@ -117,7 +121,7 @@
       document.getElementById('descripcion').value = datosClase.descripcion || '';
       document.getElementById('modalidad').value = datosClase.modalidad || 'virtual';
       document.getElementById('precio').value = datosClase.precio != null ? datosClase.precio : '';
-      document.getElementById('cupo-maximo').value = datosClase.cupoMaximo || 1;
+      document.getElementById('cupo-maximo').value = datosClase.cupo_maximo ?? datosClase.cupoMaximo ?? 1;
       document.getElementById('ubicacion').value = datosClase.ubicacion || '';
       if (datosClase.fecha) {
         const fechaClase = new Date(datosClase.fecha);
@@ -127,7 +131,7 @@
       }
     }
 
-    renderizarMaterias(materiasMentor, claseActual?.materiaId);
+    renderizarMaterias(materiasMentor, claseActual?.id_materia);
     sincronizarCampoUbicacion();
   } catch (error) {
     mostrarMensaje('danger', error.message);
@@ -192,11 +196,11 @@
       descripcion: document.getElementById('descripcion').value,
       fecha: valorFecha,
       modalidad,
-      materiaId: selectorMateria.value,
+      id_materia: selectorMateria.value,
       precio: inputPrecio.value,
-      cupoMaximo: inputCupoMaximo.value,
+      cupo_maximo: inputCupoMaximo.value,
       ubicacion: modalidad === 'presencial' ? ubicacion : null,
-      mentorId: usuario.id,
+      id_mentor: usuario.id,
     };
 
     try {
@@ -228,7 +232,7 @@
   });
 
   if (botonEliminar) {
-    // La eliminacion se expone solamente en modo edicion y envia el mentorId
+    // La eliminacion se expone solamente en modo edicion y envia el id_mentor
     // para que el backend pueda corroborar la propiedad de la clase.
     botonEliminar.addEventListener('click', async function () {
       if (!esEdicion) return;
@@ -244,7 +248,7 @@
       try {
         botonEliminar.disabled = true;
         mostrarMensaje('warning', 'Eliminando clase...');
-        await MentoriasApi.eliminarClase(idClase, { mentorId: usuario.id });
+        await MentoriasApi.eliminarClase(idClase, { id_mentor: usuario.id });
         formDirty = false;
         allowNavigation = true;
         mostrarMensaje('success', 'Clase eliminada.');

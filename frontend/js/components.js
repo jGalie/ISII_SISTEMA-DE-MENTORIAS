@@ -151,7 +151,7 @@
         .replace(/"/g, '&quot;');
     const titulo = safe(c.titulo);
     const id = Number(c.id);
-    const materia = safe(c.materiaNombre || c.materia || `Materia #${c.materiaId ?? '—'}`);
+    const materia = safe(c.materiaNombre || c.materia || `Materia #${c.id_materia ?? '—'}`);
     const fecha = safe(c.fechaLabel || formatearFecha(c.fechaInicio));
     return `
 <article class="clase-card">

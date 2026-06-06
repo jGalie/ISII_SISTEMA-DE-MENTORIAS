@@ -226,7 +226,7 @@
   }
 
   function obtenerUbicacionMentor(clase) {
-    return obtenerAleatorioDesdeSemilla(clase.mentorId || clase.id, [
+    return obtenerAleatorioDesdeSemilla(clase.id_mentor ?? clase.id, [
       'Buenos Aires, Argentina',
       'Cordoba, Argentina',
       'Rosario, Argentina',
@@ -321,8 +321,8 @@
     return new Array(5).fill('<i class="bi bi-star-fill"></i>').join('');
   }
 
-  function obtenerInsigniaInscripcion(claseId) {
-    const inscripcion = state.enrollmentByClassId[claseId];
+  function obtenerInsigniaInscripcion(id_clase) {
+    const inscripcion = state.enrollmentByClassId[id_clase];
     if (!inscripcion) return '';
 
     const config = {
@@ -365,7 +365,8 @@
 
   function construirTarjetaMentor(clase) {
     const subject = obtenerMetaMateria(clase);
-    const mentorName = clase.mentorNombre || `Profesor ${clase.mentorId || clase.id}`;
+    const id_mentor = clase.id_mentor;
+    const mentorName = clase.mentorNombre || `Profesor ${id_mentor || clase.id}`;
     const location = obtenerUbicacionMentor(clase);
     const rating = obtenerValoracionMentor(clase);
     const avatar = crearUriDatosAvatar(mentorName, subject.key);
@@ -385,7 +386,7 @@
                   ${obtenerInsigniaInscripcion(clase.id)}
                 </div>
                 <h3 class="h4 mb-1">
-                  <a class="text-decoration-none text-reset" href="/pages/mentor.html?id=${encodeURIComponent(clase.mentorId)}">${escaparHtml(mentorName)}</a>
+                  <a class="text-decoration-none text-reset" href="/pages/mentor.html?id=${encodeURIComponent(id_mentor)}">${escaparHtml(mentorName)}</a>
                 </h3>
                 <p class="teacher-meta mb-0">${escaparHtml(clase.titulo || 'Clase individual')}</p>
               </div>
@@ -405,7 +406,7 @@
                 <i class="bi ${escaparHtml(subject.icon)} me-1"></i>${escaparHtml(subject.label)}
               </span>
               <div class="d-flex gap-2">
-                <a class="btn btn-soft" href="/pages/mentor.html?id=${encodeURIComponent(clase.mentorId)}">Ver perfil</a>
+                <a class="btn btn-soft" href="/pages/mentor.html?id=${encodeURIComponent(id_mentor)}">Ver perfil</a>
                 <a class="btn btn-soft" href="/pages/detalle-clase.html?id=${encodeURIComponent(clase.id)}">Ver clase</a>
                 ${construirAreaAccion(clase)}
               </div>
@@ -464,16 +465,16 @@
   function adjuntarManejadoresInscripcion() {
     teachersGrid.querySelectorAll('.enroll-button').forEach((button) => {
       button.addEventListener('click', async function () {
-        const classId = Number(this.getAttribute('data-class-id'));
-        if (!classId || !state.user) return;
+        const id_clase = Number(this.getAttribute('data-class-id'));
+        if (!id_clase || !state.user) return;
 
         this.disabled = true;
         try {
           const { data } = await MentoriasApi.crearInscripcion({
             id_usuario: state.user.id,
-            id_clase: classId,
+            id_clase,
           });
-          state.enrollmentByClassId[classId] = data;
+          state.enrollmentByClassId[id_clase] = data;
           establecerExito('Tu solicitud fue enviada al mentor.');
           aplicarFiltros();
         } catch (error) {
@@ -559,7 +560,7 @@
     if (!state.user || state.user.rol !== 'estudiante') return;
     const response = await MentoriasApi.buscarInscripcionesDelEstudiante(state.user.id);
     const items = Array.isArray(response.data) ? response.data : [];
-    state.enrollmentByClassId = Object.fromEntries(items.map((item) => [item.claseId, item]));
+    state.enrollmentByClassId = Object.fromEntries(items.map((item) => [item.id_clase, item]));
   }
 
   async function cargarDatos() {

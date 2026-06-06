@@ -84,4 +84,29 @@ describe('Seguimiento academico', () => {
     });
     expect(resultado).toEqual(seguimientoCreado);
   });
+
+  test.each([
+    ['inscripcionId', { inscripcionId: 9 }],
+    ['fechaSeguimiento', { fechaSeguimiento: '2026-06-02T12:00:00.000Z' }],
+  ])('rechaza el alias camelCase %s', async (alias, campoInvalido) => {
+    const seguimientoRepository = {
+      crear: jest.fn(),
+    };
+    const inscripcionRepository = {
+      obtenerPorId: jest.fn(),
+    };
+    const servicio = crearServicioSeguimiento({
+      seguimientoRepository,
+      inscripcionRepository,
+    });
+
+    await expect(servicio.registrarSeguimiento({
+      id_inscripcion: 9,
+      notas: 'Buen ritmo de trabajo',
+      ...campoInvalido,
+    })).rejects.toMatchObject({
+      code: 'VALIDATION_ERROR',
+    });
+    expect(seguimientoRepository.crear).not.toHaveBeenCalled();
+  });
 });

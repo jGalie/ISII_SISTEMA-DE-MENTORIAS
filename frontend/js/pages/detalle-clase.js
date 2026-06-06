@@ -33,8 +33,8 @@
       .replace(/'/g, '&#39;');
   }
 
-  async function renderizarValoraciones(classId) {
-    const response = await MentoriasApi.obtenerValoracionesClase(classId);
+  async function renderizarValoraciones(id_clase) {
+    const response = await MentoriasApi.obtenerValoracionesClase(id_clase);
     const reviews = Array.isArray(response.data) ? response.data : [];
     reviewsList.innerHTML = reviews.length
       ? reviews
@@ -85,7 +85,7 @@
     document.getElementById('dc-ubicacion').textContent =
       data.modalidad === 'presencial' ? data.ubicacion || 'No informada' : 'No aplica';
 
-    if (user && user.rol === 'mentor' && Number(user.id) === Number(data.mentorId)) {
+    if (user && user.rol === 'mentor' && Number(user.id) === Number(data.id_mentor)) {
       // Solo se muestra el acceso a edicion cuando el mentor autenticado es el
       // creador de la clase.
       editLink.href = `/pages/crear-clase.html?id=${encodeURIComponent(data.id)}`;
@@ -96,7 +96,7 @@
       // Si ya existe una solicitud previa, no se vuelve a ofrecer la misma accion.
       const inscripcionesResponse = await MentoriasApi.buscarInscripcionesDelEstudiante(user.id);
       const inscripciones = Array.isArray(inscripcionesResponse.data) ? inscripcionesResponse.data : [];
-      const existing = inscripciones.find((item) => Number(item.claseId) === Number(data.id));
+      const existing = inscripciones.find((item) => Number(item.id_clase) === Number(data.id));
 
       if (existing) {
         dashboardLink.textContent = `Solicitud ${existing.estado}. Ver mis inscripciones`;
@@ -132,13 +132,13 @@
     }
 
     const reviews = await renderizarValoraciones(data.id);
-    const currentUserReview = reviews.find((review) => Number(review.estudianteId) === Number(user?.id));
+    const currentUserReview = reviews.find((review) => Number(review.id_estudiante) === Number(user?.id));
     if (user && user.rol === 'estudiante' && currentUserReview) {
       reviewForm.classList.add('d-none');
     } else if (user && user.rol === 'estudiante') {
       const inscripcionesResponse = await MentoriasApi.buscarInscripcionesDelEstudiante(user.id);
       const inscripciones = Array.isArray(inscripcionesResponse.data) ? inscripcionesResponse.data : [];
-      const accepted = inscripciones.some((item) => Number(item.claseId) === Number(data.id) && item.estado === 'aceptada');
+      const accepted = inscripciones.some((item) => Number(item.id_clase) === Number(data.id) && item.estado === 'aceptada');
       if (accepted) reviewForm.classList.remove('d-none');
     }
 
@@ -149,8 +149,8 @@
         err.classList.add('d-none');
         try {
           await MentoriasApi.crearValoracion({
-            claseId: data.id,
-            estudianteId: user.id,
+            id_clase: data.id,
+            id_estudiante: user.id,
             estrellas: Number(reviewStars.value),
             comentario: reviewComment.value,
           });

@@ -5,6 +5,13 @@ function crearErrorApp(message, code) {
 }
 
 function crearServicioSeguimiento({ seguimientoRepository, inscripcionRepository }) {
+  function rechazarCamposFueraDeContrato(datos = {}) {
+    const campoInvalido = Object.keys(datos).find((campo) => /[A-Z]/.test(campo));
+    if (campoInvalido) {
+      throw crearErrorApp(`El campo ${campoInvalido} no pertenece al contrato snake_case.`, 'VALIDATION_ERROR');
+    }
+  }
+
   function obtenerNotas(body = {}) {
     const notas = String(body.notas || '').trim();
     if (!notas) {
@@ -48,6 +55,7 @@ function crearServicioSeguimiento({ seguimientoRepository, inscripcionRepository
     },
 
     async registrarSeguimiento(body = {}) {
+      rechazarCamposFueraDeContrato(body);
       const id_inscripcion = Number(body.id_inscripcion);
       const notas = obtenerNotas(body);
       await validarInscripcionAceptada(id_inscripcion);

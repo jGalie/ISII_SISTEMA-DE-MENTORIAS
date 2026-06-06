@@ -266,12 +266,12 @@
           showMentorActions &&
           currentUser &&
           currentUser.rol === 'mentor' &&
-          Number(currentUser.id) === Number(clase.mentorId);
+          Number(currentUser.id) === Number(clase.id_mentor);
         const canEnroll =
           showStudentEnrollment &&
           currentUser &&
           currentUser.rol === 'estudiante' &&
-          Number(currentUser.id) !== Number(clase.mentorId);
+          Number(currentUser.id) !== Number(clase.id_mentor);
         const enrollment = enrollmentByClassId[clase.id];
         const enrollmentLabels = {
           pendiente: 'Solicitud pendiente',
@@ -295,7 +295,7 @@
       <div class="d-flex justify-content-between align-items-start gap-3 mb-2">
         <div>
           <h5 class="card-title fw-bold mb-1">${esc(clase.titulo)}</h5>
-          <div class="text-muted small"><i class="bi bi-person-circle me-1"></i><a href="/pages/mentor.html?id=${encodeURIComponent(clase.mentorId)}">${esc(clase.mentorNombre || 'Mentor')}</a></div>
+          <div class="text-muted small"><i class="bi bi-person-circle me-1"></i><a href="/pages/mentor.html?id=${encodeURIComponent(clase.id_mentor)}">${esc(clase.mentorNombre || 'Mentor')}</a></div>
           <div class="text-muted small"><i class="bi bi-journal-bookmark me-1"></i>${esc(clase.materiaNombre || 'Materia a definir')}</div>
           <div class="text-muted small"><i class="bi ${clase.modalidad === 'presencial' ? 'bi-geo-alt' : 'bi-camera-video'} me-1"></i>${esc(etiquetaModalidad(clase.modalidad))}</div>
           <div class="text-muted small"><i class="bi bi-cash-coin me-1"></i>${esc(clase.precio != null ? `$${Number(clase.precio).toLocaleString('es-AR')}` : 'Precio a coordinar')}</div>
@@ -306,7 +306,7 @@
       <p class="text-muted flex-grow-1 mb-4">${esc(clase.descripcion || 'Sin descripcion.')}</p>
       <div class="d-flex gap-2 flex-wrap mt-auto">
         <a class="btn btn-outline-dark btn-sm rounded-pill px-3" href="/pages/detalle-clase.html?id=${encodeURIComponent(clase.id)}">Ver detalle</a>
-        <a class="btn btn-outline-dark btn-sm rounded-pill px-3" href="/pages/mentor.html?id=${encodeURIComponent(clase.mentorId)}">Ver mentor</a>
+        <a class="btn btn-outline-dark btn-sm rounded-pill px-3" href="/pages/mentor.html?id=${encodeURIComponent(clase.id_mentor)}">Ver mentor</a>
         ${enrollButton}
         ${canManage ? `<a class="btn btn-dark btn-sm rounded-pill px-3" href="/pages/crear-clase.html?id=${encodeURIComponent(clase.id)}">Editar</a>` : ''}
         ${canManage ? `<button class="btn btn-outline-danger btn-sm rounded-pill px-3 delete-clase-btn" data-id="${encodeURIComponent(clase.id)}" type="button">Eliminar</button>` : ''}

@@ -7,8 +7,13 @@ function crearErrorApp(message, code) {
 function crearServicioValoracion({ valoracionRepository, claseRepository, usuarioRepository, inscripcionRepository }) {
   return {
     async crearValoracion(data) {
-      const id_clase = Number(data?.id_clase || data?.claseId);
-      const id_estudiante = Number(data?.id_estudiante || data?.estudianteId);
+      const campoInvalido = Object.keys(data || {}).find((campo) => /[A-Z]/.test(campo));
+      if (campoInvalido) {
+        throw crearErrorApp(`El campo ${campoInvalido} no pertenece al contrato snake_case.`, 'VALIDATION_ERROR');
+      }
+
+      const id_clase = Number(data?.id_clase);
+      const id_estudiante = Number(data?.id_estudiante);
       const estrellas = Number(data?.estrellas);
       const comentario = String(data?.comentario || '').trim();
 

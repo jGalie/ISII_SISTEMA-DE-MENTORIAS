@@ -38,6 +38,13 @@ function normalizarNumero(value, message) {
   return number;
 }
 
+function rechazarCamposFueraDeContrato(datos = {}) {
+  const campoInvalido = Object.keys(datos).find((campo) => /[A-Z]/.test(campo));
+  if (campoInvalido) {
+    throw crearErrorApp(`El campo ${campoInvalido} no pertenece al contrato snake_case.`, 'VALIDATION_ERROR');
+  }
+}
+
 /**
  * Valida y normaliza los datos basicos de una clase.
  *
@@ -51,6 +58,7 @@ function validarDatosClase(datosClase) {
    * Por eso esta funcion centraliza los requisitos funcionales minimos
    * que debe cumplir una publicacion.
    */
+  rechazarCamposFueraDeContrato(datosClase);
   const titulo = String(datosClase?.titulo || '').trim();
   const descripcion = String(datosClase?.descripcion || '').trim();
   const fecha = normalizarFechaClase(datosClase?.fecha);
@@ -131,6 +139,7 @@ function crearServicioClase({ claseRepository, usuarioRepository, mentorMateriaR
     async listarClases(filtros = {}) {
       // El service conserva una interfaz simple para el controller y delega la
       // lectura concreta al repository.
+      rechazarCamposFueraDeContrato(filtros);
       return claseRepository.buscarTodas(filtros);
     },
 
@@ -183,6 +192,7 @@ function crearServicioClase({ claseRepository, usuarioRepository, mentorMateriaR
     async eliminarClase(id, datosClase) {
       // El mismo control de propiedad se aplica al borrado para que un mentor
       // no pueda eliminar clases creadas por otra persona.
+      rechazarCamposFueraDeContrato(datosClase);
       const id_mentor = Number(datosClase?.id_mentor);
       const clase = await claseRepository.buscarPorId(id);
 

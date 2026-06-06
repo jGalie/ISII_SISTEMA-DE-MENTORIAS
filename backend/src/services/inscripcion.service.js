@@ -4,6 +4,13 @@ function crearErrorApp(message, code) {
   return error;
 }
 
+function rechazarCamposFueraDeContrato(datos = {}) {
+  const campoInvalido = Object.keys(datos).find((campo) => /[A-Z]/.test(campo));
+  if (campoInvalido) {
+    throw crearErrorApp(`El campo ${campoInvalido} no pertenece al contrato snake_case.`, 'VALIDATION_ERROR');
+  }
+}
+
 function crearServicioInscripcion({ inscripcionRepository, claseRepository, usuarioRepository }) {
   async function obtenerInscripcionGestionable(id_inscripcion, id_mentor) {
     const inscripcion = await inscripcionRepository.obtenerPorId(Number(id_inscripcion));
@@ -44,6 +51,7 @@ function crearServicioInscripcion({ inscripcionRepository, claseRepository, usua
        * solicitar una clase sin duplicar registros ni permitir
        * inconsistencias como inscribirse en la propia publicacion.
        */
+      rechazarCamposFueraDeContrato(solicitudInscripcion);
       const id_usuario = Number(solicitudInscripcion?.id_usuario);
       const id_clase = Number(solicitudInscripcion?.id_clase);
 
@@ -99,6 +107,7 @@ function crearServicioInscripcion({ inscripcionRepository, claseRepository, usua
     },
 
     async cambiarEstadoInscripcion(id_inscripcion, datosInscripcion) {
+      rechazarCamposFueraDeContrato(datosInscripcion);
       const estado = String(datosInscripcion?.estado || '').trim().toLowerCase();
       const id_mentor = Number(datosInscripcion?.id_mentor);
 

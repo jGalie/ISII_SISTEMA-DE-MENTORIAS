@@ -21,15 +21,15 @@ Participantes del diagrama:
 | --- | --- | --- | --- |
 | UI_01 | `solicitarCrearClase()` | Frontend | `frontend/js/pages/crear-clase.js` al cargar la pagina |
 | UI_02 | `mostrarFormularioClase()` | Frontend | `frontend/pages/crear-clase.html` + `frontend/js/pages/crear-clase.js` |
-| MM_01 | `getMentorMaterias(mentorId)` | Frontend -> API -> Service -> Repository | `frontend/js/api.js` -> `backend/src/controllers/mentor-materia.controller.js` -> `backend/src/services/mentor-materia.service.js:listar` -> `backend/src/repositories/mentor-materia.repository.js:findByMentorId` |
+| MM_01 | `obtenerMateriasMentor(id_mentor)` | Frontend -> API -> Service -> Repository | `frontend/js/api.js` -> `backend/src/controllers/mentor-materia.controller.js` -> `backend/src/services/mentor-materia.service.js:listarMateriasDelMentor` -> `backend/src/repositories/mentor-materia.repository.js:buscarPorMentor` |
 | UI_03 | `habilitarCargaClase()` | Frontend | `alternarDisponibilidadFormulario` y `renderizarMaterias` en `frontend/js/pages/crear-clase.js` |
 | UI_04 | `ingresarDatosClase(...)` | Frontend | `formulario.addEventListener('submit', ...)` en `frontend/js/pages/crear-clase.js` |
 | UI_05 | `recibirDatosClase()` | Frontend | armado de `datosClase` en `frontend/js/pages/crear-clase.js` |
 | UI_06 | `confirmarCreacionClase()` | Frontend | llamada `MentoriasApi.crearClase(datosClase)` |
 | CL_01 | `crearClase(datosClase)` | Controller | `backend/src/controllers/clase.controller.js:crear` |
 | CL_02 | `validarDatosClase(datosClase)` | Service | `backend/src/services/clase.service.js:validarDatosClase` |
-| US_01 | `findById(mentorId)` | Repository usuario | `backend/src/repositories/usuario.repository.js:findById` |
-| MM_02 | `exists(mentorId, materiaId)` | Repository mentor-materia | `backend/src/repositories/mentor-materia.repository.js:exists` |
+| US_01 | `buscarPorId(id_mentor)` | Repository usuario | `backend/src/repositories/usuario.repository.js:buscarPorId` |
+| MM_02 | `buscarAsociacion(id_mentor, id_materia)` | Repository mentor-materia | `backend/src/repositories/mentor-materia.repository.js:buscarAsociacion` |
 | CL_03 | `registrarClase(datosClase)` | Repository clase | `backend/src/repositories/clase.repository.js:crearClase` |
 | BD_01 | `INSERT clases` | Base de datos | tabla `clases` en MySQL |
 | UI_07 | `mostrarMensajeConfirmacion()` | Frontend | `mostrarMensaje('success', ...)` en `frontend/js/pages/crear-clase.js` |
@@ -40,7 +40,7 @@ Participantes del diagrama:
 2. La interfaz valida que exista sesion y que el usuario tenga rol `mentor`.
 3. La interfaz consulta las materias asociadas al mentor autenticado.
 4. Si hay materias, habilita el formulario; si no hay, lo bloquea.
-5. El mentor completa `titulo`, `descripcion`, `fecha`, `modalidad`, `materiaId`, `precio` y `ubicacion` cuando corresponde.
+5. El mentor completa `titulo`, `descripcion`, `fecha`, `modalidad`, `id_materia`, `precio` y `ubicacion` cuando corresponde.
 6. La interfaz construye `datosClase` y ejecuta `POST /clases`.
 7. El controller delega la solicitud al service.
 8. El service valida datos obligatorios, modalidad, precio y consistencia de la ubicacion.
@@ -53,7 +53,7 @@ Participantes del diagrama:
 
 - La interfaz no deja operar a usuarios que no sean mentores.
 - La interfaz no deja enviar una clase presencial sin ubicacion.
-- El service no permite crear una clase sin `mentorId`.
+- El service no permite crear una clase sin `id_mentor`.
 - El service no permite crear una clase si el usuario no existe o no es mentor.
 - El service no permite crear una clase para una materia que no este asociada al mentor.
 

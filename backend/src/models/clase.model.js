@@ -7,12 +7,13 @@
  *
  * @typedef {Object} Clase
  * @property {number} id
+ * @property {number} id_clase
  * @property {string} titulo
  * @property {string} descripcion
  * @property {string} fecha
  * @property {'virtual'|'presencial'} modalidad
- * @property {number} mentorId
- * @property {?number} materiaId
+ * @property {number} id_mentor
+ * @property {?number} id_materia
  * @property {?string} materiaNombre
  * @property {?number} precio
  * @property {?string} ubicacion
@@ -42,14 +43,13 @@ function mapearClase(row) {
   }
   return {
     id: row.id ?? row.id_clase,
+    id_clase: row.id_clase ?? row.id,
     titulo: row.titulo,
     descripcion: row.descripcion,
     fecha: row.fecha,
     modalidad: row.modalidad || 'virtual',
-    id_mentor: row.id_mentor ?? row.mentorId,
-    mentorId: row.mentorId ?? row.id_mentor,
-    id_materia: row.id_materia ?? row.materiaId ?? null,
-    materiaId: row.materiaId ?? row.id_materia ?? null,
+    id_mentor: row.id_mentor,
+    id_materia: row.id_materia ?? null,
     materiaNombre: row.materiaNombre ?? row.materia_nombre ?? null,
     precio: row.precio != null ? Number(row.precio) : null,
     ubicacion: row.ubicacion ?? null,

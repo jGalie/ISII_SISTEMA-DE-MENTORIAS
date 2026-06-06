@@ -2,7 +2,7 @@
   await MentoriasUI.montarNavbar();
 
   const params = new URLSearchParams(window.location.search);
-  const mentorId = params.get('id');
+  const id_mentor = params.get('id');
   const profile = document.getElementById('mentor-profile');
   const errorBox = document.getElementById('mentor-error');
 
@@ -73,14 +73,14 @@
       .join('');
   }
 
-  if (!mentorId) {
+  if (!id_mentor) {
     errorBox.textContent = 'Falta el mentor en la URL.';
     errorBox.classList.remove('d-none');
     return;
   }
 
   try {
-    const { data } = await MentoriasApi.obtenerMentorPublico(mentorId);
+    const { data } = await MentoriasApi.obtenerMentorPublico(id_mentor);
     const average = data.promedioEstrellas ? Number(data.promedioEstrellas).toFixed(1) : 'Sin valoraciones';
 
     profile.innerHTML = `

@@ -46,7 +46,7 @@
     }
     const filtered = clases.filter((c) => {
       const titulo = normalizar(c.titulo);
-      const materia = normalizar(materiasById[c.materiaId]?.nombre || '');
+      const materia = normalizar(materiasById[c.id_materia]?.nombre || '');
       return titulo.includes(q) || materia.includes(q);
     });
     renderizar(filtered);
