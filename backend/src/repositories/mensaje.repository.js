@@ -18,7 +18,18 @@ function crearRepositorioMensaje({ pool }) {
   `;
 
   return {
-    async crearMensaje({ id_inscripcion, id_remitente, id_destinatario, contenido }) {
+    async buscarTodos() {
+      const [filasMensajes] = await pool.query(
+        `
+          ${selectBase}
+          ORDER BY m.fecha_envio ASC, m.id_mensaje ASC
+        `
+      );
+
+      return filasMensajes.map(mapearMensaje);
+    },
+
+    async crear({ id_inscripcion, id_remitente, id_destinatario, contenido }) {
       const [resultado] = await pool.query(
         `
           INSERT INTO mensajes (id_inscripcion, id_remitente, id_destinatario, contenido)

@@ -81,6 +81,16 @@ CREATE TABLE mensajes (
   FOREIGN KEY (id_destinatario) REFERENCES usuarios(id_usuario)
 );
 
+CREATE TABLE seguimientos (
+  id_seguimiento INT AUTO_INCREMENT PRIMARY KEY,
+  id_inscripcion INT NOT NULL,
+  progreso TINYINT NOT NULL,
+  notas TEXT NOT NULL,
+  fecha_seguimiento DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (id_inscripcion) REFERENCES inscripciones(id_inscripcion) ON DELETE CASCADE,
+  CONSTRAINT chk_seguimiento_progreso CHECK (progreso BETWEEN 0 AND 100)
+);
+
 CREATE TABLE valoraciones (
   id_valoracion INT AUTO_INCREMENT PRIMARY KEY,
   id_clase INT NOT NULL,

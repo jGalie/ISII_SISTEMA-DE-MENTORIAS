@@ -55,7 +55,7 @@ function validarDatosClase(datosClase) {
   const descripcion = String(datosClase?.descripcion || '').trim();
   const fecha = normalizarFechaClase(datosClase?.fecha);
   const modalidad = String(datosClase?.modalidad || 'virtual').trim().toLowerCase();
-  const id_materia = Number(datosClase?.id_materia || datosClase?.materiaId);
+  const id_materia = Number(datosClase?.id_materia);
   const precio = normalizarNumero(datosClase?.precio, 'Debes ingresar un precio valido para la clase.');
   const ubicacion = String(datosClase?.ubicacion || '').trim();
   const origenCupo = datosClase?.cupo_maximo ?? datosClase?.cupoMaximo ?? 1;
@@ -103,7 +103,7 @@ function crearServicioClase({ claseRepository, usuarioRepository, mentorMateriaR
       // Solo un mentor valido puede publicar. Ademas, la materia elegida debe
       // pertenecer a su perfil academico para evitar publicaciones inconsistentes.
       const datosClaseValidada = validarDatosClase(datosClase);
-      const id_mentor = Number(datosClase?.id_mentor || datosClase?.mentorId);
+      const id_mentor = Number(datosClase?.id_mentor);
 
       if (!id_mentor) {
         throw crearErrorApp('Debes indicar el mentor creador.', 'VALIDATION_ERROR');
@@ -114,7 +114,7 @@ function crearServicioClase({ claseRepository, usuarioRepository, mentorMateriaR
         throw crearErrorApp('Solo un mentor puede crear clases.', 'FORBIDDEN');
       }
 
-      const materiaPerteneceAlMentor = await mentorMateriaRepository.existe(
+      const materiaPerteneceAlMentor = await mentorMateriaRepository.buscarAsociacion(
         id_mentor,
         datosClaseValidada.id_materia
       );
@@ -156,20 +156,20 @@ function crearServicioClase({ claseRepository, usuarioRepository, mentorMateriaR
     async actualizarClase(id, datosClase) {
       // Se preserva la autoria: solo el mentor creador puede modificar la clase.
       const datosClaseValidada = validarDatosClase(datosClase);
-      const id_mentor = Number(datosClase?.id_mentor || datosClase?.mentorId);
+      const id_mentor = Number(datosClase?.id_mentor);
       const clase = await claseRepository.buscarPorId(id);
 
       if (!clase) {
         throw crearErrorApp('Clase no encontrada.', 'NOT_FOUND');
       }
-      if (!id_mentor || id_mentor !== clase.mentorId) {
+      if (!id_mentor || id_mentor !== Number(clase.id_mentor)) {
         throw crearErrorApp('Solo el mentor creador puede editar esta clase.', 'FORBIDDEN');
       }
-      if (datosClaseValidada.cupo_maximo < clase.cupoActual) {
+      if (datosClaseValidada.cupo_maximo < Number(clase.cupo_actual)) {
         throw crearErrorApp('El cupo maximo no puede ser menor al cupo actual.', 'VALIDATION_ERROR');
       }
 
-      const materiaPerteneceAlMentor = await mentorMateriaRepository.existe(
+      const materiaPerteneceAlMentor = await mentorMateriaRepository.buscarAsociacion(
         id_mentor,
         datosClaseValidada.id_materia
       );
@@ -183,13 +183,13 @@ function crearServicioClase({ claseRepository, usuarioRepository, mentorMateriaR
     async eliminarClase(id, datosClase) {
       // El mismo control de propiedad se aplica al borrado para que un mentor
       // no pueda eliminar clases creadas por otra persona.
-      const id_mentor = Number(datosClase?.id_mentor || datosClase?.mentorId);
+      const id_mentor = Number(datosClase?.id_mentor);
       const clase = await claseRepository.buscarPorId(id);
 
       if (!clase) {
         throw crearErrorApp('Clase no encontrada.', 'NOT_FOUND');
       }
-      if (!id_mentor || id_mentor !== clase.mentorId) {
+      if (!id_mentor || id_mentor !== Number(clase.id_mentor)) {
         throw crearErrorApp('Solo el mentor creador puede eliminar esta clase.', 'FORBIDDEN');
       }
 

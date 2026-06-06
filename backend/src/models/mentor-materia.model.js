@@ -1,18 +1,18 @@
 /**
- * Entidad: relación N:M mentor ↔ materia.
+ * Entidad: relacion N:M mentor - materia.
  * @typedef {Object} MentorMateria
- * @property {number} id
- * @property {number} mentorId
- * @property {number} materiaId
+ * @property {number} id_mentor_materia
+ * @property {number} id_mentor
+ * @property {number} id_materia
  */
 
 function mapearMentorMateria(row) {
   return {
-    id: row.id ?? row.id_mentor_materia,
-    mentorId: row.mentorId ?? row.id_mentor,
-    materiaId: row.materiaId ?? row.id_materia,
-    materiaNombre: row.materiaNombre ?? row.materia_nombre ?? null,
-    materiaCodigo: row.materiaCodigo ?? row.materia_codigo ?? null,
+    id_mentor_materia: row.id_mentor_materia ?? row.id,
+    id_mentor: row.id_mentor,
+    id_materia: row.id_materia,
+    materia_nombre: row.materia_nombre ?? null,
+    materia_codigo: row.materia_codigo ?? null,
   };
 }
 

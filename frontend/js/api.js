@@ -3,9 +3,8 @@
  */
 (function (global) {
   /**
-   * En terminos de arquitectura, este modulo representa una fachada de acceso
-   * a la API. Las pantallas consumen funciones del dominio y no necesitan
-   * conocer la estructura interna de las peticiones HTTP.
+   * Este modulo agrupa el acceso HTTP a la API para evitar repetir fetch en
+   * cada pantalla.
    */
   /**
    * Este modulo cumple el rol de cliente de la API.
@@ -61,7 +60,6 @@
       if (params.modalidad) search.set('modalidad', params.modalidad);
       if (params.materia) search.set('materia', params.materia);
       if (params.id_materia) search.set('id_materia', params.id_materia);
-      if (params.materiaId) search.set('materiaId', params.materiaId);
       const suffix = search.toString() ? `?${search.toString()}` : '';
       return pedirJson(`/clases${suffix}`);
     },
@@ -115,6 +113,24 @@
         body: JSON.stringify(payload),
       });
     },
+    listarSeguimientosPorInscripcion(id_inscripcion) {
+      return pedirJson(`/seguimientos/inscripcion/${encodeURIComponent(id_inscripcion)}`);
+    },
+    registrarSeguimiento(body) {
+      return pedirJson('/seguimientos', {
+        method: 'POST',
+        body: JSON.stringify(body),
+      });
+    },
+    listarMateriales() {
+      return pedirJson('/materiales');
+    },
+    crearMaterial(body) {
+      return pedirJson('/materiales', {
+        method: 'POST',
+        body: JSON.stringify(body),
+      });
+    },
     obtenerUsuarios() {
       return pedirJson('/usuarios');
     },
@@ -133,8 +149,8 @@
     obtenerMaterias() {
       return pedirJson('/materias');
     },
-    obtenerMateriasMentor(mentorId) {
-      return pedirJson(`/mentor-materias?mentorId=${encodeURIComponent(mentorId)}`);
+    obtenerMateriasMentor(id_mentor) {
+      return pedirJson(`/mentor-materias?id_mentor=${encodeURIComponent(id_mentor)}`);
     },
     registrar(payload) {
       return pedirJson('/auth/register', {
@@ -154,11 +170,11 @@
         body: JSON.stringify(payload),
       });
     },
-    obtenerValoracionesClase(idClase) {
-      return pedirJson(`/valoraciones/clase/${encodeURIComponent(idClase)}`);
+    obtenerValoracionesClase(id_clase) {
+      return pedirJson(`/valoraciones/clase/${encodeURIComponent(id_clase)}`);
     },
-    obtenerValoracionesMentor(idMentor) {
-      return pedirJson(`/valoraciones/mentor/${encodeURIComponent(idMentor)}`);
+    obtenerValoracionesMentor(id_mentor) {
+      return pedirJson(`/valoraciones/mentor/${encodeURIComponent(id_mentor)}`);
     },
     pedirJson,
   };

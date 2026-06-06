@@ -4,12 +4,20 @@ function crearErrorApp(message, code) {
   return error;
 }
 
+function rechazarAliasesCamelCase(datosMensaje = {}) {
+  const camposCamelCase = ['usuarioId', 'remitenteId', 'destinatarioId', 'inscripcionId', 'mensajeId'];
+  const campoInvalido = camposCamelCase.find((field) => Object.prototype.hasOwnProperty.call(datosMensaje, field));
+  if (campoInvalido) {
+    throw crearErrorApp(`Usa identificadores snake_case del dominio en lugar de ${campoInvalido}.`, 'VALIDATION_ERROR');
+  }
+}
+
 function obtenerIdUsuarioActor(datosMensaje = {}) {
-  return Number(datosMensaje.id_usuario || datosMensaje.usuarioId);
+  return Number(datosMensaje.id_usuario);
 }
 
 function rechazarDestinatarioManual(datosMensaje = {}) {
-  if (datosMensaje.id_destinatario || datosMensaje.destinatarioId) {
+  if (datosMensaje.id_destinatario) {
     throw crearErrorApp('El destinatario se infiere desde la inscripcion y no debe enviarse manualmente.', 'VALIDATION_ERROR');
   }
 }
@@ -42,7 +50,7 @@ function crearServicioMensaje({ mensajeRepository, inscripcionRepository, usuari
   async function obtenerInscripcionConActor(id_inscripcion, id_usuario) {
     const id_inscripcion_normalizado = Number(id_inscripcion);
     if (!id_inscripcion_normalizado) {
-      throw crearErrorApp('Debes indicar una inscripcion valida.', 'VALIDATION_ERROR');
+      throw crearErrorApp('La inscripcion indicada no existe', 'VALIDATION_ERROR');
     }
 
     const id_usuario_normalizado = Number(id_usuario);
@@ -52,12 +60,12 @@ function crearServicioMensaje({ mensajeRepository, inscripcionRepository, usuari
 
     const inscripcion = await inscripcionRepository.obtenerPorId(id_inscripcion_normalizado);
     if (!inscripcion) {
-      throw crearErrorApp('Inscripcion no encontrada.', 'NOT_FOUND');
+      throw crearErrorApp('La inscripcion indicada no existe', 'NOT_FOUND');
     }
 
     const usuario = await usuarioRepository.buscarPorId(id_usuario_normalizado);
     if (!usuario) {
-      throw crearErrorApp('Usuario no encontrado.', 'NOT_FOUND');
+      throw crearErrorApp('El remitente indicado no existe', 'NOT_FOUND');
     }
 
     const id_estudiante = Number(inscripcion.id_usuario);
@@ -76,23 +84,30 @@ function crearServicioMensaje({ mensajeRepository, inscripcionRepository, usuari
   }
 
   return {
-    async enviarMensaje(id_inscripcion, datosMensaje) {
+    async listarMensajes() {
+      return mensajeRepository.buscarTodos();
+    },
+
+    async enviarMensaje(datosMensaje = {}) {
+      rechazarAliasesCamelCase(datosMensaje);
       rechazarDestinatarioManual(datosMensaje);
       const contenido = validarContenido(datosMensaje?.contenido);
+      const id_inscripcion = Number(datosMensaje.id_inscripcion);
       const { inscripcion, id_usuario } = await obtenerInscripcionConActor(
         id_inscripcion,
         obtenerIdUsuarioActor(datosMensaje)
       );
       const participantes = resolverParticipantes(inscripcion, id_usuario);
 
-      return mensajeRepository.crearMensaje({
-        id_inscripcion: Number(id_inscripcion),
+      return mensajeRepository.crear({
+        id_inscripcion,
         ...participantes,
         contenido,
       });
     },
 
-    async listarConversacion(id_inscripcion, datosConsulta) {
+    async listarMensajesPorInscripcion(id_inscripcion, datosConsulta = {}) {
+      rechazarAliasesCamelCase(datosConsulta);
       await obtenerInscripcionConActor(id_inscripcion, obtenerIdUsuarioActor(datosConsulta));
       return mensajeRepository.buscarPorInscripcion(id_inscripcion);
     },

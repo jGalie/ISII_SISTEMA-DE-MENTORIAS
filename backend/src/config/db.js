@@ -176,6 +176,51 @@ async function asegurarTablaMensajes() {
   }
 }
 
+async function asegurarTablaSeguimientos() {
+  if (!(await tieneTabla('seguimientos'))) {
+    await pool.query(`
+      CREATE TABLE seguimientos (
+        id_seguimiento INT AUTO_INCREMENT PRIMARY KEY,
+        id_inscripcion INT NOT NULL,
+        progreso TINYINT NOT NULL,
+        notas TEXT NOT NULL,
+        fecha_seguimiento DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (id_inscripcion) REFERENCES inscripciones(id_inscripcion) ON DELETE CASCADE,
+        CONSTRAINT chk_seguimiento_progreso CHECK (progreso BETWEEN 0 AND 100)
+      )
+    `);
+    return;
+  }
+
+  await asegurarColumna(
+    'seguimientos',
+    'id_inscripcion',
+    'ALTER TABLE seguimientos ADD COLUMN id_inscripcion INT NULL AFTER id_seguimiento'
+  );
+  await asegurarColumna(
+    'seguimientos',
+    'progreso',
+    'ALTER TABLE seguimientos ADD COLUMN progreso TINYINT NOT NULL DEFAULT 0 AFTER id_inscripcion'
+  );
+  await asegurarColumna(
+    'seguimientos',
+    'notas',
+    'ALTER TABLE seguimientos ADD COLUMN notas TEXT NOT NULL AFTER progreso'
+  );
+  await asegurarColumna(
+    'seguimientos',
+    'fecha_seguimiento',
+    'ALTER TABLE seguimientos ADD COLUMN fecha_seguimiento DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP AFTER notas'
+  );
+
+  const fksInscripcion = await obtenerForeignKeys('seguimientos', 'id_inscripcion');
+  if (!fksInscripcion.length) {
+    await pool.query(
+      'ALTER TABLE seguimientos ADD CONSTRAINT fk_seguimientos_inscripcion FOREIGN KEY (id_inscripcion) REFERENCES inscripciones(id_inscripcion) ON DELETE CASCADE'
+    );
+  }
+}
+
 async function sembrarMaterias() {
   // Se cargan materias base para contar con datos iniciales del dominio.
   const subjects = [
@@ -362,6 +407,7 @@ async function asegurarEsquemaBaseDatos() {
   `);
 
   await asegurarTablaMensajes();
+  await asegurarTablaSeguimientos();
 
   await pool.query(`
     UPDATE clases c

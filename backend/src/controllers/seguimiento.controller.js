@@ -1,21 +1,34 @@
-const seguimientoService = require('../services/seguimiento.service');
+function crearControladorSeguimiento({ seguimientoService }) {
+  return {
+    async listar(req, res, next) {
+      try {
+        const data = await seguimientoService.listarSeguimientos();
+        res.json({ success: true, data });
+      } catch (error) {
+        next(error);
+      }
+    },
 
-function listar(req, res) {
-  try {
-    const data = seguimientoService.listarSeguimientos();
-    res.json({ data });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+    async listarPorInscripcion(req, res, next) {
+      try {
+        const data = await seguimientoService.listarSeguimientosPorInscripcion(req.params.id_inscripcion);
+        res.json({ success: true, data });
+      } catch (error) {
+        next(error);
+      }
+    },
+
+    async crear(req, res, next) {
+      try {
+        const data = await seguimientoService.registrarSeguimiento(req.body || {});
+        res.status(201).json({ success: true, data });
+      } catch (error) {
+        next(error);
+      }
+    },
+  };
 }
 
-function crear(req, res) {
-  try {
-    const data = seguimientoService.registrarSeguimiento(req.body || {});
-    res.status(201).json({ data });
-  } catch (err) {
-    res.status(400).json({ error: err.message });
-  }
-}
-
-module.exports = { listar, crear };
+module.exports = {
+  crearControladorSeguimiento,
+};

@@ -1,9 +1,14 @@
 const { Router } = require('express');
-const mentorMateriaController = require('../controllers/mentor-materia.controller');
 
-const router = Router();
+function crearRutasMentorMateria({ mentorMateriaController }) {
+  const router = Router();
 
-router.get('/', mentorMateriaController.listar);
-router.post('/', mentorMateriaController.crear);
+  router.get('/', mentorMateriaController.listar);
+  router.post('/', mentorMateriaController.crear);
 
-module.exports = router;
+  return router;
+}
+
+module.exports = {
+  crearRutasMentorMateria,
+};

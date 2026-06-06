@@ -25,8 +25,8 @@
         <div class="d-flex flex-column flex-lg-row justify-content-between gap-4">
           <div>
             <p class="text-uppercase small fw-bold text-secondary mb-2">Dashboard Mentorix</p>
-            <h1 class="display-6 fw-bold mb-2">Tu espacio de mentorías</h1>
-            <p id="welcome-text" class="text-muted mb-0">Cargando sesión...</p>
+            <h1 class="display-6 fw-bold mb-2">Tu espacio de mentorias</h1>
+            <p id="welcome-text" class="text-muted mb-0">Cargando sesion...</p>
           </div>
         </div>
       </section>
@@ -57,71 +57,149 @@
       <div id="dashboard-error" class="alert alert-danger d-none" role="alert"></div>
 
       <section id="student-dashboard" class="d-none">
-        <div class="dashboard-card p-4 p-lg-5 mb-4">
+        <div class="dashboard-card student-panel p-4 p-lg-5 mb-4">
           <div class="d-flex justify-content-between align-items-start gap-3 mb-4 flex-wrap">
             <div>
-              <h2 class="h4 fw-bold mb-1">Tus inscripciones</h2>
-              <p class="text-muted mb-0">Seguimiento de tus solicitudes y clases aprobadas.</p>
+              <p class="text-uppercase small fw-bold text-secondary mb-2">Panel Estudiante</p>
+              <h2 class="h4 fw-bold mb-1">Panel del estudiante</h2>
+              <p class="text-muted mb-0">Gestiona tus inscripciones, seguimientos academicos y mensajes.</p>
             </div>
             <span id="student-last-update" class="text-muted small">Ultima actualizacion: hace unos minutos</span>
           </div>
 
-          <div class="row g-4">
-            <div class="col-12 col-lg-4">
-              <h3 class="h6 fw-bold mb-3">Pendientes</h3>
-              <div id="pending-list" class="d-grid gap-3"></div>
-            </div>
+          <div id="student-summary-cards" class="row g-3 mb-4"></div>
 
-            <div class="col-12 col-lg-4">
-              <h3 class="h6 fw-bold mb-3">Aceptadas</h3>
-              <div id="accepted-list" class="d-grid gap-3"></div>
-            </div>
+          <div class="dashboard-tabs mb-4" role="tablist" aria-label="Secciones del panel del estudiante">
+            <button class="dashboard-tab active" type="button" data-student-tab="resumen">Resumen</button>
+            <button class="dashboard-tab" type="button" data-student-tab="inscripciones">Mis inscripciones</button>
+            <button class="dashboard-tab" type="button" data-student-tab="seguimiento">Seguimiento academico</button>
+            <button class="dashboard-tab" type="button" data-student-tab="mensajes">Mensajes</button>
+          </div>
 
-            <div class="col-12 col-lg-4">
-              <h3 class="h6 fw-bold mb-3">Rechazadas</h3>
-              <div id="rejected-list" class="d-grid gap-3"></div>
+          <div id="student-tab-resumen" class="student-tab-panel">
+            <div id="student-summary-panel"></div>
+          </div>
+
+          <div id="student-tab-inscripciones" class="student-tab-panel d-none">
+            <div class="section-heading mb-3">
+              <h3 class="h5 fw-bold mb-1">Mis inscripciones</h3>
+              <p class="text-muted mb-0">Solicitudes separadas por estado.</p>
             </div>
+            <div class="row g-4">
+              <div class="col-12 col-xl-4">
+                <h4 class="h6 fw-bold mb-3">Pendientes</h4>
+                <div id="pending-list" class="d-grid gap-3"></div>
+              </div>
+
+              <div class="col-12 col-xl-4">
+                <h4 class="h6 fw-bold mb-3">Aceptadas</h4>
+                <div id="accepted-list" class="d-grid gap-3"></div>
+              </div>
+
+              <div class="col-12 col-xl-4">
+                <h4 class="h6 fw-bold mb-3">Rechazadas</h4>
+                <div id="rejected-list" class="d-grid gap-3"></div>
+              </div>
+            </div>
+          </div>
+
+          <div id="student-tab-seguimiento" class="student-tab-panel d-none">
+            <div class="section-heading mb-3">
+              <h3 class="h5 fw-bold mb-1">Seguimiento academico</h3>
+              <p class="text-muted mb-0">Disponible para inscripciones aceptadas.</p>
+            </div>
+            <div id="student-followup-panel"></div>
+          </div>
+
+          <div id="student-tab-mensajes" class="student-tab-panel d-none">
+            <div class="section-heading mb-3">
+              <h3 class="h5 fw-bold mb-1">Mensajes</h3>
+              <p class="text-muted mb-0">Conversaciones asociadas a tus inscripciones aceptadas.</p>
+            </div>
+            <div id="student-messages-panel"></div>
           </div>
         </div>
       </section>
 
       <section id="mentor-dashboard" class="d-none">
-        <div class="dashboard-card p-4 p-lg-5 mb-4">
-          <div class="d-flex justify-content-between align-items-center gap-3 mb-4 flex-wrap">
+        <div class="dashboard-card mentor-panel p-4 p-lg-5 mb-4">
+          <div class="d-flex justify-content-between align-items-start gap-3 mb-4 flex-wrap">
             <div>
-              <h2 class="h4 fw-bold mb-1">Solicitudes para tus clases</h2>
-              <p class="text-muted mb-0">Aceptá o rechazá inscripciones pendientes.</p>
+              <p class="text-uppercase small fw-bold text-secondary mb-2">Panel Mentor</p>
+              <h2 class="h4 fw-bold mb-1">Panel del mentor</h2>
+              <p class="text-muted mb-0">Gestiona tus clases, solicitudes, mensajes, materiales y seguimientos academicos.</p>
+            </div>
+            <a class="btn btn-dark rounded-pill px-4" href="/pages/crear-clase.html">
+              <i class="bi bi-plus-lg me-1"></i>Crear clase
+            </a>
+          </div>
+
+          <div id="mentor-summary-cards" class="row g-3 mb-4"></div>
+
+          <div class="mentor-tabs mb-4" role="tablist" aria-label="Secciones del panel del mentor">
+            <button class="mentor-tab is-active" type="button" data-mentor-tab="resumen">Resumen</button>
+            <button class="mentor-tab" type="button" data-mentor-tab="clases">Mis clases</button>
+            <button class="mentor-tab" type="button" data-mentor-tab="solicitudes">Solicitudes</button>
+            <button class="mentor-tab" type="button" data-mentor-tab="seguimiento">Seguimiento academico</button>
+            <button class="mentor-tab" type="button" data-mentor-tab="mensajes">Mensajes</button>
+            <button class="mentor-tab" type="button" data-mentor-tab="materiales">Materiales</button>
+          </div>
+
+          <div id="mentor-tab-resumen" class="mentor-tab-panel">
+            <div id="mentor-summary-panel"></div>
+          </div>
+
+          <div id="mentor-tab-clases" class="mentor-tab-panel d-none">
+            <div class="section-heading mb-3">
+              <h3 class="h5 fw-bold mb-1">Mis clases</h3>
+              <p class="text-muted mb-0">Clases publicadas y disponibilidad actual.</p>
+            </div>
+            <div id="mentor-classes-list" class="row g-3"></div>
+          </div>
+
+          <div id="mentor-tab-solicitudes" class="mentor-tab-panel d-none">
+            <div class="section-heading mb-3">
+              <h3 class="h5 fw-bold mb-1">Solicitudes de inscripcion</h3>
+              <p class="text-muted mb-0">Revisa pendientes y accede a las inscripciones gestionadas.</p>
+            </div>
+            <div class="row g-4">
+              <div class="col-12 col-xl-4">
+                <h4 class="h6 fw-bold mb-3">Pendientes</h4>
+                <div id="mentor-pending-list" class="d-grid gap-3"></div>
+              </div>
+              <div class="col-12 col-xl-4">
+                <h4 class="h6 fw-bold mb-3">Aceptadas</h4>
+                <div id="mentor-accepted-list" class="d-grid gap-3"></div>
+              </div>
+              <div class="col-12 col-xl-4">
+                <h4 class="h6 fw-bold mb-3">Rechazadas</h4>
+                <div id="mentor-rejected-list" class="d-grid gap-3"></div>
+              </div>
             </div>
           </div>
 
-          <div id="mentor-list" class="d-grid gap-3"></div>
-        </div>
-
-        <div class="dashboard-card p-4 p-lg-5 mb-4">
-          <div class="d-flex justify-content-between align-items-center gap-3 mb-4 flex-wrap">
-            <div>
-              <h2 class="h4 fw-bold mb-1">Historial de solicitudes</h2>
-              <p class="text-muted mb-0">Solicitudes aceptadas o rechazadas, con opcion de corregir la decision.</p>
+          <div id="mentor-tab-seguimiento" class="mentor-tab-panel d-none">
+            <div class="section-heading mb-3">
+              <h3 class="h5 fw-bold mb-1">Seguimiento academico</h3>
+              <p class="text-muted mb-0">Consulta y registra observaciones en inscripciones aceptadas.</p>
             </div>
+            <div id="mentor-followup-panel"></div>
           </div>
 
-          <div id="mentor-history-list" class="d-grid gap-3"></div>
-        </div>
-
-        <div class="dashboard-card p-4 p-lg-5 mt-4">
-          <div class="d-flex justify-content-between align-items-center gap-3 mb-4 flex-wrap">
-            <div>
-              <h2 class="h4 fw-bold mb-1">Próximas clases</h2>
-              <p class="text-muted mb-0">Visualizá tu agenda de mentorías programadas.</p>
+          <div id="mentor-tab-mensajes" class="mentor-tab-panel d-none">
+            <div class="section-heading mb-3">
+              <h3 class="h5 fw-bold mb-1">Mensajes</h3>
+              <p class="text-muted mb-0">Conversaciones asociadas a inscripciones.</p>
             </div>
-
-            <a class="btn btn-outline-dark pill-button px-4" href="/pages/clases.html">Ver todas</a>
+            <div id="mentor-messages-panel"></div>
           </div>
 
-          <div id="mentor-classes-list" class="row g-3">
-            <div class="col-12">
-              <div class="item-card p-3 text-muted text-center">Aún no tienes clases programadas.</div>
+          <div id="mentor-tab-materiales" class="mentor-tab-panel d-none">
+            <div class="section-heading mb-3">
+              <h3 class="h5 fw-bold mb-1">Materiales</h3>
+              <p class="text-muted mb-0">Materiales agrupados por clase.</p>
             </div>
+            <div id="mentor-materials-panel"></div>
           </div>
         </div>
       </section>

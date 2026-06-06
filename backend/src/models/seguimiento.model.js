@@ -1,18 +1,10 @@
-/**
- * Entidad: Seguimiento académico vinculado a una inscripción.
- * @typedef {Object} Seguimiento
- * @property {number} id
- * @property {number} inscripcionId
- * @property {string} notas
- * @property {string} fecha ISO date
- */
-
 function mapearSeguimiento(row) {
+  if (!row) return null;
   return {
-    id: row.id,
-    inscripcionId: row.inscripcionId,
+    id_seguimiento: row.id_seguimiento,
+    id_inscripcion: row.id_inscripcion,
     notas: row.notas,
-    fecha: row.fecha,
+    fecha_seguimiento: row.fecha_seguimiento,
   };
 }
 

@@ -22,9 +22,9 @@ function crearControladorClase({ claseService }) {
       try {
         // Si se recibe id_mentor, el listado queda acotado a las clases de ese
         // mentor; si no, se responde con el catalogo general de clases.
-        const mentorId = req.query.id_mentor;
-        const data = mentorId
-          ? await claseService.listarClasesPorMentor(mentorId)
+        const id_mentor = req.query.id_mentor;
+        const data = id_mentor
+          ? await claseService.listarClasesPorMentor(id_mentor)
           : await claseService.listarClases(req.query || {});
         res.json({ success: true, data });
       } catch (err) {

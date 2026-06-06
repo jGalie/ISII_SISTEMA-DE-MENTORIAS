@@ -1,26 +1,66 @@
-const seguimientoRepository = require('../repositories/seguimiento.repository');
-const inscripcionRepository = require('../repositories/inscripcion.repository');
+function crearErrorApp(message, code) {
+  const error = new Error(message);
+  error.code = code;
+  return error;
+}
 
-function requerirCampos(body, fields) {
-  for (const f of fields) {
-    if (body[f] == null || String(body[f]).trim() === '') {
-      throw new Error(`Campo obligatorio: ${f}`);
+function crearServicioSeguimiento({ seguimientoRepository, inscripcionRepository }) {
+  function obtenerNotas(body = {}) {
+    const notas = String(body.notas || '').trim();
+    if (!notas) {
+      throw crearErrorApp('Las notas del seguimiento son obligatorias', 'VALIDATION_ERROR');
     }
+
+    return notas;
   }
-}
 
-function listarSeguimientos() {
-  return seguimientoRepository.buscarTodos();
-}
+  async function validarInscripcionAceptada(id_inscripcion) {
+    const id_inscripcion_normalizado = Number(id_inscripcion);
+    if (!id_inscripcion_normalizado) {
+      throw crearErrorApp('La inscripcion indicada no existe', 'VALIDATION_ERROR');
+    }
 
-function registrarSeguimiento(body) {
-  requerirCampos(body, ['inscripcionId', 'notas']);
-  const ins = inscripcionRepository.buscarPorId(body.inscripcionId);
-  if (!ins) throw new Error('inscripcionId no válido');
-  return seguimientoRepository.crear(body);
+    const inscripcion = await inscripcionRepository.obtenerPorId(id_inscripcion_normalizado);
+    if (!inscripcion) {
+      throw crearErrorApp('La inscripcion indicada no existe', 'NOT_FOUND');
+    }
+
+    if (inscripcion.estado !== 'aceptada') {
+      throw crearErrorApp(
+        'El seguimiento academico solo esta disponible para inscripciones aceptadas',
+        'VALIDATION_ERROR'
+      );
+    }
+
+    return inscripcion;
+  }
+
+  return {
+    validarInscripcionAceptada,
+
+    async listarSeguimientos() {
+      return seguimientoRepository.buscarTodos();
+    },
+
+    async listarSeguimientosPorInscripcion(id_inscripcion) {
+      await validarInscripcionAceptada(id_inscripcion);
+      return seguimientoRepository.buscarPorInscripcion(id_inscripcion);
+    },
+
+    async registrarSeguimiento(body = {}) {
+      const id_inscripcion = Number(body.id_inscripcion);
+      const notas = obtenerNotas(body);
+      await validarInscripcionAceptada(id_inscripcion);
+
+      return seguimientoRepository.crear({
+        id_inscripcion,
+        notas,
+        fecha_seguimiento: body.fecha_seguimiento,
+      });
+    },
+  };
 }
 
 module.exports = {
-  listarSeguimientos,
-  registrarSeguimiento,
+  crearServicioSeguimiento,
 };

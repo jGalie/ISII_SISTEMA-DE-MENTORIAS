@@ -42,7 +42,7 @@ function crearServicioValoracion({ valoracionRepository, claseRepository, usuari
       return valoracionRepository.crear({
         id_clase,
         id_estudiante,
-        id_mentor: clase.mentorId,
+        id_mentor: clase.id_mentor,
         estrellas,
         comentario,
       });

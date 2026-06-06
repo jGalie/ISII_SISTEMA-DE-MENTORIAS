@@ -156,8 +156,8 @@ function crearServicioAuth({ usuarioRepository }) {
 
             await mentorMateriaRepository.crear(
               {
-                mentorId: user.id,
-                materiaId: materia.id,
+                id_mentor: user.id,
+                id_materia: materia.id_materia || materia.id,
               },
               connection
             );
@@ -204,11 +204,12 @@ function crearServicioAuth({ usuarioRepository }) {
 
       let materias = [];
       if (user.rol === 'mentor') {
-        const links = await mentorMateriaRepository.buscarPorMentorId(user.id);
+        const links = await mentorMateriaRepository.buscarPorMentor(user.id);
         materias = links.map((item) => ({
-          id: item.materiaId,
-          nombre: item.materiaNombre,
-          codigo: item.materiaCodigo,
+          id: item.id_materia,
+          id_materia: item.id_materia,
+          nombre: item.materia_nombre,
+          codigo: item.materia_codigo,
         }));
       }
 

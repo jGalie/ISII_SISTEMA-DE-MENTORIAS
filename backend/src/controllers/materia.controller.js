@@ -1,21 +1,25 @@
-const materiaService = require('../services/materia.service');
+function crearControladorMateria({ materiaService }) {
+  return {
+    async listar(req, res, next) {
+      try {
+        const data = await materiaService.listarMaterias();
+        res.json({ data });
+      } catch (error) {
+        next(error);
+      }
+    },
 
-async function listar(req, res) {
-  try {
-    const data = await materiaService.listarMaterias();
-    res.json({ data });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+    async crear(req, res, next) {
+      try {
+        const data = await materiaService.crearMateria(req.body || {});
+        res.status(201).json({ data });
+      } catch (error) {
+        next(error);
+      }
+    },
+  };
 }
 
-async function crear(req, res) {
-  try {
-    const data = await materiaService.crearMateria(req.body || {});
-    res.status(201).json({ data });
-  } catch (err) {
-    res.status(400).json({ error: err.message });
-  }
-}
-
-module.exports = { listar, crear };
+module.exports = {
+  crearControladorMateria,
+};

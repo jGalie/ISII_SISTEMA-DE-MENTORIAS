@@ -63,7 +63,7 @@ function crearRepositorioClase({ pool }) {
       const busqueda = String(filtros.q || filtros.busqueda || '').trim();
       const modalidad = String(filtros.modalidad || '').trim().toLowerCase();
       const materia = String(filtros.materia || '').trim();
-      const idMateria = Number(filtros.id_materia || filtros.materiaId);
+      const id_materia = Number(filtros.id_materia);
 
       if (busqueda) {
         condiciones.push(`(
@@ -84,9 +84,9 @@ function crearRepositorioClase({ pool }) {
         valores.push('presencial');
       }
 
-      if (Number.isInteger(idMateria) && idMateria > 0) {
+      if (Number.isInteger(id_materia) && id_materia > 0) {
         condiciones.push('c.id_materia = ?');
-        valores.push(idMateria);
+        valores.push(id_materia);
       } else if (materia) {
         condiciones.push('m.nombre LIKE ?');
         valores.push(`%${materia}%`);

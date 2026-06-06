@@ -1,40 +1,60 @@
-const mentorMateriaRepository = require('../repositories/mentor-materia.repository');
-const usuarioRepository = require('../repositories/usuario.repository');
-const materiaRepository = require('../repositories/materia.repository');
+function crearErrorApp(message, code) {
+  const error = new Error(message);
+  error.code = code;
+  return error;
+}
 
-function requerirCampos(body, fields) {
-  for (const field of fields) {
-    if (body[field] == null || String(body[field]).trim() === '') {
-      throw new Error(`Campo obligatorio: ${field}`);
+function crearServicioMentorMateria({ mentorMateriaRepository, usuarioRepository, materiaRepository }) {
+  function normalizarAsociacion(body = {}) {
+    const id_mentor = Number(body.id_mentor);
+    const id_materia = Number(body.id_materia);
+
+    if (!id_mentor) {
+      throw crearErrorApp('El mentor indicado no existe', 'VALIDATION_ERROR');
     }
-  }
-}
+    if (!id_materia) {
+      throw crearErrorApp('La materia indicada no existe', 'VALIDATION_ERROR');
+    }
 
-async function listarMateriasDelMentor(filtros = {}) {
-  if (filtros.mentorId) {
-    return mentorMateriaRepository.buscarPorMentorId(filtros.mentorId);
-  }
-
-  return mentorMateriaRepository.buscarTodos();
-}
-
-async function asociarMateriaMentor(body) {
-  requerirCampos(body, ['mentorId', 'materiaId']);
-
-  const mentor = await usuarioRepository.buscarPorId(body.mentorId);
-  if (!mentor || mentor.rol !== 'mentor') {
-    throw new Error('mentorId debe ser un usuario mentor');
+    return { id_mentor, id_materia };
   }
 
-  const materia = await materiaRepository.buscarPorId(body.materiaId);
-  if (!materia) {
-    throw new Error('materiaId no valido');
-  }
+  return {
+    async listarMateriasDelMentor(filtros = {}) {
+      const id_mentor = Number(filtros.id_mentor || 0);
+      if (id_mentor) {
+        return mentorMateriaRepository.buscarPorMentor(id_mentor);
+      }
 
-  return mentorMateriaRepository.crear(body);
+      return mentorMateriaRepository.buscarTodos();
+    },
+
+    async asociarMateriaMentor(body = {}) {
+      const datosAsociacion = normalizarAsociacion(body);
+
+      const mentor = await usuarioRepository.buscarPorId(datosAsociacion.id_mentor);
+      if (!mentor || mentor.rol !== 'mentor') {
+        throw crearErrorApp('El mentor indicado no existe', 'NOT_FOUND');
+      }
+
+      const materia = await materiaRepository.buscarPorId(datosAsociacion.id_materia);
+      if (!materia) {
+        throw crearErrorApp('La materia indicada no existe', 'NOT_FOUND');
+      }
+
+      const asociacionExistente = await mentorMateriaRepository.buscarAsociacion(
+        datosAsociacion.id_mentor,
+        datosAsociacion.id_materia
+      );
+      if (asociacionExistente) {
+        throw crearErrorApp('La materia ya esta asociada al mentor', 'VALIDATION_ERROR');
+      }
+
+      return mentorMateriaRepository.crear(datosAsociacion);
+    },
+  };
 }
 
 module.exports = {
-  listarMateriasDelMentor,
-  asociarMateriaMentor,
+  crearServicioMentorMateria,
 };

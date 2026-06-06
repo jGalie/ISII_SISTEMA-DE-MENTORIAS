@@ -2,8 +2,9 @@ const { crearServicioMensaje } = require('../../src/services/mensaje.service');
 
 function crearDependencias(overrides = {}) {
   const mensajeRepository = {
-    crearMensaje: jest.fn().mockImplementation((mensaje) => Promise.resolve({ id: 1, ...mensaje })),
+    crear: jest.fn().mockImplementation((mensaje) => Promise.resolve({ id_mensaje: 1, ...mensaje })),
     buscarPorInscripcion: jest.fn().mockResolvedValue([]),
+    buscarTodos: jest.fn().mockResolvedValue([]),
   };
   const inscripcionRepository = {
     obtenerPorId: jest.fn().mockResolvedValue({
@@ -29,12 +30,13 @@ describe('Mensajeria interna asociada a inscripcion', () => {
     const dependencias = crearDependencias();
     const servicio = crearServicioMensaje(dependencias);
 
-    const resultado = await servicio.enviarMensaje(7, {
+    const resultado = await servicio.enviarMensaje({
+      id_inscripcion: 7,
       id_usuario: 9,
       contenido: 'Cual es tu nivel previo?',
     });
 
-    expect(dependencias.mensajeRepository.crearMensaje).toHaveBeenCalledWith({
+    expect(dependencias.mensajeRepository.crear).toHaveBeenCalledWith({
       id_inscripcion: 7,
       id_remitente: 9,
       id_destinatario: 3,
@@ -46,7 +48,7 @@ describe('Mensajeria interna asociada a inscripcion', () => {
   test('rechaza mensajes vacios', async () => {
     const servicio = crearServicioMensaje(crearDependencias());
 
-    await expect(servicio.enviarMensaje(7, { id_usuario: 9, contenido: '   ' })).rejects.toMatchObject({
+    await expect(servicio.enviarMensaje({ id_inscripcion: 7, id_usuario: 9, contenido: '   ' })).rejects.toMatchObject({
       code: 'VALIDATION_ERROR',
     });
   });
@@ -59,7 +61,7 @@ describe('Mensajeria interna asociada a inscripcion', () => {
     });
     const servicio = crearServicioMensaje(dependencias);
 
-    await expect(servicio.listarConversacion(7, { id_usuario: 12 })).rejects.toMatchObject({
+    await expect(servicio.listarMensajesPorInscripcion(7, { id_usuario: 12 })).rejects.toMatchObject({
       code: 'FORBIDDEN',
     });
   });
@@ -72,40 +74,43 @@ describe('Mensajeria interna asociada a inscripcion', () => {
     });
     const servicio = crearServicioMensaje(dependencias);
 
-    await expect(servicio.enviarMensaje(7, {
+    await expect(servicio.enviarMensaje({
+      id_inscripcion: 7,
       id_usuario: 12,
       contenido: 'Hola',
     })).rejects.toMatchObject({
       code: 'FORBIDDEN',
     });
-    expect(dependencias.mensajeRepository.crearMensaje).not.toHaveBeenCalled();
+    expect(dependencias.mensajeRepository.crear).not.toHaveBeenCalled();
   });
 
   test('no permite enviar el destinatario desde el frontend', async () => {
     const dependencias = crearDependencias();
     const servicio = crearServicioMensaje(dependencias);
 
-    await expect(servicio.enviarMensaje(7, {
+    await expect(servicio.enviarMensaje({
+      id_inscripcion: 7,
       id_usuario: 9,
       id_destinatario: 12,
       contenido: 'Hola',
     })).rejects.toMatchObject({
       code: 'VALIDATION_ERROR',
     });
-    expect(dependencias.mensajeRepository.crearMensaje).not.toHaveBeenCalled();
+    expect(dependencias.mensajeRepository.crear).not.toHaveBeenCalled();
   });
 
   test('rechaza alias de remitente para evitar manipulacion desde el frontend', async () => {
     const dependencias = crearDependencias();
     const servicio = crearServicioMensaje(dependencias);
 
-    await expect(servicio.enviarMensaje(7, {
+    await expect(servicio.enviarMensaje({
+      id_inscripcion: 7,
       remitenteId: 9,
       contenido: 'Hola',
     })).rejects.toMatchObject({
       code: 'VALIDATION_ERROR',
     });
-    expect(dependencias.mensajeRepository.crearMensaje).not.toHaveBeenCalled();
+    expect(dependencias.mensajeRepository.crear).not.toHaveBeenCalled();
   });
 
   test('valida que el usuario asociado tenga el rol esperado en la inscripcion', async () => {
@@ -116,7 +121,8 @@ describe('Mensajeria interna asociada a inscripcion', () => {
     });
     const servicio = crearServicioMensaje(dependencias);
 
-    await expect(servicio.enviarMensaje(7, {
+    await expect(servicio.enviarMensaje({
+      id_inscripcion: 7,
       id_usuario: 9,
       contenido: 'Hola',
     })).rejects.toMatchObject({

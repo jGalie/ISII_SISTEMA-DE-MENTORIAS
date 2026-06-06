@@ -87,11 +87,12 @@ function crearServicioUsuario({ usuarioRepository, claseRepository, valoracionRe
 
       let materias = [];
       if (user.rol === 'mentor') {
-        const links = await mentorMateriaRepository.buscarPorMentorId(user.id);
+        const links = await mentorMateriaRepository.buscarPorMentor(user.id);
         materias = links.map((item) => ({
-          id: item.materiaId,
-          nombre: item.materiaNombre,
-          codigo: item.materiaCodigo,
+          id: item.id_materia,
+          id_materia: item.id_materia,
+          nombre: item.materia_nombre,
+          codigo: item.materia_codigo,
         }));
       }
 
@@ -104,7 +105,7 @@ function crearServicioUsuario({ usuarioRepository, claseRepository, valoracionRe
         throw crearErrorApp('Mentor no encontrado.', 'NOT_FOUND');
       }
 
-      const materiasLinks = await mentorMateriaRepository.buscarPorMentorId(mentor.id);
+      const materiasLinks = await mentorMateriaRepository.buscarPorMentor(mentor.id);
       const clases = claseRepository ? await claseRepository.buscarPorMentor(mentor.id) : [];
       const valoraciones = valoracionRepository
         ? await valoracionRepository.buscarPorMentor(mentor.id)
@@ -123,9 +124,10 @@ function crearServicioUsuario({ usuarioRepository, claseRepository, valoracionRe
         mentorLink: mentor.mentorLink || '',
         nivelesEducativos: mentor.nivelesEducativos || [],
         materias: materiasLinks.map((item) => ({
-          id: item.materiaId,
-          nombre: item.materiaNombre,
-          codigo: item.materiaCodigo,
+          id: item.id_materia,
+          id_materia: item.id_materia,
+          nombre: item.materia_nombre,
+          codigo: item.materia_codigo,
         })),
         clases,
         promedioEstrellas: resumenValoraciones.promedio,
@@ -233,14 +235,14 @@ function crearServicioUsuario({ usuarioRepository, claseRepository, valoracionRe
         let materias = [];
 
         if (existingUser.rol === 'mentor') {
-          await mentorMateriaRepository.eliminarPorMentorId(targetId, connection);
+          await mentorMateriaRepository.eliminarPorMentor(targetId, connection);
 
           for (const subjectName of mentorSubjects) {
             const materia = await materiaRepository.buscarOCrearPorNombre(subjectName, connection);
             if (!materia) continue;
 
             await mentorMateriaRepository.crear(
-              { mentorId: targetId, materiaId: materia.id },
+              { id_mentor: targetId, id_materia: materia.id_materia || materia.id },
               connection
             );
 

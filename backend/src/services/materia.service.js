@@ -1,23 +1,32 @@
-const materiaRepository = require('../repositories/materia.repository');
+function crearErrorApp(message, code) {
+  const error = new Error(message);
+  error.code = code;
+  return error;
+}
 
-function requerirCampos(body, fields) {
-  for (const field of fields) {
-    if (body[field] == null || String(body[field]).trim() === '') {
-      throw new Error(`Campo obligatorio: ${field}`);
+function crearServicioMateria({ materiaRepository }) {
+  function normalizarMateria(body = {}) {
+    const nombre = String(body.nombre || '').trim();
+    const codigo = String(body.codigo || nombre).trim();
+
+    if (!nombre) {
+      throw crearErrorApp('El nombre de la materia es obligatorio', 'VALIDATION_ERROR');
     }
+
+    return { nombre, codigo };
   }
-}
 
-async function listarMaterias() {
-  return materiaRepository.buscarTodos();
-}
+  return {
+    async listarMaterias() {
+      return materiaRepository.buscarTodos();
+    },
 
-async function crearMateria(body) {
-  requerirCampos(body, ['nombre', 'codigo']);
-  return materiaRepository.crear(body);
+    async crearMateria(body = {}) {
+      return materiaRepository.crear(normalizarMateria(body));
+    },
+  };
 }
 
 module.exports = {
-  listarMaterias,
-  crearMateria,
+  crearServicioMateria,
 };

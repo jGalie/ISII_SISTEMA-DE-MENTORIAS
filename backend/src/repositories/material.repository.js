@@ -15,7 +15,7 @@ function buscarPorId(id) {
 function crear(data) {
   const row = {
     id: nextId++,
-    claseId: Number(data.claseId),
+    id_clase: Number(data.id_clase),
     titulo: data.titulo,
     url: data.url || '',
   };

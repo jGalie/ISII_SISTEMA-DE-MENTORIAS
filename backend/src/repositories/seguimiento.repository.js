@@ -1,30 +1,61 @@
 const { mapearSeguimiento } = require('../models/seguimiento.model');
 
-let nextId = 1;
-const store = [];
+function crearRepositorioSeguimiento({ pool }) {
+  return {
+    async buscarTodos() {
+      const [rows] = await pool.query(
+        `
+          SELECT id_seguimiento, id_inscripcion, notas, fecha_seguimiento
+          FROM seguimientos
+          ORDER BY fecha_seguimiento ASC, id_seguimiento ASC
+        `
+      );
 
-function buscarTodos() {
-  return store.map((r) => mapearSeguimiento(r));
-}
+      return rows.map(mapearSeguimiento);
+    },
 
-function buscarPorId(id) {
-  const row = store.find((r) => r.id === Number(id));
-  return row ? mapearSeguimiento(row) : null;
-}
+    async buscarPorInscripcion(id_inscripcion) {
+      const [rows] = await pool.query(
+        `
+          SELECT id_seguimiento, id_inscripcion, notas, fecha_seguimiento
+          FROM seguimientos
+          WHERE id_inscripcion = ?
+          ORDER BY fecha_seguimiento ASC, id_seguimiento ASC
+        `,
+        [Number(id_inscripcion)]
+      );
 
-function crear(data) {
-  const row = {
-    id: nextId++,
-    inscripcionId: Number(data.inscripcionId),
-    notas: data.notas,
-    fecha: data.fecha || new Date().toISOString(),
+      return rows.map(mapearSeguimiento);
+    },
+
+    async crear({ id_inscripcion, notas, fecha_seguimiento }) {
+      const [result] = await pool.query(
+        `
+          INSERT INTO seguimientos (id_inscripcion, progreso, notas, fecha_seguimiento)
+          VALUES (?, 0, ?, ?)
+        `,
+        [
+          Number(id_inscripcion),
+          notas,
+          fecha_seguimiento || new Date(),
+        ]
+      );
+
+      const [rows] = await pool.query(
+        `
+          SELECT id_seguimiento, id_inscripcion, notas, fecha_seguimiento
+          FROM seguimientos
+          WHERE id_seguimiento = ?
+          LIMIT 1
+        `,
+        [result.insertId]
+      );
+
+      return rows.length ? mapearSeguimiento(rows[0]) : null;
+    },
   };
-  store.push(row);
-  return mapearSeguimiento(row);
 }
 
 module.exports = {
-  buscarTodos,
-  buscarPorId,
-  crear,
+  crearRepositorioSeguimiento,
 };

@@ -48,12 +48,15 @@ function mapearClase(row) {
     modalidad: row.modalidad || 'virtual',
     id_mentor: row.id_mentor ?? row.mentorId,
     mentorId: row.mentorId ?? row.id_mentor,
+    id_materia: row.id_materia ?? row.materiaId ?? null,
     materiaId: row.materiaId ?? row.id_materia ?? null,
     materiaNombre: row.materiaNombre ?? row.materia_nombre ?? null,
     precio: row.precio != null ? Number(row.precio) : null,
     ubicacion: row.ubicacion ?? null,
     cupoMaximo: Number(row.cupoMaximo ?? row.cupo_maximo ?? 1),
+    cupo_maximo: Number(row.cupo_maximo ?? row.cupoMaximo ?? 1),
     cupoActual: Number(row.cupoActual ?? row.cupo_actual ?? 0),
+    cupo_actual: Number(row.cupo_actual ?? row.cupoActual ?? 0),
     completa: Number(row.cupoActual ?? row.cupo_actual ?? 0) >= Number(row.cupoMaximo ?? row.cupo_maximo ?? 1),
     promedioEstrellas:
       row.promedioEstrellas != null || row.promedio_estrellas != null

@@ -84,6 +84,151 @@ body {
   min-width: 110px;
 }
 
+.mentor-tabs {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  padding-bottom: 0.25rem;
+}
+
+.dashboard-tabs {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  padding-bottom: 0.25rem;
+}
+
+.mentor-tab {
+  border: 1px solid #e7ddf8;
+  border-radius: 999px;
+  background: #fff;
+  color: var(--text-muted);
+  font-weight: 700;
+  padding: 0.65rem 1rem;
+  white-space: nowrap;
+}
+
+.dashboard-tab {
+  border: 1px solid #e7ddf8;
+  border-radius: 999px;
+  background: #fff;
+  color: var(--text-muted);
+  font-weight: 700;
+  padding: 0.65rem 1rem;
+  white-space: nowrap;
+}
+
+.mentor-tab.is-active {
+  border-color: var(--brand);
+  background: #f2ebff;
+  color: var(--brand-dark);
+}
+
+.dashboard-tab.active {
+  border-color: var(--brand);
+  background: #f2ebff;
+  color: var(--brand-dark);
+}
+
+.section-heading {
+  border-bottom: 1px solid #f0e7ff;
+  padding-bottom: 1rem;
+}
+
+.summary-mini-card {
+  display: grid;
+  gap: 0.35rem;
+  border: 1px solid #f0e7ff;
+  border-radius: 1rem;
+  background: #fbf8ff;
+  padding: 1rem;
+}
+
+.summary-mini-card strong {
+  font-size: 1.8rem;
+  line-height: 1;
+}
+
+.student-stat {
+  display: grid;
+  gap: 0.25rem;
+  min-height: 5.5rem;
+  border: 1px solid #f0e7ff;
+  border-radius: 1rem;
+  background: #fbf8ff;
+  padding: 0.85rem;
+}
+
+.student-stat span {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.student-stat strong {
+  font-size: 1.6rem;
+  line-height: 1;
+}
+
+.empty-state {
+  border-style: dashed;
+  background: #fbf8ff;
+}
+
+.action-button {
+  border-radius: 999px;
+  background: var(--text-main);
+  color: #fff;
+  border: 1px solid var(--text-main);
+  padding: 0.55rem 1rem;
+}
+
+.secondary-button {
+  border-radius: 999px;
+  background: #fff;
+  color: var(--text-main);
+  border: 1px solid var(--text-main);
+  padding: 0.55rem 1rem;
+}
+
+.mentor-class-meta i {
+  color: var(--brand-dark);
+}
+
+.conversation-row {
+  display: grid;
+  gap: 0.25rem;
+  width: 100%;
+  text-align: left;
+  border: 1px solid #f0e7ff;
+  border-radius: 1rem;
+  background: #fff;
+  padding: 0.9rem 1rem;
+}
+
+.conversation-row:hover {
+  border-color: #dcc8ff;
+  background: #fbf8ff;
+}
+
+.conversation-row.is-active {
+  border-color: var(--brand);
+  background: #f2ebff;
+}
+
+.seguimiento-panel {
+  border-top: 1px solid #f0e7ff;
+  padding-top: 1rem;
+}
+
+.seguimiento-historial {
+  padding-left: 1.1rem;
+}
+
+.seguimiento-form {
+  border-top: 1px solid #f0e7ff;
+  padding-top: 1rem;
+}
+
 .mensaje-modal-content {
   border: 0;
   border-radius: 1rem;

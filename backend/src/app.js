@@ -8,36 +8,47 @@ const { crearRepositorioClase } = require('./repositories/clase.repository');
 const { crearRepositorioInscripcion } = require('./repositories/inscripcion.repository');
 const { crearRepositorioValoracion } = require('./repositories/valoracion.repository');
 const { crearRepositorioMensaje } = require('./repositories/mensaje.repository');
-const mentorMateriaRepository = require('./repositories/mentor-materia.repository');
+const { crearRepositorioSeguimiento } = require('./repositories/seguimiento.repository');
+const { crearRepositorioMateria } = require('./repositories/materia.repository');
+const { crearRepositorioMentorMateria } = require('./repositories/mentor-materia.repository');
 const { crearServicioUsuario } = require('./services/usuario.service');
 const { crearServicioClase } = require('./services/clase.service');
 const { crearServicioInscripcion } = require('./services/inscripcion.service');
 const { crearServicioValoracion } = require('./services/valoracion.service');
 const { crearServicioMensaje } = require('./services/mensaje.service');
+const { crearServicioSeguimiento } = require('./services/seguimiento.service');
+const { crearServicioMateria } = require('./services/materia.service');
+const { crearServicioMentorMateria } = require('./services/mentor-materia.service');
 const { crearServicioAuth } = require('./services/auth.service');
 const { crearControladorUsuario } = require('./controllers/usuario.controller');
 const { crearControladorClase } = require('./controllers/clase.controller');
 const { crearControladorInscripcion } = require('./controllers/inscripcion.controller');
 const { crearControladorValoracion } = require('./controllers/valoracion.controller');
 const { crearControladorMensaje } = require('./controllers/mensaje.controller');
+const { crearControladorSeguimiento } = require('./controllers/seguimiento.controller');
+const { crearControladorMateria } = require('./controllers/materia.controller');
+const { crearControladorMentorMateria } = require('./controllers/mentor-materia.controller');
 const { crearControladorAuth } = require('./controllers/auth.controller');
 const { crearRutasUsuario } = require('./routes/usuario.routes');
 const { crearRutasClase } = require('./routes/clase.routes');
 const { crearRutasInscripcion } = require('./routes/inscripcion.routes');
 const { crearRutasValoracion } = require('./routes/valoracion.routes');
 const { crearRutasMensaje } = require('./routes/mensaje.routes');
+const { crearRutasSeguimiento } = require('./routes/seguimiento.routes');
+const { crearRutasMateria } = require('./routes/materia.routes');
+const { crearRutasMentorMateria } = require('./routes/mentor-materia.routes');
 const { crearRutasAuth } = require('./routes/auth.routes');
 
-const materiaRoutes = require('./routes/materia.routes');
-const seguimientoRoutes = require('./routes/seguimiento.routes');
 const materialRoutes = require('./routes/material.routes');
-const mentorMateriaRoutes = require('./routes/mentor-materia.routes');
 
 const usuarioRepository = crearRepositorioUsuario({ pool });
 const claseRepository = crearRepositorioClase({ pool });
 const inscripcionRepository = crearRepositorioInscripcion({ pool });
 const valoracionRepository = crearRepositorioValoracion({ pool });
 const mensajeRepository = crearRepositorioMensaje({ pool });
+const seguimientoRepository = crearRepositorioSeguimiento({ pool });
+const materiaRepository = crearRepositorioMateria({ pool });
+const mentorMateriaRepository = crearRepositorioMentorMateria({ pool });
 
 // En esta seccion se realiza la inyeccion manual de dependencias. Cada capa
 // recibe solamente los objetos que necesita, lo que disminuye el acoplamiento y
@@ -64,6 +75,16 @@ const mensajeService = crearServicioMensaje({
   inscripcionRepository,
   usuarioRepository,
 });
+const seguimientoService = crearServicioSeguimiento({
+  seguimientoRepository,
+  inscripcionRepository,
+});
+const materiaService = crearServicioMateria({ materiaRepository });
+const mentorMateriaService = crearServicioMentorMateria({
+  mentorMateriaRepository,
+  usuarioRepository,
+  materiaRepository,
+});
 const authService = crearServicioAuth({ usuarioRepository });
 
 const usuarioController = crearControladorUsuario({ usuarioService });
@@ -71,6 +92,9 @@ const claseController = crearControladorClase({ claseService });
 const inscripcionController = crearControladorInscripcion({ inscripcionService });
 const valoracionController = crearControladorValoracion({ valoracionService });
 const mensajeController = crearControladorMensaje({ mensajeService });
+const seguimientoController = crearControladorSeguimiento({ seguimientoService });
+const materiaController = crearControladorMateria({ materiaService });
+const mentorMateriaController = crearControladorMentorMateria({ mentorMateriaService });
 const authController = crearControladorAuth({ authService });
 
 const app = express();
@@ -94,10 +118,10 @@ app.use('/clases', crearRutasClase({ claseController }));
 app.use('/inscripciones', crearRutasInscripcion({ inscripcionController }));
 app.use('/inscripciones', crearRutasMensaje({ mensajeController }));
 app.use('/valoraciones', crearRutasValoracion({ valoracionController }));
-app.use('/materias', materiaRoutes);
-app.use('/seguimientos', seguimientoRoutes);
+app.use('/materias', crearRutasMateria({ materiaController }));
+app.use('/seguimientos', crearRutasSeguimiento({ seguimientoController }));
 app.use('/materiales', materialRoutes);
-app.use('/mentor-materias', mentorMateriaRoutes);
+app.use('/mentor-materias', crearRutasMentorMateria({ mentorMateriaController }));
 
 const frontendRoot = path.join(__dirname, '..', '..', 'frontend');
 
@@ -107,6 +131,27 @@ app.use(express.static(frontendRoot));
 
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', service: 'mentorix-api' });
+});
+
+function resolverEstadoHttp(error, fallbackStatus = 500) {
+  if (error.code === 'VALIDATION_ERROR') return 400;
+  if (error.code === 'FORBIDDEN') return 403;
+  if (error.code === 'NOT_FOUND') return 404;
+  if (error.code === 'DUPLICATE_USER') return 409;
+  if (error.code === 'DUPLICATE_ENROLLMENT') return 409;
+  return fallbackStatus;
+}
+
+app.use((error, req, res, next) => {
+  if (res.headersSent) {
+    next(error);
+    return;
+  }
+
+  res.status(resolverEstadoHttp(error)).json({
+    success: false,
+    error: error.message,
+  });
 });
 
 module.exports = app;

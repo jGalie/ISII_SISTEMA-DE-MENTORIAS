@@ -5,8 +5,8 @@ describe('Clases: crear clase', () => {
     const claseCreada = {
       id: 45,
       titulo: 'Algebra inicial',
-      mentorId: 7,
-      materiaId: 3,
+      id_mentor: 7,
+      id_materia: 3,
     };
     const claseRepository = {
       crearClase: jest.fn().mockResolvedValue(claseCreada),
@@ -15,7 +15,10 @@ describe('Clases: crear clase', () => {
       buscarPorId: jest.fn().mockResolvedValue({ id: 7, rol: 'mentor' }),
     };
     const mentorMateriaRepository = {
-      existe: jest.fn().mockResolvedValue(true),
+      buscarAsociacion: jest.fn().mockResolvedValue({
+        id_mentor: 7,
+        id_materia: 3,
+      }),
     };
     const servicio = crearServicioClase({
       claseRepository,
@@ -35,7 +38,7 @@ describe('Clases: crear clase', () => {
     });
 
     expect(usuarioRepository.buscarPorId).toHaveBeenCalledWith(7);
-    expect(mentorMateriaRepository.existe).toHaveBeenCalledWith(7, 3);
+    expect(mentorMateriaRepository.buscarAsociacion).toHaveBeenCalledWith(7, 3);
     expect(claseRepository.crearClase).toHaveBeenCalledWith({
       titulo: 'Algebra inicial',
       descripcion: 'Repaso de ecuaciones',

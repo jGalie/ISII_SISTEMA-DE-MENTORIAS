@@ -1,9 +1,14 @@
 const { Router } = require('express');
-const materiaController = require('../controllers/materia.controller');
 
-const router = Router();
+function crearRutasMateria({ materiaController }) {
+  const router = Router();
 
-router.get('/', materiaController.listar);
-router.post('/', materiaController.crear);
+  router.get('/', materiaController.listar);
+  router.post('/', materiaController.crear);
 
-module.exports = router;
+  return router;
+}
+
+module.exports = {
+  crearRutasMateria,
+};

@@ -1,9 +1,15 @@
 const { Router } = require('express');
-const seguimientoController = require('../controllers/seguimiento.controller');
 
-const router = Router();
+function crearRutasSeguimiento({ seguimientoController }) {
+  const router = Router();
 
-router.get('/', seguimientoController.listar);
-router.post('/', seguimientoController.crear);
+  router.get('/', seguimientoController.listar);
+  router.get('/inscripcion/:id_inscripcion', seguimientoController.listarPorInscripcion);
+  router.post('/', seguimientoController.crear);
 
-module.exports = router;
+  return router;
+}
+
+module.exports = {
+  crearRutasSeguimiento,
+};
