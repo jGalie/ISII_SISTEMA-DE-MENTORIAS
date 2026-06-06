@@ -221,6 +221,69 @@ async function asegurarTablaSeguimientos() {
   }
 }
 
+async function asegurarTablaMateriales() {
+  if (!(await tieneTabla('materiales'))) {
+    await pool.query(`
+      CREATE TABLE materiales (
+        id_material INT AUTO_INCREMENT PRIMARY KEY,
+        id_clase INT NOT NULL,
+        titulo VARCHAR(150) NOT NULL,
+        url VARCHAR(2048) NOT NULL,
+        fecha_creacion DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT fk_materiales_clase
+          FOREIGN KEY (id_clase) REFERENCES clases(id_clase) ON DELETE CASCADE
+      )
+    `);
+    return;
+  }
+
+  await asegurarColumna(
+    'materiales',
+    'id_clase',
+    'ALTER TABLE materiales ADD COLUMN id_clase INT NULL AFTER id_material'
+  );
+  await asegurarColumna(
+    'materiales',
+    'titulo',
+    'ALTER TABLE materiales ADD COLUMN titulo VARCHAR(150) NULL AFTER id_clase'
+  );
+  await asegurarColumna(
+    'materiales',
+    'url',
+    'ALTER TABLE materiales ADD COLUMN url VARCHAR(2048) NULL AFTER titulo'
+  );
+  await asegurarColumna(
+    'materiales',
+    'fecha_creacion',
+    'ALTER TABLE materiales ADD COLUMN fecha_creacion DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP AFTER url'
+  );
+
+  const [incompletos] = await pool.query(`
+    SELECT COUNT(*) AS total
+    FROM materiales
+    WHERE id_clase IS NULL
+      OR titulo IS NULL
+      OR TRIM(titulo) = ''
+      OR url IS NULL
+      OR TRIM(url) = ''
+  `);
+  if (Number(incompletos[0]?.total || 0) > 0) {
+    throw new Error('No se puede migrar materiales: existen registros incompletos.');
+  }
+
+  await pool.query(`
+    ALTER TABLE materiales
+      MODIFY COLUMN id_clase INT NOT NULL,
+      MODIFY COLUMN titulo VARCHAR(150) NOT NULL,
+      MODIFY COLUMN url VARCHAR(2048) NOT NULL
+  `);
+
+  await eliminarForeignKeys('materiales', 'id_clase');
+  await pool.query(
+    'ALTER TABLE materiales ADD CONSTRAINT fk_materiales_clase FOREIGN KEY (id_clase) REFERENCES clases(id_clase) ON DELETE CASCADE'
+  );
+}
+
 async function sembrarMaterias() {
   // Se cargan materias base para contar con datos iniciales del dominio.
   const subjects = [
@@ -406,6 +469,7 @@ async function asegurarEsquemaBaseDatos() {
     )
   `);
 
+  await asegurarTablaMateriales();
   await asegurarTablaMensajes();
   await asegurarTablaSeguimientos();
 

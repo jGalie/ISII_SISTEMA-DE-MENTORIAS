@@ -6,7 +6,6 @@ function crearRutasUsuario({ usuarioController }) {
   router.get('/', usuarioController.listar);
   router.get('/mentores/:id/publico', usuarioController.obtenerPerfilPublicoMentor);
   router.get('/:id', usuarioController.obtenerPorId);
-  router.post('/', usuarioController.crear);
   router.put('/:id', usuarioController.actualizar);
 
   return router;

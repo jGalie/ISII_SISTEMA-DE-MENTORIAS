@@ -1,19 +1,14 @@
-/**
- * Entidad: Material de apoyo de una clase.
- * @typedef {Object} Material
- * @property {number} id
- * @property {number} id_clase
- * @property {string} titulo
- * @property {string} url
- */
-
 function mapearMaterial(row) {
+  if (!row) return null;
   return {
-    id: row.id,
+    id_material: row.id_material,
     id_clase: row.id_clase,
     titulo: row.titulo,
     url: row.url,
+    fecha_creacion: row.fecha_creacion,
   };
 }
 
-module.exports = { mapearMaterial };
+module.exports = {
+  mapearMaterial,
+};

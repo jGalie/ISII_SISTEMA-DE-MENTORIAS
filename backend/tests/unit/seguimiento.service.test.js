@@ -1,79 +1,55 @@
 const { crearServicioSeguimiento } = require('../../src/services/seguimiento.service');
 
-describe('Seguimiento academico', () => {
-  test('lista observaciones por inscripcion aceptada', async () => {
-    const seguimientoRepository = {
-      buscarPorInscripcion: jest.fn().mockResolvedValue([
-        {
-          id_seguimiento: 1,
-          id_inscripcion: 7,
-          notas: 'Avance inicial',
-          fecha_seguimiento: '2026-06-01T12:00:00.000Z',
-        },
-      ]),
-    };
-    const inscripcionRepository = {
-      obtenerPorId: jest.fn().mockResolvedValue({
-        id: 7,
-        estado: 'aceptada',
-      }),
-    };
-    const servicio = crearServicioSeguimiento({
+function crearDependencias({
+  inscripcion = {
+    id_inscripcion: 9,
+    id_usuario: 8,
+    id_mentor: 3,
+    estado: 'aceptada',
+  },
+  actores = {
+    3: { id: 3, rol: 'mentor' },
+    4: { id: 4, rol: 'mentor' },
+    8: { id: 8, rol: 'estudiante' },
+    10: { id: 10, rol: 'estudiante' },
+  },
+} = {}) {
+  const seguimientoCreado = {
+    id_seguimiento: 2,
+    id_inscripcion: 9,
+    notas: 'Buen ritmo de trabajo',
+    fecha_seguimiento: '2026-06-02T12:00:00.000Z',
+  };
+  const seguimientoRepository = {
+    crear: jest.fn().mockResolvedValue(seguimientoCreado),
+    buscarPorInscripcion: jest.fn().mockResolvedValue([seguimientoCreado]),
+  };
+  const inscripcionRepository = {
+    obtenerPorId: jest.fn().mockResolvedValue(inscripcion),
+  };
+  const usuarioRepository = {
+    buscarPorId: jest.fn((id) => Promise.resolve(actores[id] || null)),
+  };
+
+  return {
+    seguimientoRepository,
+    inscripcionRepository,
+    usuarioRepository,
+    servicio: crearServicioSeguimiento({
       seguimientoRepository,
       inscripcionRepository,
-    });
+      usuarioRepository,
+    }),
+  };
+}
 
-    const resultado = await servicio.listarSeguimientosPorInscripcion(7);
+describe('Seguimiento academico autorizado', () => {
+  test('mentor duenio crea seguimiento', async () => {
+    const { servicio, seguimientoRepository } = crearDependencias();
 
-    expect(inscripcionRepository.obtenerPorId).toHaveBeenCalledWith(7);
-    expect(seguimientoRepository.buscarPorInscripcion).toHaveBeenCalledWith(7);
-    expect(resultado).toHaveLength(1);
-  });
-
-  test('rechaza consultas de inscripciones no aceptadas', async () => {
-    const seguimientoRepository = {
-      buscarPorInscripcion: jest.fn(),
-    };
-    const inscripcionRepository = {
-      obtenerPorId: jest.fn().mockResolvedValue({
-        id: 8,
-        estado: 'pendiente',
-      }),
-    };
-    const servicio = crearServicioSeguimiento({
-      seguimientoRepository,
-      inscripcionRepository,
-    });
-
-    await expect(servicio.listarSeguimientosPorInscripcion(8)).rejects.toThrow(
-      'El seguimiento academico solo esta disponible para inscripciones aceptadas'
-    );
-    expect(seguimientoRepository.buscarPorInscripcion).not.toHaveBeenCalled();
-  });
-
-  test('registra una observacion en una inscripcion aceptada', async () => {
-    const seguimientoCreado = {
-      id_seguimiento: 2,
+    await servicio.registrarSeguimiento({
       id_inscripcion: 9,
-      notas: 'Buen ritmo de trabajo',
-      fecha_seguimiento: '2026-06-02T12:00:00.000Z',
-    };
-    const seguimientoRepository = {
-      crear: jest.fn().mockResolvedValue(seguimientoCreado),
-    };
-    const inscripcionRepository = {
-      obtenerPorId: jest.fn().mockResolvedValue({
-        id: 9,
-        estado: 'aceptada',
-      }),
-    };
-    const servicio = crearServicioSeguimiento({
-      seguimientoRepository,
-      inscripcionRepository,
-    });
-
-    const resultado = await servicio.registrarSeguimiento({
-      id_inscripcion: 9,
+      id_usuario: 3,
       notas: 'Buen ritmo de trabajo',
     });
 
@@ -82,31 +58,88 @@ describe('Seguimiento academico', () => {
       notas: 'Buen ritmo de trabajo',
       fecha_seguimiento: undefined,
     });
-    expect(resultado).toEqual(seguimientoCreado);
+  });
+
+  test('mentor ajeno no crea seguimiento', async () => {
+    const { servicio, seguimientoRepository } = crearDependencias();
+
+    await expect(
+      servicio.registrarSeguimiento({
+        id_inscripcion: 9,
+        id_usuario: 4,
+        notas: 'Intento ajeno',
+      })
+    ).rejects.toMatchObject({ code: 'FORBIDDEN' });
+    expect(seguimientoRepository.crear).not.toHaveBeenCalled();
+  });
+
+  test('estudiante no crea seguimiento', async () => {
+    const { servicio, seguimientoRepository } = crearDependencias();
+
+    await expect(
+      servicio.registrarSeguimiento({
+        id_inscripcion: 9,
+        id_usuario: 8,
+        notas: 'Intento estudiante',
+      })
+    ).rejects.toMatchObject({ code: 'FORBIDDEN' });
+    expect(seguimientoRepository.crear).not.toHaveBeenCalled();
+  });
+
+  test('estudiante inscripto consulta seguimiento', async () => {
+    const { servicio, seguimientoRepository } = crearDependencias();
+
+    const resultado = await servicio.listarSeguimientosPorInscripcion(9, {
+      id_usuario: 8,
+    });
+
+    expect(seguimientoRepository.buscarPorInscripcion).toHaveBeenCalledWith(9);
+    expect(resultado).toHaveLength(1);
+  });
+
+  test('usuario ajeno no consulta seguimiento', async () => {
+    const { servicio, seguimientoRepository } = crearDependencias();
+
+    await expect(
+      servicio.listarSeguimientosPorInscripcion(9, { id_usuario: 10 })
+    ).rejects.toMatchObject({ code: 'FORBIDDEN' });
+    expect(seguimientoRepository.buscarPorInscripcion).not.toHaveBeenCalled();
+  });
+
+  test('rechaza seguimiento para una inscripcion no aceptada', async () => {
+    const { servicio } = crearDependencias({
+      inscripcion: {
+        id_inscripcion: 9,
+        id_usuario: 8,
+        id_mentor: 3,
+        estado: 'pendiente',
+      },
+    });
+
+    await expect(
+      servicio.registrarSeguimiento({
+        id_inscripcion: 9,
+        id_usuario: 3,
+        notas: 'Todavia no corresponde',
+      })
+    ).rejects.toMatchObject({ code: 'VALIDATION_ERROR' });
   });
 
   test.each([
     ['inscripcionId', { inscripcionId: 9 }],
+    ['usuarioId', { usuarioId: 3 }],
     ['fechaSeguimiento', { fechaSeguimiento: '2026-06-02T12:00:00.000Z' }],
   ])('rechaza el alias camelCase %s', async (alias, campoInvalido) => {
-    const seguimientoRepository = {
-      crear: jest.fn(),
-    };
-    const inscripcionRepository = {
-      obtenerPorId: jest.fn(),
-    };
-    const servicio = crearServicioSeguimiento({
-      seguimientoRepository,
-      inscripcionRepository,
-    });
+    const { servicio, seguimientoRepository } = crearDependencias();
 
-    await expect(servicio.registrarSeguimiento({
-      id_inscripcion: 9,
-      notas: 'Buen ritmo de trabajo',
-      ...campoInvalido,
-    })).rejects.toMatchObject({
-      code: 'VALIDATION_ERROR',
-    });
+    await expect(
+      servicio.registrarSeguimiento({
+        id_inscripcion: 9,
+        id_usuario: 3,
+        notas: 'Buen ritmo de trabajo',
+        ...campoInvalido,
+      })
+    ).rejects.toMatchObject({ code: 'VALIDATION_ERROR' });
     expect(seguimientoRepository.crear).not.toHaveBeenCalled();
   });
 });

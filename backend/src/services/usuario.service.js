@@ -16,14 +16,6 @@ const EDUCATIONAL_LEVELS = new Set([
   'adultos',
 ]);
 
-function requerirCampos(body, fields) {
-  for (const field of fields) {
-    if (body[field] == null || String(body[field]).trim() === '') {
-      throw new Error(`Campo obligatorio: ${field}`);
-    }
-  }
-}
-
 function crearErrorApp(message, code) {
   const error = new Error(message);
   error.code = code;
@@ -134,17 +126,6 @@ function crearServicioUsuario({ usuarioRepository, claseRepository, valoracionRe
         cantidadValoraciones: resumenValoraciones.cantidad,
         valoraciones,
       };
-    },
-
-    async crearUsuario(body) {
-      requerirCampos(body, ['nombre', 'email', 'password_hash']);
-      const rol = body.rol === 'mentor' ? 'mentor' : 'estudiante';
-      return usuarioRepository.crear({
-        nombre: String(body.nombre).trim(),
-        email: String(body.email).trim().toLowerCase(),
-        password_hash: body.password_hash,
-        rol,
-      });
     },
 
     async actualizarUsuario(id, body) {

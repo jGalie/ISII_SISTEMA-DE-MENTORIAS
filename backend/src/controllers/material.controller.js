@@ -1,23 +1,28 @@
-const materialService = require('../services/material.service');
+function crearControladorMaterial({ materialService }) {
+  return {
+    async listarPorClase(req, res, next) {
+      try {
+        const data = await materialService.listarMaterialesPorClase(
+          req.params.id_clase,
+          req.query || {}
+        );
+        res.json({ success: true, data });
+      } catch (error) {
+        next(error);
+      }
+    },
 
-function listar(req, res) {
-  try {
-    const data = materialService.listarMateriales();
-    res.json({ data });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+    async crear(req, res, next) {
+      try {
+        const data = await materialService.crearMaterial(req.body || {});
+        res.status(201).json({ success: true, data });
+      } catch (error) {
+        next(error);
+      }
+    },
+  };
 }
 
-async function crear(req, res) {
-  try {
-    // La creacion puede requerir consultar la clase asociada, por eso se espera
-    // la respuesta del service antes de contestar al cliente.
-    const data = await materialService.crearMaterial(req.body || {});
-    res.status(201).json({ data });
-  } catch (err) {
-    res.status(400).json({ error: err.message });
-  }
-}
-
-module.exports = { listar, crear };
+module.exports = {
+  crearControladorMaterial,
+};

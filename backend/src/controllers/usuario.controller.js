@@ -34,15 +34,6 @@ function crearControladorUsuario({ usuarioService }) {
       }
     },
 
-    async crear(req, res) {
-      try {
-        const data = await usuarioService.crearUsuario(req.body || {});
-        res.status(201).json({ data });
-      } catch (err) {
-        res.status(400).json({ error: err.message });
-      }
-    },
-
     async actualizar(req, res) {
       try {
         const data = await usuarioService.actualizarUsuario(req.params.id, req.body || {});

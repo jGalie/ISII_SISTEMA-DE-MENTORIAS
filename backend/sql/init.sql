@@ -48,6 +48,16 @@ CREATE TABLE clases (
   FOREIGN KEY (id_mentor) REFERENCES usuarios(id_usuario)
 );
 
+CREATE TABLE materiales (
+  id_material INT AUTO_INCREMENT PRIMARY KEY,
+  id_clase INT NOT NULL,
+  titulo VARCHAR(150) NOT NULL,
+  url VARCHAR(2048) NOT NULL,
+  fecha_creacion DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_materiales_clase
+    FOREIGN KEY (id_clase) REFERENCES clases(id_clase) ON DELETE CASCADE
+);
+
 CREATE TABLE mentor_materias (
   id_mentor_materia INT AUTO_INCREMENT PRIMARY KEY,
   id_mentor INT NOT NULL,

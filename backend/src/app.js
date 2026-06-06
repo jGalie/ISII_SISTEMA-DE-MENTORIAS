@@ -9,6 +9,7 @@ const { crearRepositorioInscripcion } = require('./repositories/inscripcion.repo
 const { crearRepositorioValoracion } = require('./repositories/valoracion.repository');
 const { crearRepositorioMensaje } = require('./repositories/mensaje.repository');
 const { crearRepositorioSeguimiento } = require('./repositories/seguimiento.repository');
+const { crearRepositorioMaterial } = require('./repositories/material.repository');
 const { crearRepositorioMateria } = require('./repositories/materia.repository');
 const { crearRepositorioMentorMateria } = require('./repositories/mentor-materia.repository');
 const { crearServicioUsuario } = require('./services/usuario.service');
@@ -17,6 +18,7 @@ const { crearServicioInscripcion } = require('./services/inscripcion.service');
 const { crearServicioValoracion } = require('./services/valoracion.service');
 const { crearServicioMensaje } = require('./services/mensaje.service');
 const { crearServicioSeguimiento } = require('./services/seguimiento.service');
+const { crearServicioMaterial } = require('./services/material.service');
 const { crearServicioMateria } = require('./services/materia.service');
 const { crearServicioMentorMateria } = require('./services/mentor-materia.service');
 const { crearServicioAuth } = require('./services/auth.service');
@@ -26,6 +28,7 @@ const { crearControladorInscripcion } = require('./controllers/inscripcion.contr
 const { crearControladorValoracion } = require('./controllers/valoracion.controller');
 const { crearControladorMensaje } = require('./controllers/mensaje.controller');
 const { crearControladorSeguimiento } = require('./controllers/seguimiento.controller');
+const { crearControladorMaterial } = require('./controllers/material.controller');
 const { crearControladorMateria } = require('./controllers/materia.controller');
 const { crearControladorMentorMateria } = require('./controllers/mentor-materia.controller');
 const { crearControladorAuth } = require('./controllers/auth.controller');
@@ -35,11 +38,10 @@ const { crearRutasInscripcion } = require('./routes/inscripcion.routes');
 const { crearRutasValoracion } = require('./routes/valoracion.routes');
 const { crearRutasMensaje } = require('./routes/mensaje.routes');
 const { crearRutasSeguimiento } = require('./routes/seguimiento.routes');
+const { crearRutasMaterial } = require('./routes/material.routes');
 const { crearRutasMateria } = require('./routes/materia.routes');
 const { crearRutasMentorMateria } = require('./routes/mentor-materia.routes');
 const { crearRutasAuth } = require('./routes/auth.routes');
-
-const materialRoutes = require('./routes/material.routes');
 
 const usuarioRepository = crearRepositorioUsuario({ pool });
 const claseRepository = crearRepositorioClase({ pool });
@@ -47,6 +49,7 @@ const inscripcionRepository = crearRepositorioInscripcion({ pool });
 const valoracionRepository = crearRepositorioValoracion({ pool });
 const mensajeRepository = crearRepositorioMensaje({ pool });
 const seguimientoRepository = crearRepositorioSeguimiento({ pool });
+const materialRepository = crearRepositorioMaterial({ pool });
 const materiaRepository = crearRepositorioMateria({ pool });
 const mentorMateriaRepository = crearRepositorioMentorMateria({ pool });
 
@@ -78,6 +81,13 @@ const mensajeService = crearServicioMensaje({
 const seguimientoService = crearServicioSeguimiento({
   seguimientoRepository,
   inscripcionRepository,
+  usuarioRepository,
+});
+const materialService = crearServicioMaterial({
+  materialRepository,
+  claseRepository,
+  inscripcionRepository,
+  usuarioRepository,
 });
 const materiaService = crearServicioMateria({ materiaRepository });
 const mentorMateriaService = crearServicioMentorMateria({
@@ -93,6 +103,7 @@ const inscripcionController = crearControladorInscripcion({ inscripcionService }
 const valoracionController = crearControladorValoracion({ valoracionService });
 const mensajeController = crearControladorMensaje({ mensajeService });
 const seguimientoController = crearControladorSeguimiento({ seguimientoService });
+const materialController = crearControladorMaterial({ materialService });
 const materiaController = crearControladorMateria({ materiaService });
 const mentorMateriaController = crearControladorMentorMateria({ mentorMateriaService });
 const authController = crearControladorAuth({ authService });
@@ -120,7 +131,7 @@ app.use('/inscripciones', crearRutasMensaje({ mensajeController }));
 app.use('/valoraciones', crearRutasValoracion({ valoracionController }));
 app.use('/materias', crearRutasMateria({ materiaController }));
 app.use('/seguimientos', crearRutasSeguimiento({ seguimientoController }));
-app.use('/materiales', materialRoutes);
+app.use('/materiales', crearRutasMaterial({ materialController }));
 app.use('/mentor-materias', crearRutasMentorMateria({ mentorMateriaController }));
 
 const frontendRoot = path.join(__dirname, '..', '..', 'frontend');

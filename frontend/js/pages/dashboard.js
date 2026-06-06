@@ -47,7 +47,6 @@
   let studentMensajeActivo = null;
   let mentorInscripciones = [];
   let mentorClases = [];
-  let mentorMateriales = [];
   let mentorTabActiva = 'resumen';
 
   if (welcome && user) {
@@ -305,7 +304,10 @@
     if (!content) return;
 
     try {
-      const response = await MentoriasApi.listarSeguimientosPorInscripcion(id_inscripcion_normalizado);
+      const response = await MentoriasApi.listarSeguimientosPorInscripcion(
+        id_inscripcion_normalizado,
+        user.id
+      );
       content.innerHTML = construirResumenSeguimiento(Array.isArray(response.data) ? response.data : []);
     } catch (error) {
       content.innerHTML = `<div class="text-danger">${escaparHtml(error.message || 'No se pudo cargar el seguimiento.')}</div>`;
@@ -337,7 +339,7 @@
 
         if (button) button.disabled = true;
         try {
-          await MentoriasApi.registrarSeguimiento({ id_inscripcion, notas });
+          await MentoriasApi.registrarSeguimiento({ id_inscripcion, id_usuario: user.id, notas });
           form.reset();
           await cargarSeguimiento(id_inscripcion);
         } catch (error) {
@@ -1210,33 +1212,35 @@
     adjuntarAccionesMensajes(mentorMessagesPanel);
   }
 
-  function renderizarMaterialesDeClase(id_clase) {
+  async function renderizarMaterialesDeClase(id_clase) {
     const list = document.getElementById('mentor-materials-list');
     if (!list) return;
-    const materiales = mentorMateriales.filter((material) => Number(material.id_clase) === Number(id_clase));
 
     if (!id_clase) {
       list.innerHTML = '<div class="item-card p-4 text-muted text-center">Selecciona una clase para ver o cargar materiales.</div>';
       return;
     }
 
-    list.innerHTML = materiales.length
-      ? materiales
-          .map(
-            (material) => `
-              <article class="item-card p-3">
-                <div class="fw-semibold">${escaparHtml(material.titulo || 'Material')}</div>
-                ${material.descripcion ? `<p class="text-muted small mb-1">${escaparHtml(material.descripcion)}</p>` : ''}
-                ${
-                  material.url
-                    ? `<a class="small" href="${escaparHtml(material.url)}" target="_blank" rel="noopener">Abrir material</a>`
-                    : '<div class="text-muted small">Sin enlace cargado.</div>'
-                }
-              </article>
-            `
-          )
-          .join('')
-      : '<div class="item-card p-4 text-muted text-center">No hay materiales cargados para esta clase.</div>';
+    list.innerHTML = '<div class="item-card p-4 text-muted text-center">Cargando materiales...</div>';
+
+    try {
+      const response = await MentoriasApi.listarMaterialesPorClase(id_clase, user.id);
+      const materiales = Array.isArray(response.data) ? response.data : [];
+      list.innerHTML = materiales.length
+        ? materiales
+            .map(
+              (material) => `
+                <article class="item-card p-3">
+                  <div class="fw-semibold">${escaparHtml(material.titulo || 'Material')}</div>
+                  <a class="small" href="${escaparHtml(material.url)}" target="_blank" rel="noopener">Abrir material</a>
+                </article>
+              `
+            )
+            .join('')
+        : '<div class="item-card p-4 text-muted text-center">No hay materiales cargados para esta clase.</div>';
+    } catch (error) {
+      list.innerHTML = `<div class="item-card p-4 text-danger text-center">${escaparHtml(error.message || 'No se pudieron cargar los materiales.')}</div>`;
+    }
   }
 
   function renderMaterialesMentor() {
@@ -1255,9 +1259,9 @@
             </select>
             <form id="mentor-material-form" class="d-grid gap-2">
               <label class="form-label fw-semibold mb-0" for="mentor-material-title">Titulo</label>
-              <input id="mentor-material-title" class="form-control" name="titulo" type="text" placeholder="Nombre del material" />
+              <input id="mentor-material-title" class="form-control" name="titulo" type="text" placeholder="Nombre del material" required />
               <label class="form-label fw-semibold mb-0" for="mentor-material-url">URL</label>
-              <input id="mentor-material-url" class="form-control" name="url" type="url" placeholder="https://..." />
+              <input id="mentor-material-url" class="form-control" name="url" type="url" placeholder="https://..." required />
               <button class="btn btn-dark rounded-pill px-4 mt-2" type="submit">Guardar material</button>
               <div class="mentor-material-feedback text-danger small d-none" role="alert"></div>
             </form>
@@ -1308,11 +1312,10 @@
         }
 
         try {
-          const response = await MentoriasApi.crearMaterial({ id_clase, titulo, url });
-          if (response.data) mentorMateriales.push(response.data);
+          await MentoriasApi.crearMaterial({ id_clase, id_usuario: user.id, titulo, url });
           form.reset();
           selector.value = String(id_clase);
-          renderizarMaterialesDeClase(id_clase);
+          await renderizarMaterialesDeClase(id_clase);
         } catch (error) {
           if (feedback) {
             feedback.textContent = error.message || 'No se pudo guardar el material.';
@@ -1372,19 +1375,10 @@
       MentoriasApi.obtenerClases({ id_mentor: user.id }),
     ]);
 
-    let responseMateriales = { data: [] };
-    try {
-      responseMateriales = await MentoriasApi.listarMateriales();
-    } catch (error) {
-      console.warn('No se pudieron cargar materiales:', error);
-    }
-
     mentorInscripciones = Array.isArray(responseInscripciones.data) ? responseInscripciones.data : [];
     mentorClases = Array.isArray(responseClases.data)
       ? responseClases.data.filter((clase) => Number(clase.id_mentor) === Number(user.id))
       : [];
-    mentorMateriales = Array.isArray(responseMateriales.data) ? responseMateriales.data : [];
-
     inscripcionesPorId.clear();
     mentorInscripciones.forEach((item) => inscripcionesPorId.set(obtener_id_inscripcion(item), item));
     actualizarMetricas(mentorInscripciones);

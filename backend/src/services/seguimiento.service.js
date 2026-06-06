@@ -4,7 +4,7 @@ function crearErrorApp(message, code) {
   return error;
 }
 
-function crearServicioSeguimiento({ seguimientoRepository, inscripcionRepository }) {
+function crearServicioSeguimiento({ seguimientoRepository, inscripcionRepository, usuarioRepository }) {
   function rechazarCamposFueraDeContrato(datos = {}) {
     const campoInvalido = Object.keys(datos).find((campo) => /[A-Z]/.test(campo));
     if (campoInvalido) {
@@ -42,15 +42,34 @@ function crearServicioSeguimiento({ seguimientoRepository, inscripcionRepository
     return inscripcion;
   }
 
+  async function obtenerActor(id_usuario) {
+    const id_usuario_normalizado = Number(id_usuario);
+    if (!Number.isInteger(id_usuario_normalizado) || id_usuario_normalizado < 1) {
+      throw crearErrorApp('Debes indicar el id_usuario del actor.', 'VALIDATION_ERROR');
+    }
+
+    const actor = await usuarioRepository.buscarPorId(id_usuario_normalizado);
+    if (!actor) {
+      throw crearErrorApp('El usuario indicado no existe.', 'NOT_FOUND');
+    }
+
+    return { actor, id_usuario: id_usuario_normalizado };
+  }
+
   return {
-    validarInscripcionAceptada,
+    async listarSeguimientosPorInscripcion(id_inscripcion, datosConsulta = {}) {
+      rechazarCamposFueraDeContrato(datosConsulta);
+      const inscripcion = await validarInscripcionAceptada(id_inscripcion);
+      const { actor, id_usuario } = await obtenerActor(datosConsulta.id_usuario);
+      const esMentorDuenio =
+        actor.rol === 'mentor' && id_usuario === Number(inscripcion.id_mentor);
+      const esEstudianteInscripto =
+        actor.rol === 'estudiante' && id_usuario === Number(inscripcion.id_usuario);
 
-    async listarSeguimientos() {
-      return seguimientoRepository.buscarTodos();
-    },
+      if (!esMentorDuenio && !esEstudianteInscripto) {
+        throw crearErrorApp('No puedes consultar el seguimiento de esta inscripcion.', 'FORBIDDEN');
+      }
 
-    async listarSeguimientosPorInscripcion(id_inscripcion) {
-      await validarInscripcionAceptada(id_inscripcion);
       return seguimientoRepository.buscarPorInscripcion(id_inscripcion);
     },
 
@@ -58,7 +77,15 @@ function crearServicioSeguimiento({ seguimientoRepository, inscripcionRepository
       rechazarCamposFueraDeContrato(body);
       const id_inscripcion = Number(body.id_inscripcion);
       const notas = obtenerNotas(body);
-      await validarInscripcionAceptada(id_inscripcion);
+      const inscripcion = await validarInscripcionAceptada(id_inscripcion);
+      const { actor, id_usuario } = await obtenerActor(body.id_usuario);
+
+      if (actor.rol !== 'mentor' || id_usuario !== Number(inscripcion.id_mentor)) {
+        throw crearErrorApp(
+          'Solo el mentor duenio de la clase puede registrar seguimientos.',
+          'FORBIDDEN'
+        );
+      }
 
       return seguimientoRepository.crear({
         id_inscripcion,

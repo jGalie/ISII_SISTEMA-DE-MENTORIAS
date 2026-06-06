@@ -113,8 +113,10 @@
         body: JSON.stringify(payload),
       });
     },
-    listarSeguimientosPorInscripcion(id_inscripcion) {
-      return pedirJson(`/seguimientos/inscripcion/${encodeURIComponent(id_inscripcion)}`);
+    listarSeguimientosPorInscripcion(id_inscripcion, id_usuario) {
+      const search = new URLSearchParams();
+      search.set('id_usuario', id_usuario);
+      return pedirJson(`/seguimientos/inscripcion/${encodeURIComponent(id_inscripcion)}?${search.toString()}`);
     },
     registrarSeguimiento(body) {
       return pedirJson('/seguimientos', {
@@ -122,8 +124,10 @@
         body: JSON.stringify(body),
       });
     },
-    listarMateriales() {
-      return pedirJson('/materiales');
+    listarMaterialesPorClase(id_clase, id_usuario) {
+      const search = new URLSearchParams();
+      search.set('id_usuario', id_usuario);
+      return pedirJson(`/materiales/clase/${encodeURIComponent(id_clase)}?${search.toString()}`);
     },
     crearMaterial(body) {
       return pedirJson('/materiales', {

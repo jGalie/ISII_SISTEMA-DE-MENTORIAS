@@ -1,30 +1,48 @@
 const { mapearMaterial } = require('../models/material.model');
 
-let nextId = 1;
-const store = [];
+function crearRepositorioMaterial({ pool }) {
+  const selectMaterial = `
+    SELECT id_material, id_clase, titulo, url, fecha_creacion
+    FROM materiales
+  `;
 
-function buscarTodos() {
-  return store.map((r) => mapearMaterial(r));
-}
+  return {
+    async buscarPorClase(id_clase) {
+      const [rows] = await pool.query(
+        `
+          ${selectMaterial}
+          WHERE id_clase = ?
+          ORDER BY fecha_creacion DESC, id_material DESC
+        `,
+        [Number(id_clase)]
+      );
 
-function buscarPorId(id) {
-  const row = store.find((r) => r.id === Number(id));
-  return row ? mapearMaterial(row) : null;
-}
+      return rows.map(mapearMaterial);
+    },
 
-function crear(data) {
-  const row = {
-    id: nextId++,
-    id_clase: Number(data.id_clase),
-    titulo: data.titulo,
-    url: data.url || '',
+    async crear({ id_clase, titulo, url }) {
+      const [result] = await pool.query(
+        `
+          INSERT INTO materiales (id_clase, titulo, url)
+          VALUES (?, ?, ?)
+        `,
+        [Number(id_clase), titulo, url]
+      );
+
+      const [rows] = await pool.query(
+        `
+          ${selectMaterial}
+          WHERE id_material = ?
+          LIMIT 1
+        `,
+        [result.insertId]
+      );
+
+      return rows.length ? mapearMaterial(rows[0]) : null;
+    },
   };
-  store.push(row);
-  return mapearMaterial(row);
 }
 
 module.exports = {
-  buscarTodos,
-  buscarPorId,
-  crear,
+  crearRepositorioMaterial,
 };
