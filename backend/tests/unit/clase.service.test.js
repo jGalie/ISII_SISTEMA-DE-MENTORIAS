@@ -25,11 +25,15 @@ function crearDependencias(overrides = {}) {
   };
 }
 
+const fechaFutura = new Date(Date.UTC(new Date().getUTCFullYear() + 1, 5, 10, 15, 30, 0));
+const fechaFuturaIso = fechaFutura.toISOString();
+const fechaFuturaSql = fechaFuturaIso.slice(0, 19).replace('T', ' ');
+
 function datosClase(overrides = {}) {
   return {
     titulo: ' Clase de funciones ',
     descripcion: 'Introducción a funciones',
-    fecha: '2026-06-10T15:30:00Z',
+    fecha: fechaFuturaIso,
     modalidad: 'virtual',
     id_materia: 3,
     precio: 5000,
@@ -45,7 +49,7 @@ describe('Clases - contrato crearClase', () => {
       id: 45,
       titulo: 'Clase de funciones',
       descripcion: 'Introducción a funciones',
-      fecha: '2026-06-10 15:30:00',
+      fecha: fechaFuturaSql,
       modalidad: 'virtual',
       id_mentor: 7,
       id_materia: 3,
@@ -71,7 +75,7 @@ describe('Clases - contrato crearClase', () => {
     expect(dependencias.claseRepository.crearClase).toHaveBeenCalledWith({
       titulo: 'Clase de funciones',
       descripcion: 'Introducción a funciones',
-      fecha: '2026-06-10 15:30:00',
+      fecha: fechaFuturaSql,
       modalidad: 'virtual',
       id_materia: 3,
       precio: 5000,
@@ -89,6 +93,25 @@ describe('Clases - contrato crearClase', () => {
     ['fecha', { fecha: ' ' }],
     ['id_materia', { id_materia: undefined }],
   ])('rechaza la creacion de una clase cuando falta el dato obligatorio %s', async (campo, datosInvalidos) => {
+    const dependencias = crearDependencias();
+    const servicio = crearServicioClase(dependencias);
+
+    await expect(servicio.crearClase(datosClase(datosInvalidos))).rejects.toMatchObject({
+      code: 'VALIDATION_ERROR',
+    });
+
+    expect(dependencias.usuarioRepository.buscarPorId).not.toHaveBeenCalled();
+    expect(dependencias.mentorMateriaRepository.buscarAsociacion).not.toHaveBeenCalled();
+    expect(dependencias.claseRepository.crearClase).not.toHaveBeenCalled();
+  });
+
+  test.each([
+    ['fecha pasada', { fecha: '2020-01-01T10:00:00Z' }],
+    ['titulo demasiado corto', { titulo: 'Mate' }],
+    ['titulo demasiado largo', { titulo: 'T'.repeat(121) }],
+    ['descripcion demasiado corta', { descripcion: 'Corta' }],
+    ['descripcion demasiado larga', { descripcion: 'D'.repeat(1001) }],
+  ])('rechaza la creacion de una clase con %s', async (caso, datosInvalidos) => {
     const dependencias = crearDependencias();
     const servicio = crearServicioClase(dependencias);
 

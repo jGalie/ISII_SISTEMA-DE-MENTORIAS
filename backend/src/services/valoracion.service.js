@@ -23,6 +23,9 @@ function crearServicioValoracion({ valoracionRepository, claseRepository, usuari
       if (!Number.isInteger(estrellas) || estrellas < 1 || estrellas > 5) {
         throw crearErrorApp('La valoracion debe tener entre 1 y 5 estrellas.', 'VALIDATION_ERROR');
       }
+      if (comentario.length > 500) {
+        throw crearErrorApp('El comentario de la valoracion no puede superar los 500 caracteres.', 'VALIDATION_ERROR');
+      }
 
       const estudiante = await usuarioRepository.buscarPorId(id_estudiante);
       if (!estudiante || estudiante.rol !== 'estudiante') {

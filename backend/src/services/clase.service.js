@@ -45,6 +45,12 @@ function rechazarCamposFueraDeContrato(datos = {}) {
   }
 }
 
+function validarFechaNoPasada(fechaNormalizada) {
+  if (new Date(fechaNormalizada).getTime() <= Date.now()) {
+    throw crearErrorApp('No puedes crear clases con fecha pasada.', 'VALIDATION_ERROR');
+  }
+}
+
 /**
  * Valida y normaliza los datos basicos de una clase.
  *
@@ -71,6 +77,12 @@ function validarDatosClase(datosClase) {
 
   if (!titulo || !descripcion) {
     throw crearErrorApp('Titulo, descripcion y fecha son obligatorios.', 'VALIDATION_ERROR');
+  }
+  if (titulo.length < 5 || titulo.length > 120) {
+    throw crearErrorApp('El titulo debe tener entre 5 y 120 caracteres.', 'VALIDATION_ERROR');
+  }
+  if (descripcion.length < 10 || descripcion.length > 1000) {
+    throw crearErrorApp('La descripcion debe tener entre 10 y 1000 caracteres.', 'VALIDATION_ERROR');
   }
 
   if (!['virtual', 'presencial'].includes(modalidad)) {
@@ -112,6 +124,7 @@ function crearServicioClase({ claseRepository, usuarioRepository, mentorMateriaR
       // pertenecer a su perfil academico para evitar publicaciones inconsistentes.
       const datosClaseValidada = validarDatosClase(datosClase);
       const id_mentor = Number(datosClase?.id_mentor);
+      validarFechaNoPasada(datosClaseValidada.fecha);
 
       if (!id_mentor) {
         throw crearErrorApp('Debes indicar el mentor creador.', 'VALIDATION_ERROR');

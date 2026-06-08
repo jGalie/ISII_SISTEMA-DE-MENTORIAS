@@ -106,6 +106,9 @@ function crearServicioMaterial({
       if (!titulo) {
         throw crearErrorApp('El titulo del material es obligatorio.', 'VALIDATION_ERROR');
       }
+      if (titulo.length > 120) {
+        throw crearErrorApp('El titulo del material no puede superar los 120 caracteres.', 'VALIDATION_ERROR');
+      }
 
       const clase = await verificarClase(id_clase);
       const { actor, id_usuario } = await obtenerActor(datosMaterial);

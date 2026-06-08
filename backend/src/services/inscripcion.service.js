@@ -11,6 +11,18 @@ function rechazarCamposFueraDeContrato(datos = {}) {
   }
 }
 
+function validarCupoClase(clase) {
+  const cupo_actual = Number(clase?.cupo_actual ?? clase?.cupoActual ?? 0);
+  const cupo_maximo = Number(clase?.cupo_maximo ?? clase?.cupoMaximo ?? 0);
+
+  if (cupo_actual < 0) {
+    throw crearErrorApp('El cupo actual de la clase no puede ser negativo.', 'VALIDATION_ERROR');
+  }
+  if (cupo_maximo > 0 && cupo_actual > cupo_maximo) {
+    throw crearErrorApp('El cupo actual no puede superar el cupo maximo.', 'VALIDATION_ERROR');
+  }
+}
+
 function crearServicioInscripcion({ inscripcionRepository, claseRepository, usuarioRepository }) {
   async function obtenerInscripcionGestionable(id_inscripcion, id_mentor) {
     const inscripcion = await inscripcionRepository.obtenerPorId(Number(id_inscripcion));
@@ -41,6 +53,7 @@ function crearServicioInscripcion({ inscripcionRepository, claseRepository, usua
       throw crearErrorApp('La clase indicada no existe.', 'NOT_FOUND');
     }
 
+    validarCupoClase(clase);
     return clase;
   }
 
@@ -68,6 +81,7 @@ function crearServicioInscripcion({ inscripcionRepository, claseRepository, usua
       if (!clase) {
         throw crearErrorApp('La clase indicada no existe.', 'NOT_FOUND');
       }
+      validarCupoClase(clase);
       if (clase.completa) {
         throw crearErrorApp('La clase ya no tiene cupos disponibles.', 'VALIDATION_ERROR');
       }
@@ -127,16 +141,16 @@ function crearServicioInscripcion({ inscripcionRepository, claseRepository, usua
         return this.rechazarInscripcion(id_inscripcion, id_mentor);
       }
 
-      if (estado === 'pendiente') {
-        return this.marcarInscripcionPendiente(id_inscripcion, id_mentor);
-      }
-
       throw crearErrorApp('Estado de inscripcion invalido.', 'VALIDATION_ERROR');
     },
 
     async aceptarInscripcion(id_inscripcion, id_mentor) {
       const id_inscripcion_normalizado = Number(id_inscripcion);
       const inscripcion = await obtenerInscripcionGestionable(id_inscripcion_normalizado, id_mentor);
+
+      if (inscripcion.estado !== 'pendiente') {
+        throw crearErrorApp('Solo se pueden aceptar inscripciones pendientes.', 'VALIDATION_ERROR');
+      }
 
       if (inscripcion.estado !== 'aceptada') {
         const clase = await obtenerClaseGestionable(inscripcion);
@@ -158,23 +172,15 @@ function crearServicioInscripcion({ inscripcionRepository, claseRepository, usua
       const inscripcion = await obtenerInscripcionGestionable(id_inscripcion_normalizado, id_mentor);
       await obtenerClaseGestionable(inscripcion);
 
+      if (!['pendiente', 'aceptada'].includes(inscripcion.estado)) {
+        throw crearErrorApp('La transicion de estado solicitada no esta permitida.', 'VALIDATION_ERROR');
+      }
+
       if (inscripcion.estado === 'aceptada') {
         await claseRepository.decrementarCupoActual(inscripcion.id_clase);
       }
 
       return inscripcionRepository.cambiarEstadoRechazada(id_inscripcion_normalizado);
-    },
-
-    async marcarInscripcionPendiente(id_inscripcion, id_mentor) {
-      const id_inscripcion_normalizado = Number(id_inscripcion);
-      const inscripcion = await obtenerInscripcionGestionable(id_inscripcion_normalizado, id_mentor);
-      await obtenerClaseGestionable(inscripcion);
-
-      if (inscripcion.estado === 'aceptada') {
-        await claseRepository.decrementarCupoActual(inscripcion.id_clase);
-      }
-
-      return inscripcionRepository.cambiarEstadoPendiente(id_inscripcion_normalizado);
     },
   };
 }

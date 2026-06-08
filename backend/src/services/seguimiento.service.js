@@ -17,6 +17,9 @@ function crearServicioSeguimiento({ seguimientoRepository, inscripcionRepository
     if (!notas) {
       throw crearErrorApp('Las notas del seguimiento son obligatorias', 'VALIDATION_ERROR');
     }
+    if (notas.length > 2000) {
+      throw crearErrorApp('Las notas del seguimiento no pueden superar los 2000 caracteres.', 'VALIDATION_ERROR');
+    }
 
     return notas;
   }

@@ -125,6 +125,22 @@ describe('Seguimiento academico autorizado', () => {
     ).rejects.toMatchObject({ code: 'VALIDATION_ERROR' });
   });
 
+  test('rechaza notas de seguimiento demasiado largas', async () => {
+    const { servicio, seguimientoRepository } = crearDependencias();
+
+    await expect(
+      servicio.registrarSeguimiento({
+        id_inscripcion: 9,
+        id_usuario: 3,
+        notas: 'N'.repeat(2001),
+      })
+    ).rejects.toMatchObject({
+      code: 'VALIDATION_ERROR',
+      message: 'Las notas del seguimiento no pueden superar los 2000 caracteres.',
+    });
+    expect(seguimientoRepository.crear).not.toHaveBeenCalled();
+  });
+
   test.each([
     ['inscripcionId', { inscripcionId: 9 }],
     ['usuarioId', { usuarioId: 3 }],

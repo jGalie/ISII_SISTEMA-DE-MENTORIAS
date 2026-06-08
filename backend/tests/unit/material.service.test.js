@@ -139,6 +139,21 @@ describe('Materiales autorizados', () => {
     expect(materialRepository.crear).not.toHaveBeenCalled();
   });
 
+  test('rechaza titulos de material demasiado largos', async () => {
+    const { servicio, materialRepository } = crearDependencias();
+
+    await expect(
+      servicio.crearMaterial({
+        ...materialValido(5),
+        titulo: 'T'.repeat(121),
+      })
+    ).rejects.toMatchObject({
+      code: 'VALIDATION_ERROR',
+      message: 'El titulo del material no puede superar los 120 caracteres.',
+    });
+    expect(materialRepository.crear).not.toHaveBeenCalled();
+  });
+
   test('rechaza aliases camelCase', async () => {
     const { servicio, materialRepository } = crearDependencias();
 

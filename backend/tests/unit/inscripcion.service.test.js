@@ -241,4 +241,103 @@ describe('Inscripciones: cambio de estado', () => {
     expect(inscripcionRepository.cambiarEstadoRechazada).toHaveBeenCalledWith(22);
     expect(resultado).toEqual(inscripcionRechazada);
   });
+
+  test('no permite aceptar una inscripcion rechazada', async () => {
+    const inscripcionRepository = {
+      obtenerPorId: jest.fn().mockResolvedValue({
+        id: 23,
+        id_clase: 10,
+        id_mentor: 5,
+        estado: 'rechazada',
+      }),
+      cambiarEstadoAceptada: jest.fn(),
+    };
+    const claseRepository = {
+      buscarPorId: jest.fn(),
+      incrementarCupoActual: jest.fn(),
+    };
+    const usuarioRepository = {
+      buscarPorId: jest.fn().mockResolvedValue({
+        id: 5,
+        rol: 'mentor',
+      }),
+    };
+    const servicio = crearServicioInscripcion({
+      inscripcionRepository,
+      claseRepository,
+      usuarioRepository,
+    });
+
+    await expect(
+      servicio.cambiarEstadoInscripcion(23, { estado: 'aceptada', id_mentor: 5 })
+    ).rejects.toMatchObject({
+      code: 'VALIDATION_ERROR',
+      message: 'Solo se pueden aceptar inscripciones pendientes.',
+    });
+    expect(claseRepository.incrementarCupoActual).not.toHaveBeenCalled();
+    expect(inscripcionRepository.cambiarEstadoAceptada).not.toHaveBeenCalled();
+  });
+
+  test('no permite volver una inscripcion a pendiente desde el endpoint de estado', async () => {
+    const inscripcionRepository = {
+      obtenerPorId: jest.fn(),
+      cambiarEstadoPendiente: jest.fn(),
+    };
+    const claseRepository = {};
+    const usuarioRepository = {};
+    const servicio = crearServicioInscripcion({
+      inscripcionRepository,
+      claseRepository,
+      usuarioRepository,
+    });
+
+    await expect(
+      servicio.cambiarEstadoInscripcion(23, { estado: 'pendiente', id_mentor: 5 })
+    ).rejects.toMatchObject({
+      code: 'VALIDATION_ERROR',
+      message: 'Estado de inscripcion invalido.',
+    });
+    expect(inscripcionRepository.obtenerPorId).not.toHaveBeenCalled();
+  });
+
+  test('rechaza gestionar una inscripcion si el cupo actual ya supera el maximo', async () => {
+    const inscripcionRepository = {
+      obtenerPorId: jest.fn().mockResolvedValue({
+        id: 24,
+        id_clase: 11,
+        id_mentor: 5,
+        estado: 'pendiente',
+      }),
+      cambiarEstadoAceptada: jest.fn(),
+    };
+    const claseRepository = {
+      buscarPorId: jest.fn().mockResolvedValue({
+        id: 11,
+        cupo_actual: 6,
+        cupo_maximo: 5,
+        completa: false,
+      }),
+      incrementarCupoActual: jest.fn(),
+    };
+    const usuarioRepository = {
+      buscarPorId: jest.fn().mockResolvedValue({
+        id: 5,
+        rol: 'mentor',
+      }),
+    };
+    const servicio = crearServicioInscripcion({
+      inscripcionRepository,
+      claseRepository,
+      usuarioRepository,
+    });
+
+    await expect(
+      servicio.cambiarEstadoInscripcion(24, { estado: 'aceptada', id_mentor: 5 })
+    ).rejects.toMatchObject({
+      code: 'VALIDATION_ERROR',
+      message: 'El cupo actual no puede superar el cupo maximo.',
+    });
+    expect(claseRepository.incrementarCupoActual).not.toHaveBeenCalled();
+    expect(inscripcionRepository.cambiarEstadoAceptada).not.toHaveBeenCalled();
+  });
 });

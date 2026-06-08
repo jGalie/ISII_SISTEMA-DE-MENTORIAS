@@ -26,6 +26,9 @@ function validarContenido(contenido) {
   if (!contenidoNormalizado) {
     throw crearErrorApp('El contenido del mensaje es obligatorio.', 'VALIDATION_ERROR');
   }
+  if (contenidoNormalizado.length > 1000) {
+    throw crearErrorApp('El contenido del mensaje no puede superar los 1000 caracteres.', 'VALIDATION_ERROR');
+  }
 
   return contenidoNormalizado;
 }
@@ -60,6 +63,9 @@ function crearServicioMensaje({ mensajeRepository, inscripcionRepository, usuari
     const inscripcion = await inscripcionRepository.obtenerPorId(id_inscripcion_normalizado);
     if (!inscripcion) {
       throw crearErrorApp('La inscripcion indicada no existe', 'NOT_FOUND');
+    }
+    if (inscripcion.estado !== 'aceptada') {
+      throw crearErrorApp('La mensajeria solo esta disponible para inscripciones aceptadas.', 'VALIDATION_ERROR');
     }
 
     const usuario = await usuarioRepository.buscarPorId(id_usuario_normalizado);

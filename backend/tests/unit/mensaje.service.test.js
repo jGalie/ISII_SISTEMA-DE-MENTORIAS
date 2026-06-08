@@ -11,6 +11,7 @@ function crearDependencias(overrides = {}) {
       id: 7,
       id_usuario: 3,
       id_mentor: 9,
+      estado: 'aceptada',
     }),
   };
   const usuarioRepository = {
@@ -51,6 +52,49 @@ describe('Mensajeria interna asociada a inscripcion', () => {
     await expect(servicio.enviarMensaje({ id_inscripcion: 7, id_usuario: 9, contenido: '   ' })).rejects.toMatchObject({
       code: 'VALIDATION_ERROR',
     });
+  });
+
+  test('rechaza mensajes con contenido demasiado largo', async () => {
+    const dependencias = crearDependencias();
+    const servicio = crearServicioMensaje(dependencias);
+
+    await expect(
+      servicio.enviarMensaje({
+        id_inscripcion: 7,
+        id_usuario: 9,
+        contenido: 'M'.repeat(1001),
+      })
+    ).rejects.toMatchObject({
+      code: 'VALIDATION_ERROR',
+      message: 'El contenido del mensaje no puede superar los 1000 caracteres.',
+    });
+    expect(dependencias.mensajeRepository.crear).not.toHaveBeenCalled();
+  });
+
+  test('rechaza mensajes cuando la inscripcion no esta aceptada', async () => {
+    const dependencias = crearDependencias({
+      inscripcionRepository: {
+        obtenerPorId: jest.fn().mockResolvedValue({
+          id: 7,
+          id_usuario: 3,
+          id_mentor: 9,
+          estado: 'pendiente',
+        }),
+      },
+    });
+    const servicio = crearServicioMensaje(dependencias);
+
+    await expect(
+      servicio.enviarMensaje({
+        id_inscripcion: 7,
+        id_usuario: 9,
+        contenido: 'Hola',
+      })
+    ).rejects.toMatchObject({
+      code: 'VALIDATION_ERROR',
+      message: 'La mensajeria solo esta disponible para inscripciones aceptadas.',
+    });
+    expect(dependencias.mensajeRepository.crear).not.toHaveBeenCalled();
   });
 
   test('rechaza consultas de usuarios ajenos a la inscripcion', async () => {

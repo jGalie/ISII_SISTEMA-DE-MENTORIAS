@@ -7,6 +7,17 @@ const mentorMateriaRepository = require('../repositories/mentor-materia.reposito
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PASSWORD_LETTER_REGEX = /[A-Za-z]/;
 const PASSWORD_NUMBER_REGEX = /\d/;
+const REGISTER_ALLOWED_FIELDS = new Set([
+  'nombre',
+  'email',
+  'password',
+  'rol',
+  'materias',
+  'otrasMaterias',
+  'nivelesEducativos',
+]);
+const LOGIN_ALLOWED_FIELDS = new Set(['email', 'password']);
+const VALID_ROLES = new Set(['mentor', 'estudiante']);
 const EDUCATIONAL_LEVELS = new Set([
   'primaria',
   'secundaria',
@@ -20,6 +31,13 @@ function crearErrorApp(message, code) {
   const error = new Error(message);
   error.code = code;
   return error;
+}
+
+function rechazarCamposExtra(data = {}, allowedFields) {
+  const campoInvalido = Object.keys(data).find((campo) => !allowedFields.has(campo));
+  if (campoInvalido) {
+    throw crearErrorApp(`El campo ${campoInvalido} no pertenece al contrato de operacion.`, 'VALIDATION_ERROR');
+  }
 }
 
 function normalizarLista(value) {
@@ -93,18 +111,25 @@ function crearServicioAuth({ usuarioRepository }) {
        * Ademas se usa una transaccion para que el alta del usuario y sus
        * relaciones academicas se confirmen juntas o no se guarden.
        */
+      rechazarCamposExtra(data, REGISTER_ALLOWED_FIELDS);
       const nombre = String(data?.nombre || '').trim();
       const email = String(data?.email || '').trim().toLowerCase();
       const password = String(data?.password || '');
-      const rol = data?.rol === 'mentor' ? 'mentor' : 'estudiante';
+      const rol = String(data?.rol || '').trim().toLowerCase();
       const mentorSubjects = parsearMateriasMentor(data);
       const nivelesEducativos = parsearNivelesEducativos(data);
 
-      if (!nombre) {
-        throw crearErrorApp('Campo obligatorio: nombre', 'VALIDATION_ERROR');
+      if (nombre.length < 3 || nombre.length > 100) {
+        throw crearErrorApp('El nombre debe tener entre 3 y 100 caracteres.', 'VALIDATION_ERROR');
+      }
+      if (!VALID_ROLES.has(rol)) {
+        throw crearErrorApp('El rol debe ser mentor o estudiante.', 'VALIDATION_ERROR');
       }
       if (!EMAIL_REGEX.test(email)) {
         throw crearErrorApp('Email invalido.', 'VALIDATION_ERROR');
+      }
+      if (password !== password.trim()) {
+        throw crearErrorApp('La contrasena no debe tener espacios al inicio o al final.', 'VALIDATION_ERROR');
       }
       if (password.length < 8) {
         throw crearErrorApp('La contrasena debe tener al menos 8 caracteres.', 'VALIDATION_ERROR');
@@ -182,6 +207,7 @@ function crearServicioAuth({ usuarioRepository }) {
     async iniciarSesion(data) {
       // El login autentica al usuario y recompone su contexto
       // devolviendo tambien materias si el rol es mentor.
+      rechazarCamposExtra(data, LOGIN_ALLOWED_FIELDS);
       const email = String(data?.email || '').trim().toLowerCase();
       const password = String(data?.password || '');
 

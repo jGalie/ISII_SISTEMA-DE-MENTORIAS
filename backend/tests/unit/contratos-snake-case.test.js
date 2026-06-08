@@ -53,4 +53,34 @@ describe('Contratos snake_case', () => {
       code: 'VALIDATION_ERROR',
     });
   });
+
+  test('valoraciones rechaza comentarios demasiado largos', async () => {
+    const servicio = crearServicioValoracion({
+      valoracionRepository: {
+        existeDeEstudianteEnClase: jest.fn(),
+        crear: jest.fn(),
+      },
+      claseRepository: {
+        buscarPorId: jest.fn(),
+      },
+      usuarioRepository: {
+        buscarPorId: jest.fn(),
+      },
+      inscripcionRepository: {
+        buscarExistente: jest.fn(),
+      },
+    });
+
+    await expect(
+      servicio.crearValoracion({
+        id_clase: 1,
+        id_estudiante: 6,
+        estrellas: 5,
+        comentario: 'C'.repeat(501),
+      })
+    ).rejects.toMatchObject({
+      code: 'VALIDATION_ERROR',
+      message: 'El comentario de la valoracion no puede superar los 500 caracteres.',
+    });
+  });
 });

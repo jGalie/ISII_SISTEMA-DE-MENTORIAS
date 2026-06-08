@@ -44,6 +44,33 @@ describe('Autenticacion: login', () => {
 });
 
 describe('Autenticacion: registro', () => {
+  test.each([
+    ['rol desconocido', { rol: 'admin' }, 'El rol debe ser mentor o estudiante.'],
+    ['nombre muy corto', { nombre: 'Al' }, 'El nombre debe tener entre 3 y 100 caracteres.'],
+    ['password con espacios externos', { password: ' Clave123 ' }, 'La contrasena no debe tener espacios al inicio o al final.'],
+    ['campo extra', { alias: 'dato externo' }, 'El campo alias no pertenece al contrato de operacion.'],
+  ])('rechaza registro con %s', async (caso, override, message) => {
+    const usuarioRepository = {
+      buscarPorEmail: jest.fn(),
+    };
+    const servicio = crearServicioAuth({ usuarioRepository });
+
+    await expect(
+      servicio.registrar({
+        nombre: 'Ana Estudiante',
+        email: 'ana@mentorix.com',
+        password: 'Clave123',
+        rol: 'estudiante',
+        nivelesEducativos: ['universitario'],
+        ...override,
+      })
+    ).rejects.toMatchObject({
+      code: 'VALIDATION_ERROR',
+      message,
+    });
+    expect(usuarioRepository.buscarPorEmail).not.toHaveBeenCalled();
+  });
+
   test('rechaza estudiantes con mas de un nivel educativo', async () => {
     const usuarioRepository = {
       buscarPorEmail: jest.fn(),
@@ -83,6 +110,27 @@ describe('Autenticacion: registro', () => {
     ).rejects.toMatchObject({
       code: 'VALIDATION_ERROR',
       message: 'Debes seleccionar al menos un nivel educativo para registrarte como mentor.',
+    });
+    expect(usuarioRepository.buscarPorEmail).not.toHaveBeenCalled();
+  });
+});
+
+describe('Autenticacion: contrato login', () => {
+  test('rechaza campos extra en login', async () => {
+    const usuarioRepository = {
+      buscarPorEmail: jest.fn(),
+    };
+    const servicio = crearServicioAuth({ usuarioRepository });
+
+    await expect(
+      servicio.iniciarSesion({
+        email: 'ana@mentorix.com',
+        password: 'Clave123',
+        recordar: true,
+      })
+    ).rejects.toMatchObject({
+      code: 'VALIDATION_ERROR',
+      message: 'El campo recordar no pertenece al contrato de operacion.',
     });
     expect(usuarioRepository.buscarPorEmail).not.toHaveBeenCalled();
   });
