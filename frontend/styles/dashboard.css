@@ -54,9 +54,13 @@ body {
 }
 
 .status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15rem;
   border-radius: 999px;
   padding: 0.4rem 0.8rem;
   font-weight: 600;
+  font-size: 0.82rem;
 }
 
 .status-pendiente {
@@ -78,6 +82,71 @@ body {
   border-radius: 1.25rem;
   border: 1px solid #f0e7ff;
   background: #fff;
+}
+
+.inscripcion-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.inscripcion-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 0.35rem;
+  background: #e7ddf8;
+}
+
+.inscripcion-card--pendiente::before {
+  background: #ffd56a;
+}
+
+.inscripcion-card--aceptada::before {
+  background: #51b37b;
+}
+
+.inscripcion-card--rechazada::before {
+  background: #e46f78;
+}
+
+.estado-highlight {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  border: 1px solid #f0e7ff;
+  border-radius: 1.25rem;
+  padding: 1rem;
+  background: #fbf8ff;
+}
+
+.estado-highlight__icon {
+  width: 2.5rem;
+  height: 2.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  color: #fff;
+  background: var(--brand);
+}
+
+.estado-highlight--aceptada {
+  border-color: #b7e5cc;
+  background: #f0fbf5;
+}
+
+.estado-highlight--aceptada .estado-highlight__icon {
+  background: #198754;
+}
+
+.estado-highlight--rechazada {
+  border-color: #f1c2c7;
+  background: #fff5f6;
+}
+
+.estado-highlight--rechazada .estado-highlight__icon {
+  background: #c43d4a;
 }
 
 .mentor-actions .btn {
@@ -221,7 +290,30 @@ body {
 }
 
 .seguimiento-historial {
-  padding-left: 1.1rem;
+  padding-left: 0;
+}
+
+.seguimiento-timeline {
+  list-style: none;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.seguimiento-timeline-item {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.65rem;
+  align-items: start;
+}
+
+.seguimiento-timeline-dot {
+  width: 0.75rem;
+  height: 0.75rem;
+  margin-top: 0.35rem;
+  border-radius: 999px;
+  background: var(--brand);
+  box-shadow: 0 0 0 0.25rem #f2ebff;
 }
 
 .seguimiento-form {
@@ -269,7 +361,48 @@ body {
   justify-self: start;
 }
 
+.mensaje-burbuja--sistema {
+  justify-self: center;
+  max-width: min(94%, 38rem);
+  background: #eef8ff;
+  border-color: #bde4ff;
+  color: #17415f;
+}
+
 .mensaje-meta {
   color: var(--text-muted);
   font-size: 0.78rem;
+}
+
+.materiales-panel {
+  border-top: 1px solid #f0e7ff;
+  padding-top: 1rem;
+}
+
+.materiales-list {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.material-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  border: 1px solid #f0e7ff;
+  border-radius: 1rem;
+  background: #fff;
+  padding: 0.85rem 1rem;
+}
+
+.material-card:hover {
+  border-color: #dcc8ff;
+  background: #fbf8ff;
+}
+
+@media (max-width: 576px) {
+  .material-card {
+    align-items: stretch;
+    flex-direction: column;
+  }
 }

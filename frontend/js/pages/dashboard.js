@@ -105,6 +105,52 @@
     }[estado] || 'status-pendiente';
   }
 
+  function etiquetaEstado(estado) {
+    return {
+      pendiente: 'Pendiente',
+      aceptada: 'Aceptada',
+      rechazada: 'Rechazada',
+    }[estado] || 'Inscripcion';
+  }
+
+  function iconoEstado(estado) {
+    return {
+      pendiente: 'bi-hourglass-split',
+      aceptada: 'bi-check-circle',
+      rechazada: 'bi-x-circle',
+    }[estado] || 'bi-info-circle';
+  }
+
+  function esMensajeAutomaticoInscripcion(mensaje) {
+    const contenido = String(mensaje?.contenido || '');
+    return /^Tu inscripcion a ".+" fue (aceptada|rechazada) por el mentor\.$/.test(contenido);
+  }
+
+  function construirBurbujaMensaje(mensaje, contexto) {
+    const esPropio = Number(mensaje.id_remitente || mensaje.id_usuario) === Number(user.id);
+    const esAutomatico = esMensajeAutomaticoInscripcion(mensaje);
+    const nombre = esAutomatico
+      ? 'Actualizacion de inscripcion'
+      : esPropio
+        ? 'Vos'
+        : mensaje.remitente_nombre || mensaje.remitenteNombre || obtenerNombreContraparte(contexto);
+    const clases = [
+      'mensaje-burbuja',
+      esPropio ? 'mensaje-burbuja--propio' : 'mensaje-burbuja--recibido',
+      esAutomatico ? 'mensaje-burbuja--sistema' : '',
+    ].filter(Boolean).join(' ');
+
+    return `
+      <article class="${clases}">
+        <div class="mensaje-meta mb-1">
+          ${esAutomatico ? '<i class="bi bi-bell me-1"></i>' : ''}
+          ${escaparHtml(nombre)} - ${escaparHtml(formatearFecha(mensaje.fecha_envio))}
+        </div>
+        <div>${escaparHtml(mensaje.contenido)}</div>
+      </article>
+    `;
+  }
+
   function obtenerNombreContraparte(item) {
     if (!item) return 'Mentorix';
     if (user.rol === 'mentor') return item.usuarioNombre || item.usuarioEmail || 'Estudiante';
@@ -273,9 +319,12 @@
       ? historial
           .map(
             (registro) => `
-              <li>
-                <span class="fw-semibold">${escaparHtml(formatearFecha(registro.fecha_seguimiento))}</span>
-                <span class="text-muted">- ${escaparHtml(registro.notas || registro.observacion || 'Sin observacion')}</span>
+              <li class="seguimiento-timeline-item">
+                <span class="seguimiento-timeline-dot"></span>
+                <div>
+                  <span class="fw-semibold">${escaparHtml(formatearFecha(registro.fecha_seguimiento))}</span>
+                  <p class="text-muted mb-0">${escaparHtml(registro.notas || registro.observacion || 'Sin observacion')}</p>
+                </div>
               </li>
             `
           )
@@ -290,7 +339,7 @@
       </div>
       <div class="mt-2">
         <div class="fw-semibold mb-1">Historial de observaciones</div>
-        <ul class="seguimiento-historial mb-0">${historialHtml}</ul>
+        <ul class="seguimiento-historial seguimiento-timeline mb-0">${historialHtml}</ul>
       </div>
     `;
   }
@@ -396,18 +445,7 @@
       return;
     }
 
-    mensajesList.innerHTML = mensajes
-      .map((mensaje) => {
-        const esPropio = Number(mensaje.id_remitente || mensaje.id_usuario) === Number(user.id);
-        const nombre = esPropio ? 'Vos' : mensaje.remitente_nombre || mensaje.remitenteNombre || obtenerNombreContraparte(inscripcionActiva);
-        return `
-          <article class="mensaje-burbuja ${esPropio ? 'mensaje-burbuja--propio' : 'mensaje-burbuja--recibido'}">
-            <div class="mensaje-meta mb-1">${escaparHtml(nombre)} - ${escaparHtml(formatearFecha(mensaje.fecha_envio))}</div>
-            <div>${escaparHtml(mensaje.contenido)}</div>
-          </article>
-        `;
-      })
-      .join('');
+    mensajesList.innerHTML = mensajes.map((mensaje) => construirBurbujaMensaje(mensaje, inscripcionActiva)).join('');
 
     mensajesList.scrollTop = mensajesList.scrollHeight;
   }
@@ -510,13 +548,15 @@
       : '';
 
     return `
-      <article class="item-card p-3">
+      <article class="item-card inscripcion-card inscripcion-card--${escaparHtml(estado)} p-3">
         <div class="d-flex justify-content-between align-items-start gap-3 mb-2 flex-wrap">
           <div>
             <h3 class="h6 fw-bold mb-1">${escaparHtml(item.claseTitulo || 'Clase')}</h3>
             <p class="text-muted mb-1">${escaparHtml(item.mentorNombre || 'Mentorix')}</p>
           </div>
-          <span class="status-badge ${claseEstado(estado)}">${escaparHtml(estado)}</span>
+          <span class="status-badge ${claseEstado(estado)}">
+            <i class="bi ${iconoEstado(estado)} me-1"></i>${escaparHtml(etiquetaEstado(estado))}
+          </span>
         </div>
         ${helperText}
         ${materia ? `<p class="text-muted small mb-1"><i class="bi bi-book me-1"></i>${escaparHtml(materia)}</p>` : ''}
@@ -559,11 +599,32 @@
   function renderResumenEstudiante() {
     if (!studentSummaryPanel) return;
     const metricas = calcularMetricasEstudiante(studentInscripciones);
+    const ultimoAviso = [...studentInscripciones]
+      .filter((item) => ['aceptada', 'rechazada'].includes(item.estado))
+      .sort((a, b) => new Date(b.fechaSolicitud || 0) - new Date(a.fechaSolicitud || 0))[0];
     const resumen = metricas.realizadas
       ? `Tenes ${metricas.realizadas} inscripciones realizadas, ${metricas.pendientes} pendientes y ${metricas.aceptadas} aceptadas.`
       : 'Todavia no realizaste inscripciones.';
+    const avisoHtml = ultimoAviso
+      ? `
+        <div class="estado-highlight estado-highlight--${escaparHtml(ultimoAviso.estado)} mb-4">
+          <div class="estado-highlight__icon">
+            <i class="bi ${iconoEstado(ultimoAviso.estado)}"></i>
+          </div>
+          <div>
+            <div class="fw-bold">Inscripcion ${escaparHtml(etiquetaEstado(ultimoAviso.estado).toLowerCase())}</div>
+            <p class="mb-0">${escaparHtml(
+              ultimoAviso.estado === 'aceptada'
+                ? `Ya podes acceder a mensajes, materiales y seguimiento de "${ultimoAviso.claseTitulo || 'la clase'}".`
+                : `La solicitud para "${ultimoAviso.claseTitulo || 'la clase'}" fue rechazada. Podes explorar otras clases disponibles.`
+            )}</p>
+          </div>
+        </div>
+      `
+      : '';
 
     studentSummaryPanel.innerHTML = `
+      ${avisoHtml}
       <div class="row g-4">
         <div class="col-12 col-lg-7">
           <div class="item-card p-4 h-100">
@@ -686,6 +747,16 @@
           <span class="status-badge status-aceptada">En curso</span>
         </div>
         ${construirPanelSeguimiento(item, false)}
+        <section class="materiales-panel mt-3" data-student-materials="${escaparHtml(obtener_id_clase(item))}">
+          <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap mb-2">
+            <div>
+              <h4 class="h6 fw-bold mb-1">Materiales de la clase</h4>
+              <p class="text-muted small mb-0">Recursos compartidos por el mentor.</p>
+            </div>
+            <span class="status-badge status-aceptada"><i class="bi bi-folder2-open me-1"></i>Disponible</span>
+          </div>
+          <div class="student-materials-content text-muted small">Cargando materiales...</div>
+        </section>
         <div class="d-flex justify-content-end mt-3">
           <button class="btn btn-outline-dark rounded-pill px-4" data-student-quick-tab="mensajes" data-student-target="${escaparHtml(obtener_id_inscripcion(item))}" type="button">Enviar mensaje al mentor</button>
         </div>
@@ -694,6 +765,41 @@
 
     adjuntarAccionesEstudiante(detail);
     cargarSeguimiento(obtener_id_inscripcion(item));
+    cargarMaterialesEstudiante(obtener_id_clase(item));
+  }
+
+  async function cargarMaterialesEstudiante(id_clase) {
+    const id_clase_normalizado = Number(id_clase);
+    const content = document.querySelector(`[data-student-materials="${id_clase_normalizado}"] .student-materials-content`);
+    if (!content || !id_clase_normalizado) return;
+
+    try {
+      const response = await MentoriasApi.listarMaterialesPorClase(id_clase_normalizado, user.id);
+      const materiales = Array.isArray(response.data) ? response.data : [];
+      content.innerHTML = materiales.length
+        ? `
+          <div class="materiales-list">
+            ${materiales
+              .map(
+                (material) => `
+                  <article class="material-card">
+                    <div>
+                      <div class="fw-semibold">${escaparHtml(material.titulo || 'Material')}</div>
+                      <div class="text-muted small">${escaparHtml(formatearFecha(material.fecha_creacion))}</div>
+                    </div>
+                    <a class="btn btn-outline-dark btn-sm rounded-pill px-3" href="${escaparHtml(material.url)}" target="_blank" rel="noopener">
+                      <i class="bi bi-box-arrow-up-right me-1"></i>Abrir
+                    </a>
+                  </article>
+                `
+              )
+              .join('')}
+          </div>
+        `
+        : '<div class="empty-state item-card p-3 text-muted text-center">Todavia no hay materiales cargados para esta clase.</div>';
+    } catch (error) {
+      content.innerHTML = `<div class="text-danger">${escaparHtml(error.message || 'No se pudieron cargar los materiales.')}</div>`;
+    }
   }
 
   function renderSeguimientoEstudiante() {
@@ -751,18 +857,7 @@
         return;
       }
 
-      list.innerHTML = mensajes
-        .map((mensaje) => {
-          const esPropio = Number(mensaje.id_remitente || mensaje.id_usuario) === Number(user.id);
-          const nombre = esPropio ? 'Vos' : mensaje.remitente_nombre || mensaje.remitenteNombre || obtenerNombreContraparte(studentMensajeActivo);
-          return `
-            <article class="mensaje-burbuja ${esPropio ? 'mensaje-burbuja--propio' : 'mensaje-burbuja--recibido'}">
-              <div class="mensaje-meta mb-1">${escaparHtml(nombre)} - ${escaparHtml(formatearFecha(mensaje.fecha_envio))}</div>
-              <div>${escaparHtml(mensaje.contenido)}</div>
-            </article>
-          `;
-        })
-        .join('');
+      list.innerHTML = mensajes.map((mensaje) => construirBurbujaMensaje(mensaje, studentMensajeActivo)).join('');
       list.scrollTop = list.scrollHeight;
     } catch (error) {
       list.innerHTML = `<div class="text-danger text-center py-4">${escaparHtml(error.message || 'No se pudieron cargar los mensajes.')}</div>`;
@@ -1230,9 +1325,14 @@
         ? materiales
             .map(
               (material) => `
-                <article class="item-card p-3">
-                  <div class="fw-semibold">${escaparHtml(material.titulo || 'Material')}</div>
-                  <a class="small" href="${escaparHtml(material.url)}" target="_blank" rel="noopener">Abrir material</a>
+                <article class="material-card">
+                  <div>
+                    <div class="fw-semibold">${escaparHtml(material.titulo || 'Material')}</div>
+                    <div class="text-muted small">${escaparHtml(formatearFecha(material.fecha_creacion))}</div>
+                  </div>
+                  <a class="btn btn-outline-dark btn-sm rounded-pill px-3" href="${escaparHtml(material.url)}" target="_blank" rel="noopener">
+                    <i class="bi bi-box-arrow-up-right me-1"></i>Abrir
+                  </a>
                 </article>
               `
             )
