@@ -71,30 +71,35 @@ describe('Mensajeria interna asociada a inscripcion', () => {
     expect(dependencias.mensajeRepository.crear).not.toHaveBeenCalled();
   });
 
-  test('rechaza mensajes cuando la inscripcion no esta aceptada', async () => {
+  test.each(['pendiente', 'rechazada'])('permite mensajes cuando la inscripcion esta %s', async (estado) => {
     const dependencias = crearDependencias({
       inscripcionRepository: {
         obtenerPorId: jest.fn().mockResolvedValue({
           id: 7,
           id_usuario: 3,
           id_mentor: 9,
-          estado: 'pendiente',
+          estado,
         }),
       },
     });
     const servicio = crearServicioMensaje(dependencias);
 
-    await expect(
-      servicio.enviarMensaje({
-        id_inscripcion: 7,
-        id_usuario: 9,
-        contenido: 'Hola',
-      })
-    ).rejects.toMatchObject({
-      code: 'VALIDATION_ERROR',
-      message: 'La mensajeria solo esta disponible para inscripciones aceptadas.',
+    await expect(servicio.enviarMensaje({
+      id_inscripcion: 7,
+      id_usuario: 9,
+      contenido: 'Hola',
+    })).resolves.toMatchObject({
+      id_inscripcion: 7,
+      id_remitente: 9,
+      id_destinatario: 3,
+      contenido: 'Hola',
     });
-    expect(dependencias.mensajeRepository.crear).not.toHaveBeenCalled();
+    expect(dependencias.mensajeRepository.crear).toHaveBeenCalledWith({
+      id_inscripcion: 7,
+      id_remitente: 9,
+      id_destinatario: 3,
+      contenido: 'Hola',
+    });
   });
 
   test('rechaza consultas de usuarios ajenos a la inscripcion', async () => {

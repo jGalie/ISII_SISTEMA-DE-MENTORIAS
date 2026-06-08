@@ -179,7 +179,7 @@
       aceptadas,
       rechazadas: contarPorEstado(items, 'rechazada'),
       seguimientos: aceptadas,
-      mensajes: aceptadas,
+      mensajes: items.length,
     };
   }
 
@@ -535,14 +535,15 @@
       estado === 'aceptada'
         ? `<a class="btn btn-outline-dark btn-sm rounded-pill px-3" href="/pages/detalle-clase.html?id=${encodeURIComponent(id_clase)}">Ver clase</a>`
         : '';
-    const actions =
+    const seguimientoAction =
       estado === 'aceptada'
-        ? `
-          ${acceptedActions}
-          <button class="btn btn-outline-dark btn-sm rounded-pill px-3" data-student-quick-tab="seguimiento" data-student-target="${escaparHtml(id_inscripcion)}" type="button">Ver seguimiento</button>
-          <button class="btn btn-outline-dark btn-sm rounded-pill px-3" data-student-quick-tab="mensajes" data-student-target="${escaparHtml(id_inscripcion)}" type="button">Ver mensajes</button>
-        `
+        ? `<button class="btn btn-outline-dark btn-sm rounded-pill px-3" data-student-quick-tab="seguimiento" data-student-target="${escaparHtml(id_inscripcion)}" type="button">Ver seguimiento</button>`
         : '';
+    const actions = `
+      ${acceptedActions}
+      ${seguimientoAction}
+      <button class="btn btn-outline-dark btn-sm rounded-pill px-3" data-student-quick-tab="mensajes" data-student-target="${escaparHtml(id_inscripcion)}" type="button">Ver mensajes</button>
+    `;
     const helperText = statusMessages[estado]
       ? `<p class="text-muted small mb-0 mt-2">${escaparHtml(statusMessages[estado])}</p>`
       : '';
@@ -950,7 +951,7 @@
 
   function seleccionarConversacionEstudiante(id_inscripcion) {
     const item = inscripcionesPorId.get(Number(id_inscripcion));
-    if (!item || item.estado !== 'aceptada') return;
+    if (!item) return;
     studentMensajeActivo = item;
     renderizarConversacionEstudiante(item);
     document.querySelectorAll('[data-student-conversation-id]').forEach((button) => {
@@ -960,7 +961,7 @@
 
   function renderMensajesEstudiante() {
     if (!studentMessagesPanel) return;
-    const conversaciones = studentInscripciones.filter((item) => item.estado === 'aceptada');
+    const conversaciones = studentInscripciones;
 
     if (!conversaciones.length) {
       studentMessagesPanel.innerHTML = `
@@ -1033,6 +1034,7 @@
         </div>
         <p class="text-muted small mb-3">${escaparHtml(item.claseDescripcion || '')}</p>
         <div class="mentor-actions d-flex gap-2 flex-wrap">
+          ${construirBotonMensajes(item)}
           <button class="btn btn-success" data-action="aceptada" data-id="${escaparHtml(obtener_id_inscripcion(item))}" type="button">Aceptar</button>
           <button class="btn btn-outline-danger" data-action="rechazada" data-id="${escaparHtml(obtener_id_inscripcion(item))}" type="button">Rechazar</button>
         </div>
@@ -1049,7 +1051,7 @@
           ${construirBotonTabMentor('seguimiento', 'Seguimiento', id_inscripcion)}
           ${construirBotonTabMentor('materiales', 'Materiales', id_inscripcion)}
         `
-        : '';
+        : construirBotonMensajes(item);
     const motivo =
       item.estado === 'rechazada' && (item.motivoRechazo || item.motivo_rechazo)
         ? `<p class="text-danger small mb-0">Motivo: ${escaparHtml(item.motivoRechazo || item.motivo_rechazo)}</p>`
@@ -1187,7 +1189,9 @@
     }
 
     adjuntarAccionesMentor(mentorPendingList);
+    adjuntarAccionesMensajes(mentorPendingList);
     adjuntarAccionesMensajes(mentorAcceptedList);
+    adjuntarAccionesMensajes(mentorRejectedList);
     adjuntarAccionesTabsMentor(mentorAcceptedList);
   }
 

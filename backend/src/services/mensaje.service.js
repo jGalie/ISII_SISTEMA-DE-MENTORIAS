@@ -64,9 +64,6 @@ function crearServicioMensaje({ mensajeRepository, inscripcionRepository, usuari
     if (!inscripcion) {
       throw crearErrorApp('La inscripcion indicada no existe', 'NOT_FOUND');
     }
-    if (inscripcion.estado !== 'aceptada') {
-      throw crearErrorApp('La mensajeria solo esta disponible para inscripciones aceptadas.', 'VALIDATION_ERROR');
-    }
 
     const usuario = await usuarioRepository.buscarPorId(id_usuario_normalizado);
     if (!usuario) {
