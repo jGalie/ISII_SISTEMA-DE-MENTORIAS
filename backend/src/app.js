@@ -42,6 +42,8 @@ const { crearRutasMaterial } = require('./routes/material.routes');
 const { crearRutasMateria } = require('./routes/materia.routes');
 const { crearRutasMentorMateria } = require('./routes/mentor-materia.routes');
 const { crearRutasAuth } = require('./routes/auth.routes');
+const { crearPublicadorEventosInscripcion } = require('./events/inscripcion-event.publisher');
+const { crearObservadorMensajeAutomaticoInscripcion } = require('./observers/mensaje-automatico-inscripcion.observer');
 
 const usuarioRepository = crearRepositorioUsuario({ pool });
 const claseRepository = crearRepositorioClase({ pool });
@@ -52,6 +54,11 @@ const seguimientoRepository = crearRepositorioSeguimiento({ pool });
 const materialRepository = crearRepositorioMaterial({ pool });
 const materiaRepository = crearRepositorioMateria({ pool });
 const mentorMateriaRepository = crearRepositorioMentorMateria({ pool });
+const inscripcionEventPublisher = crearPublicadorEventosInscripcion();
+const mensajeAutomaticoInscripcionObserver = crearObservadorMensajeAutomaticoInscripcion({
+  mensajeRepository,
+});
+inscripcionEventPublisher.suscribir(mensajeAutomaticoInscripcionObserver);
 
 // En esta seccion se realiza la inyeccion manual de dependencias. Cada capa
 // recibe solamente los objetos que necesita, lo que disminuye el acoplamiento y
@@ -66,6 +73,7 @@ const inscripcionService = crearServicioInscripcion({
   inscripcionRepository,
   claseRepository,
   usuarioRepository,
+  inscripcionEventPublisher,
 });
 const valoracionService = crearServicioValoracion({
   valoracionRepository,

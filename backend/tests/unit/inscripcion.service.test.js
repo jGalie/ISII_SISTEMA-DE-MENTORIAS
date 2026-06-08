@@ -191,6 +191,62 @@ describe('Inscripciones: cambio de estado', () => {
     expect(resultado).toEqual(inscripcionAceptada);
   });
 
+  test('notifica el cambio de estado cuando acepta una inscripcion', async () => {
+    const inscripcionAceptada = {
+      id_inscripcion: 21,
+      id_usuario: 8,
+      id_clase: 9,
+      id_mentor: 4,
+      estado: 'aceptada',
+      claseTitulo: 'Algebra inicial',
+    };
+    const inscripcionRepository = {
+      obtenerPorId: jest.fn().mockResolvedValue({
+        id_inscripcion: 21,
+        id_usuario: 8,
+        id_clase: 9,
+        id_mentor: 4,
+        estado: 'pendiente',
+      }),
+      cambiarEstadoAceptada: jest.fn().mockResolvedValue(inscripcionAceptada),
+    };
+    const claseRepository = {
+      buscarPorId: jest.fn().mockResolvedValue({
+        id: 9,
+        completa: false,
+      }),
+      incrementarCupoActual: jest.fn().mockResolvedValue({
+        id: 9,
+        cupoActual: 1,
+      }),
+    };
+    const usuarioRepository = {
+      buscarPorId: jest.fn().mockResolvedValue({
+        id: 4,
+        rol: 'mentor',
+      }),
+    };
+    const inscripcionEventPublisher = {
+      notificarCambioEstado: jest.fn().mockResolvedValue(undefined),
+    };
+    const servicio = crearServicioInscripcion({
+      inscripcionRepository,
+      claseRepository,
+      usuarioRepository,
+      inscripcionEventPublisher,
+    });
+
+    await servicio.cambiarEstadoInscripcion(21, {
+      estado: 'aceptada',
+      id_mentor: 4,
+    });
+
+    expect(inscripcionEventPublisher.notificarCambioEstado).toHaveBeenCalledWith({
+      tipo: 'inscripcion.estado_cambiado',
+      inscripcion: inscripcionAceptada,
+    });
+  });
+
   test('decrementa el cupo al rechazar una inscripcion aceptada', async () => {
     const inscripcionRechazada = {
       id: 22,
@@ -240,6 +296,59 @@ describe('Inscripciones: cambio de estado', () => {
     expect(claseRepository.decrementarCupoActual).toHaveBeenCalledWith(10);
     expect(inscripcionRepository.cambiarEstadoRechazada).toHaveBeenCalledWith(22);
     expect(resultado).toEqual(inscripcionRechazada);
+  });
+
+  test('notifica el cambio de estado cuando rechaza una inscripcion', async () => {
+    const inscripcionRechazada = {
+      id_inscripcion: 22,
+      id_usuario: 8,
+      id_clase: 10,
+      id_mentor: 5,
+      estado: 'rechazada',
+      claseTitulo: 'Bases de datos',
+    };
+    const inscripcionRepository = {
+      obtenerPorId: jest.fn().mockResolvedValue({
+        id_inscripcion: 22,
+        id_usuario: 8,
+        id_clase: 10,
+        id_mentor: 5,
+        estado: 'pendiente',
+      }),
+      cambiarEstadoRechazada: jest.fn().mockResolvedValue(inscripcionRechazada),
+    };
+    const claseRepository = {
+      buscarPorId: jest.fn().mockResolvedValue({
+        id: 10,
+        completa: false,
+      }),
+      decrementarCupoActual: jest.fn(),
+    };
+    const usuarioRepository = {
+      buscarPorId: jest.fn().mockResolvedValue({
+        id: 5,
+        rol: 'mentor',
+      }),
+    };
+    const inscripcionEventPublisher = {
+      notificarCambioEstado: jest.fn().mockResolvedValue(undefined),
+    };
+    const servicio = crearServicioInscripcion({
+      inscripcionRepository,
+      claseRepository,
+      usuarioRepository,
+      inscripcionEventPublisher,
+    });
+
+    await servicio.cambiarEstadoInscripcion(22, {
+      estado: 'rechazada',
+      id_mentor: 5,
+    });
+
+    expect(inscripcionEventPublisher.notificarCambioEstado).toHaveBeenCalledWith({
+      tipo: 'inscripcion.estado_cambiado',
+      inscripcion: inscripcionRechazada,
+    });
   });
 
   test('no permite aceptar una inscripcion rechazada', async () => {

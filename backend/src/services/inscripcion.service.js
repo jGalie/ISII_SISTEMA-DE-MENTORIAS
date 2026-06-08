@@ -23,7 +23,23 @@ function validarCupoClase(clase) {
   }
 }
 
-function crearServicioInscripcion({ inscripcionRepository, claseRepository, usuarioRepository }) {
+function crearServicioInscripcion({
+  inscripcionRepository,
+  claseRepository,
+  usuarioRepository,
+  inscripcionEventPublisher,
+}) {
+  async function notificarCambioEstado(inscripcion) {
+    if (!inscripcionEventPublisher || typeof inscripcionEventPublisher.notificarCambioEstado !== 'function') {
+      return;
+    }
+
+    await inscripcionEventPublisher.notificarCambioEstado({
+      tipo: 'inscripcion.estado_cambiado',
+      inscripcion,
+    });
+  }
+
   async function obtenerInscripcionGestionable(id_inscripcion, id_mentor) {
     const inscripcion = await inscripcionRepository.obtenerPorId(Number(id_inscripcion));
     if (!inscripcion) {
@@ -164,7 +180,9 @@ function crearServicioInscripcion({ inscripcionRepository, claseRepository, usua
         }
       }
 
-      return inscripcionRepository.cambiarEstadoAceptada(id_inscripcion_normalizado);
+      const inscripcionActualizada = await inscripcionRepository.cambiarEstadoAceptada(id_inscripcion_normalizado);
+      await notificarCambioEstado(inscripcionActualizada);
+      return inscripcionActualizada;
     },
 
     async rechazarInscripcion(id_inscripcion, id_mentor) {
@@ -180,7 +198,9 @@ function crearServicioInscripcion({ inscripcionRepository, claseRepository, usua
         await claseRepository.decrementarCupoActual(inscripcion.id_clase);
       }
 
-      return inscripcionRepository.cambiarEstadoRechazada(id_inscripcion_normalizado);
+      const inscripcionActualizada = await inscripcionRepository.cambiarEstadoRechazada(id_inscripcion_normalizado);
+      await notificarCambioEstado(inscripcionActualizada);
+      return inscripcionActualizada;
     },
   };
 }
