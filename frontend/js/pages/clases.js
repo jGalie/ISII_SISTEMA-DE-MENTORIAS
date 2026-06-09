@@ -25,6 +25,7 @@
   const eyebrow = document.getElementById('clases-eyebrow');
   const title = document.getElementById('clases-title');
   const subtitle = document.getElementById('clases-subtitle');
+  const page = document.querySelector('.clases-page');
   const user = MentoriasAuth.obtenerUsuario();
   const urlParams = new URLSearchParams(window.location.search);
   const studentLevel =
@@ -37,6 +38,7 @@
   let activeFilter = 'todas';
 
   if (user && user.rol === 'mentor') {
+    page?.classList.add('is-mentor-view');
     createButton.classList.remove('d-none');
     eyebrow.textContent = 'Gestion de mentorias';
     title.textContent = 'Mis clases publicadas';
@@ -143,6 +145,14 @@
     const rating = clase.promedioEstrellas
       ? `<div class="class-meta__item"><i class="bi bi-star-fill"></i><span>${Number(clase.promedioEstrellas).toFixed(1)} (${clase.cantidadValoraciones})</span></div>`
       : '';
+    const mentorMeta = canManage
+      ? ''
+      : `
+          <div class="class-meta__item">
+            <i class="bi bi-person-circle"></i>
+            <a href="/pages/mentor.html?id=${encodeURIComponent(clase.id_mentor)}">${escaparHtml(clase.mentorNombre || 'Mentor')}</a>
+          </div>
+        `;
 
     return `
       <article class="class-card">
@@ -152,10 +162,7 @@
         </div>
 
         <div class="class-meta">
-          <div class="class-meta__item">
-            <i class="bi bi-person-circle"></i>
-            <a href="/pages/mentor.html?id=${encodeURIComponent(clase.id_mentor)}">${escaparHtml(clase.mentorNombre || 'Mentor')}</a>
-          </div>
+          ${mentorMeta}
           <div class="class-meta__item">
             <i class="bi bi-journal-bookmark"></i>
             <span>${escaparHtml(clase.materiaNombre || 'Materia a definir')}</span>
@@ -187,7 +194,7 @@
         <p class="class-card__description">${escaparHtml(clase.descripcion || 'Sin descripcion.')}</p>
 
         <div class="class-card__actions">
-          <a class="btn btn-detail btn-sm px-3" href="/pages/detalle-clase.html?id=${encodeURIComponent(clase.id)}">Ver detalle</a>
+          <a class="btn btn-detail btn-sm px-3" href="/pages/detalle-clase.html?id=${encodeURIComponent(clase.id)}">${canManage ? 'Ver' : 'Ver detalle'}</a>
           ${enrollButton}
           ${canManage ? `<a class="btn btn-edit btn-sm px-3" href="/pages/crear-clase.html?id=${encodeURIComponent(clase.id)}">Editar</a>` : ''}
           ${canManage ? `<button class="btn btn-danger-soft btn-sm px-3 delete-clase-btn" data-id="${encodeURIComponent(clase.id)}" type="button">Eliminar</button>` : ''}
@@ -254,16 +261,32 @@
 
   function renderizar(list) {
     if (!Array.isArray(list) || !list.length) {
-      box.innerHTML = '<div class="classes-empty">No se encontraron clases con esos filtros.</div>';
-      count.textContent = user?.rol === 'mentor' ? '0 clases publicadas' : '0 clases';
+      const noHayClases = clases.length === 0;
+      box.innerHTML = `<div class="classes-empty">${
+        noHayClases && user?.rol === 'mentor'
+          ? 'Todavia no publicaste ninguna clase.'
+          : noHayClases
+            ? 'No hay clases disponibles.'
+            : 'No se encontraron clases con esos filtros.'
+      }</div>`;
+      if (user?.rol === 'mentor') {
+        const total = clases.length;
+        count.textContent = `${total} clase${total === 1 ? '' : 's'} publicada${total === 1 ? '' : 's'}`;
+      } else {
+        count.textContent = '0 clases';
+      }
       return;
     }
 
     box.innerHTML = `<div class="classes-grid">${list.map(construirTarjetaClase).join('')}</div>`;
     adjuntarManejadoresEliminacion();
     adjuntarManejadoresInscripcion();
-    const label = `${list.length} clase${list.length === 1 ? '' : 's'}`;
-    count.textContent = user?.rol === 'mentor' ? `${label} publicada${list.length === 1 ? '' : 's'}` : label;
+    if (user?.rol === 'mentor') {
+      const total = clases.length;
+      count.textContent = `${total} clase${total === 1 ? '' : 's'} publicada${total === 1 ? '' : 's'}`;
+    } else {
+      count.textContent = `${list.length} clase${list.length === 1 ? '' : 's'}`;
+    }
   }
 
   function aplicarFiltro() {

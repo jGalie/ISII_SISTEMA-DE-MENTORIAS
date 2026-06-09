@@ -1449,11 +1449,16 @@
         const id_inscripcion = Number(this.getAttribute('data-id'));
         const estado = this.getAttribute('data-action');
         if (!id_inscripcion || !estado) return;
-        const confirmarCambio = window.confirm(
-          estado === 'aceptada'
-            ? 'La solicitud pasara a estar aceptada para el estudiante.'
-            : 'La solicitud pasara a estar rechazada para el estudiante.'
-        );
+        const esAceptacion = estado === 'aceptada';
+        const confirmarCambio = await MentoriasUI.mostrarDialogoConfirmacion({
+          title: esAceptacion ? 'Aceptar inscripción' : 'Rechazar inscripción',
+          message: esAceptacion
+            ? 'La solicitud pasará a estar aceptada para el estudiante.'
+            : 'La solicitud pasará a estar rechazada para el estudiante.',
+          confirmText: esAceptacion ? 'Aceptar inscripción' : 'Rechazar inscripción',
+          cancelText: 'Cancelar',
+          tone: esAceptacion ? 'success' : 'danger',
+        });
         if (!confirmarCambio) return;
 
         this.disabled = true;

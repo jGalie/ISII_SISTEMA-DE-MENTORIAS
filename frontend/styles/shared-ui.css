@@ -108,13 +108,42 @@
   gap: 0.75rem;
 }
 
-.mentorix-confirm .btn-brand {
+.mentorix-confirm__button {
   min-height: 2.75rem;
   border: 0;
   border-radius: 999px;
-  background: linear-gradient(135deg, #7b2cff, #a02eff);
   color: #fff;
   font-weight: 700;
+}
+
+.mentorix-confirm__button--warning {
+  background: linear-gradient(135deg, #7b2cff, #a02eff);
+}
+
+.mentorix-confirm__button--warning:hover,
+.mentorix-confirm__button--warning:focus {
+  background: linear-gradient(135deg, #6624d6, #9122ff);
+  color: #fff;
+}
+
+.mentorix-confirm__button--success {
+  background: #198754;
+}
+
+.mentorix-confirm__button--success:hover,
+.mentorix-confirm__button--success:focus {
+  background: #146c43;
+  color: #fff;
+}
+
+.mentorix-confirm__button--danger {
+  background: #dc3545;
+}
+
+.mentorix-confirm__button--danger:hover,
+.mentorix-confirm__button--danger:focus {
+  background: #b02a37;
+  color: #fff;
 }
 
 @media (max-width: 575.98px) {

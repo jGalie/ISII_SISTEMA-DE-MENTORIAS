@@ -31,6 +31,21 @@
       cancelText = 'Seguir editando',
       tone = 'warning',
     } = options;
+    const toneConfig = {
+      success: {
+        icon: 'bi-check-circle',
+        buttonClass: 'mentorix-confirm__button--success',
+      },
+      danger: {
+        icon: 'bi-exclamation-triangle',
+        buttonClass: 'mentorix-confirm__button--danger',
+      },
+      warning: {
+        icon: 'bi-exclamation-circle',
+        buttonClass: 'mentorix-confirm__button--warning',
+      },
+    };
+    const selectedTone = toneConfig[tone] || toneConfig.warning;
 
     return new Promise((resolve) => {
       const previousDialog = document.querySelector('.mentorix-confirm-backdrop');
@@ -41,7 +56,7 @@
       backdrop.innerHTML = `
         <div class="mentorix-confirm" role="dialog" aria-modal="true" aria-labelledby="mentorix-confirm-title">
           <div class="mentorix-confirm__icon mentorix-confirm__icon--${esc(tone)}">
-            <i class="bi bi-exclamation-circle"></i>
+            <i class="bi ${selectedTone.icon}"></i>
           </div>
           <div class="mentorix-confirm__content">
             <h2 id="mentorix-confirm-title">${esc(title)}</h2>
@@ -49,7 +64,7 @@
           </div>
           <div class="mentorix-confirm__actions">
             <button type="button" class="btn btn-outline-dark rounded-pill px-4" data-confirm-cancel>${esc(cancelText)}</button>
-            <button type="button" class="btn btn-brand px-4" data-confirm-ok>${esc(confirmText)}</button>
+            <button type="button" class="btn mentorix-confirm__button ${selectedTone.buttonClass} px-4" data-confirm-ok>${esc(confirmText)}</button>
           </div>
         </div>
       `;
