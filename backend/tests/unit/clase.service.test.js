@@ -88,16 +88,17 @@ describe('Clases - contrato crearClase', () => {
   });
 
   test.each([
-    ['titulo', { titulo: ' ' }],
-    ['descripcion', { descripcion: ' ' }],
-    ['fecha', { fecha: ' ' }],
-    ['id_materia', { id_materia: undefined }],
-  ])('rechaza la creacion de una clase cuando falta el dato obligatorio %s', async (campo, datosInvalidos) => {
+    ['titulo', { titulo: ' ' }, 'Debes ingresar un titulo para la clase.'],
+    ['descripcion', { descripcion: ' ' }, 'Debes ingresar una descripcion para la clase.'],
+    ['fecha', { fecha: ' ' }, 'Debes indicar la fecha y hora de la clase.'],
+    ['id_materia', { id_materia: undefined }, 'Debes seleccionar una materia para la clase.'],
+  ])('rechaza la creacion de una clase cuando falta el dato obligatorio %s', async (campo, datosInvalidos, message) => {
     const dependencias = crearDependencias();
     const servicio = crearServicioClase(dependencias);
 
     await expect(servicio.crearClase(datosClase(datosInvalidos))).rejects.toMatchObject({
       code: 'VALIDATION_ERROR',
+      message,
     });
 
     expect(dependencias.usuarioRepository.buscarPorId).not.toHaveBeenCalled();

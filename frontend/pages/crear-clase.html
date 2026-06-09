@@ -42,7 +42,7 @@
                   <label class="form-label fw-semibold" for="materia">Materia</label>
                   <div class="input-shell">
                     <i class="bi bi-journal-bookmark me-2"></i>
-                    <select class="form-select" id="materia" name="materia"></select>
+                    <select class="form-select" id="materia" name="materia" required></select>
                   </div>
                   <div id="materia-error" class="invalid-feedback d-none">Selecciona una materia.</div>
                   <div id="materia-help" class="form-text">La materia se toma de las que definiste al registrarte como mentor.</div>
@@ -52,7 +52,7 @@
                   <label class="form-label fw-semibold" for="titulo">Titulo</label>
                   <div class="input-shell">
                     <i class="bi bi-book me-2"></i>
-                    <input class="form-control" type="text" id="titulo" name="titulo" placeholder="Ej. Introduccion a Node.js" />
+                    <input class="form-control" type="text" id="titulo" name="titulo" minlength="5" maxlength="120" required placeholder="Ej. Introduccion a Node.js" />
                   </div>
                   <div id="titulo-error" class="invalid-feedback d-none">Ingresa un titulo para la clase.</div>
                 </div>
@@ -60,7 +60,7 @@
                 <div class="mb-4">
                   <label class="form-label fw-semibold" for="descripcion">Descripcion</label>
                   <div class="textarea-shell">
-                    <textarea class="form-control" id="descripcion" name="descripcion" rows="5" placeholder="Conta que van a aprender en esta clase."></textarea>
+                    <textarea class="form-control" id="descripcion" name="descripcion" rows="5" minlength="10" maxlength="1000" required placeholder="Conta que van a aprender en esta clase."></textarea>
                   </div>
                   <div id="descripcion-error" class="invalid-feedback d-none">Ingresa una descripcion.</div>
                 </div>
@@ -69,7 +69,7 @@
                   <label class="form-label fw-semibold" for="fecha">Fecha y hora</label>
                   <div class="input-shell">
                     <i class="bi bi-calendar-event me-2"></i>
-                    <input class="form-control" type="datetime-local" id="fecha" name="fecha" />
+                    <input class="form-control" type="datetime-local" id="fecha" name="fecha" required />
                   </div>
                   <div id="fecha-error" class="invalid-feedback d-none">Ingresa una fecha y hora validas.</div>
                 </div>
@@ -89,7 +89,7 @@
                   <label class="form-label fw-semibold" for="precio">Precio de la clase</label>
                   <div class="input-shell">
                     <i class="bi bi-cash-coin me-2"></i>
-                    <input class="form-control" type="number" id="precio" name="precio" placeholder="Ej. 12000" />
+                    <input class="form-control" type="number" id="precio" name="precio" min="0" step="0.01" required placeholder="Ej. 12000" />
                   </div>
                   <div id="precio-error" class="invalid-feedback d-none">Ingresa un precio valido.</div>
                 </div>
@@ -98,7 +98,7 @@
                   <label class="form-label fw-semibold" for="cupo-maximo">Cupo máximo</label>
                   <div class="input-shell">
                     <i class="bi bi-people me-2"></i>
-                    <input class="form-control" type="number" id="cupo-maximo" name="cupo-maximo" placeholder="Ej. 6" />
+                    <input class="form-control" type="number" id="cupo-maximo" name="cupo-maximo" min="1" step="1" required placeholder="Ej. 6" />
                   </div>
                   <div id="cupo-maximo-error" class="invalid-feedback d-none">Ingresa un cupo valido.</div>
                 </div>
@@ -133,6 +133,6 @@
     <script src="/js/auth.js?v=20260430-es"></script>
     <script src="/js/components.js?v=20260430-es"></script>
     <script src="/js/ui.js?v=20260430-es"></script>
-    <script src="/js/pages/crear-clase.js?v=20260430-es"></script>
+    <script src="/js/pages/crear-clase.js?v=20260609-es"></script>
   </body>
 </html>

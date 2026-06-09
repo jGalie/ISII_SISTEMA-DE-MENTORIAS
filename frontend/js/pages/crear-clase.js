@@ -25,6 +25,9 @@
   const tituloPagina = document.getElementById('page-title');
   const selectorMateria = document.getElementById('materia');
   const ayudaMateria = document.getElementById('materia-help');
+  const inputTitulo = document.getElementById('titulo');
+  const inputDescripcion = document.getElementById('descripcion');
+  const inputFecha = document.getElementById('fecha');
   const selectorModalidad = document.getElementById('modalidad');
   const inputPrecio = document.getElementById('precio');
   const inputCupoMaximo = document.getElementById('cupo-maximo');
@@ -41,6 +44,96 @@
     mensaje.className = `alert alert-${tipo}`;
     mensaje.textContent = texto;
     mensaje.classList.remove('d-none');
+  }
+
+  function ocultarMensaje() {
+    mensaje.className = 'alert d-none';
+    mensaje.textContent = '';
+  }
+
+  function establecerErrorCampo(input, idFeedback, texto) {
+    const feedback = document.getElementById(idFeedback);
+    input?.classList.add('is-invalid');
+    if (feedback) {
+      feedback.textContent = texto;
+      feedback.classList.remove('d-none');
+      feedback.classList.add('d-block');
+    }
+  }
+
+  function limpiarErrorCampo(input, idFeedback) {
+    input?.classList.remove('is-invalid');
+    const feedback = document.getElementById(idFeedback);
+    feedback?.classList.remove('d-block');
+    feedback?.classList.add('d-none');
+  }
+
+  function validarFormulario() {
+    const errores = [];
+    const titulo = inputTitulo.value.trim();
+    const descripcion = inputDescripcion.value.trim();
+    const valorFecha = inputFecha.value;
+    const fecha = valorFecha ? new Date(valorFecha) : null;
+    const precio = Number(inputPrecio.value);
+    const cupoMaximo = Number(inputCupoMaximo.value);
+    const modalidad = selectorModalidad.value;
+
+    const validar = (input, feedback, condicion, texto) => {
+      if (condicion) {
+        limpiarErrorCampo(input, feedback);
+        return;
+      }
+      establecerErrorCampo(input, feedback, texto);
+      errores.push({ input, texto });
+    };
+
+    validar(selectorMateria, 'materia-error', Boolean(selectorMateria.value), 'Selecciona una materia.');
+    validar(inputTitulo, 'titulo-error', titulo.length >= 5 && titulo.length <= 120, titulo
+      ? 'El titulo debe tener entre 5 y 120 caracteres.'
+      : 'Ingresa un titulo para la clase.');
+    validar(
+      inputDescripcion,
+      'descripcion-error',
+      descripcion.length >= 10 && descripcion.length <= 1000,
+      descripcion ? 'La descripcion debe tener entre 10 y 1000 caracteres.' : 'Ingresa una descripcion.'
+    );
+    validar(
+      inputFecha,
+      'fecha-error',
+      Boolean(fecha && !Number.isNaN(fecha.getTime()) && (esEdicion || fecha.getTime() > Date.now())),
+      !valorFecha
+        ? 'Ingresa la fecha y hora de la clase.'
+        : esEdicion
+          ? 'Ingresa una fecha y hora validas.'
+          : 'La fecha y hora deben ser futuras.'
+    );
+    validar(
+      inputPrecio,
+      'precio-error',
+      inputPrecio.value.trim() !== '' && Number.isFinite(precio) && precio >= 0,
+      'Ingresa un precio mayor o igual a cero.'
+    );
+    validar(
+      inputCupoMaximo,
+      'cupo-maximo-error',
+      inputCupoMaximo.value.trim() !== '' && Number.isInteger(cupoMaximo) && cupoMaximo >= 1,
+      'Ingresa un cupo entero mayor o igual a uno.'
+    );
+    validar(
+      inputUbicacion,
+      'ubicacion-error',
+      modalidad !== 'presencial' || Boolean(inputUbicacion.value.trim()),
+      'Ingresa una ubicacion para la clase presencial.'
+    );
+
+    if (errores.length) {
+      mostrarMensaje('danger', errores[0].texto);
+      errores[0].input?.focus();
+      return false;
+    }
+
+    ocultarMensaje();
+    return true;
   }
 
   function mostrarAvisoSuperior(texto) {
@@ -74,7 +167,9 @@
     contenedorUbicacion?.classList.toggle('d-none', !esPresencial);
     if (inputUbicacion && !esPresencial) {
       inputUbicacion.value = '';
+      limpiarErrorCampo(inputUbicacion, 'ubicacion-error');
     }
+    if (inputUbicacion) inputUbicacion.required = esPresencial;
   }
 
   /**
@@ -146,11 +241,27 @@
     selectorModalidad.addEventListener('change', sincronizarCampoUbicacion);
   }
 
-  formulario.addEventListener('input', () => {
+  const feedbackPorCampo = {
+    materia: 'materia-error',
+    titulo: 'titulo-error',
+    descripcion: 'descripcion-error',
+    fecha: 'fecha-error',
+    precio: 'precio-error',
+    'cupo-maximo': 'cupo-maximo-error',
+    ubicacion: 'ubicacion-error',
+  };
+
+  formulario.addEventListener('input', (event) => {
     formDirty = true;
+    ocultarMensaje();
+    const feedback = feedbackPorCampo[event.target?.id];
+    if (feedback) limpiarErrorCampo(event.target, feedback);
   });
-  formulario.addEventListener('change', () => {
+  formulario.addEventListener('change', (event) => {
     formDirty = true;
+    ocultarMensaje();
+    const feedback = feedbackPorCampo[event.target?.id];
+    if (feedback) limpiarErrorCampo(event.target, feedback);
   });
 
   window.addEventListener('beforeunload', (event) => {
@@ -186,6 +297,8 @@
    */
   formulario.addEventListener('submit', async function (event) {
     event.preventDefault();
+
+    if (!validarFormulario()) return;
 
     const valorFecha = document.getElementById('fecha').value;
     const modalidad = document.getElementById('modalidad').value;

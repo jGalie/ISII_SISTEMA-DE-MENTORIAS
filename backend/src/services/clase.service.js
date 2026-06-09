@@ -14,7 +14,7 @@ function tieneValor(value) {
 
 function normalizarFechaClase(value) {
   if (!tieneValor(value)) {
-    throw crearErrorApp('Titulo, descripcion y fecha son obligatorios.', 'VALIDATION_ERROR');
+    throw crearErrorApp('Debes indicar la fecha y hora de la clase.', 'VALIDATION_ERROR');
   }
 
   const fecha = new Date(value);
@@ -67,6 +67,13 @@ function validarDatosClase(datosClase) {
   rechazarCamposFueraDeContrato(datosClase);
   const titulo = String(datosClase?.titulo || '').trim();
   const descripcion = String(datosClase?.descripcion || '').trim();
+  if (!titulo) {
+    throw crearErrorApp('Debes ingresar un titulo para la clase.', 'VALIDATION_ERROR');
+  }
+  if (!descripcion) {
+    throw crearErrorApp('Debes ingresar una descripcion para la clase.', 'VALIDATION_ERROR');
+  }
+
   const fecha = normalizarFechaClase(datosClase?.fecha);
   const modalidad = String(datosClase?.modalidad || 'virtual').trim().toLowerCase();
   const id_materia = Number(datosClase?.id_materia);
@@ -75,9 +82,6 @@ function validarDatosClase(datosClase) {
   const origenCupo = datosClase?.cupo_maximo ?? datosClase?.cupoMaximo ?? 1;
   const cupo_maximo = normalizarNumero(origenCupo, 'Debes indicar un cupo maximo valido.');
 
-  if (!titulo || !descripcion) {
-    throw crearErrorApp('Titulo, descripcion y fecha son obligatorios.', 'VALIDATION_ERROR');
-  }
   if (titulo.length < 5 || titulo.length > 120) {
     throw crearErrorApp('El titulo debe tener entre 5 y 120 caracteres.', 'VALIDATION_ERROR');
   }
