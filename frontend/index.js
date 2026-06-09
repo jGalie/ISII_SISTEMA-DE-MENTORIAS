@@ -491,7 +491,14 @@
       : construirEstadoVacio();
 
     const total = state.filteredClasses.length;
-    resultsCount.textContent = total === 1 ? '1 clase disponible' : `${total} clases disponibles`;
+    const studentLevel =
+      state.user?.rol === 'estudiante' && Array.isArray(state.user.nivelesEducativos)
+        ? state.user.nivelesEducativos[0]
+        : '';
+    const levelContext = studentLevel
+      ? ` para nivel ${studentLevel.charAt(0).toUpperCase()}${studentLevel.slice(1)}`
+      : '';
+    resultsCount.textContent = `${total === 1 ? '1 clase disponible' : `${total} clases disponibles`}${levelContext}`;
     adjuntarManejadoresInscripcion();
   }
 
@@ -505,10 +512,16 @@
       const searchable = [clase.titulo, clase.descripcion, clase.materiaNombre, subject.label, mentorName, modalidad]
         .map(normalizar)
         .join(' ');
+      const studentLevel =
+        state.user?.rol === 'estudiante' && Array.isArray(state.user.nivelesEducativos)
+          ? state.user.nivelesEducativos[0]
+          : '';
+      const mentorLevels = Array.isArray(clase.mentorNivelesEducativos) ? clase.mentorNivelesEducativos : [];
       const matchesSubject = !state.activeSubject || subject.key === state.activeSubject;
       const matchesModality = !state.activeModality || modalidad === state.activeModality;
       const matchesQuery = !query || searchable.includes(query);
-      return matchesSubject && matchesModality && matchesQuery;
+      const matchesLevel = !studentLevel || mentorLevels.includes(studentLevel);
+      return matchesSubject && matchesModality && matchesQuery && matchesLevel;
     });
 
     renderizarMaterias();
