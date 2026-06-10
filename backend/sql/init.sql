@@ -45,7 +45,8 @@ CREATE TABLE clases (
   ubicacion VARCHAR(255) NULL,
   cupo_maximo INT NOT NULL DEFAULT 1,
   cupo_actual INT NOT NULL DEFAULT 0,
-  FOREIGN KEY (id_mentor) REFERENCES usuarios(id_usuario)
+  FOREIGN KEY (id_mentor) REFERENCES usuarios(id_usuario),
+  FOREIGN KEY (id_materia) REFERENCES materias(id_materia) ON DELETE RESTRICT ON UPDATE RESTRICT
 );
 
 CREATE TABLE materiales (

@@ -54,6 +54,24 @@ async function asegurarColumna(tableName, columnName, sql) {
   }
 }
 
+async function tieneForeignKey(tableName, columnName, referencedTableName, referencedColumnName) {
+  const [rows] = await pool.query(
+    `
+      SELECT 1
+      FROM information_schema.KEY_COLUMN_USAGE
+      WHERE TABLE_SCHEMA = ?
+        AND TABLE_NAME = ?
+        AND COLUMN_NAME = ?
+        AND REFERENCED_TABLE_NAME = ?
+        AND REFERENCED_COLUMN_NAME = ?
+      LIMIT 1
+    `,
+    [dbConfig.database, tableName, columnName, referencedTableName, referencedColumnName]
+  );
+
+  return rows.length > 0;
+}
+
 async function obtenerForeignKeys(tableName, columnName) {
   const [rows] = await pool.query(
     `
@@ -75,6 +93,39 @@ async function eliminarForeignKeys(tableName, columnName) {
   for (const constraintName of constraints) {
     await pool.query(`ALTER TABLE \`${tableName}\` DROP FOREIGN KEY \`${constraintName}\``);
   }
+}
+
+async function asegurarForeignKeyClasesMateria() {
+  const existeRelacion = await tieneForeignKey(
+    'clases',
+    'id_materia',
+    'materias',
+    'id_materia'
+  );
+  if (existeRelacion) return;
+
+  const [materiasHuerfanas] = await pool.query(`
+    SELECT COUNT(*) AS total
+    FROM clases c
+    LEFT JOIN materias m ON m.id_materia = c.id_materia
+    WHERE c.id_materia IS NOT NULL
+      AND m.id_materia IS NULL
+  `);
+
+  if (Number(materiasHuerfanas[0]?.total || 0) > 0) {
+    throw new Error(
+      'No se puede agregar la relacion clases-materias: existen clases con materias inexistentes.'
+    );
+  }
+
+  await pool.query(`
+    ALTER TABLE clases
+      ADD CONSTRAINT fk_clases_materia
+      FOREIGN KEY (id_materia)
+      REFERENCES materias(id_materia)
+      ON DELETE RESTRICT
+      ON UPDATE RESTRICT
+  `);
 }
 
 async function asegurarTablaMensajes() {
@@ -427,6 +478,8 @@ async function asegurarEsquemaBaseDatos() {
     'cupo_actual',
     'ALTER TABLE clases ADD COLUMN cupo_actual INT NOT NULL DEFAULT 0 AFTER cupo_maximo'
   );
+
+  await asegurarForeignKeyClasesMateria();
 
   await pool.query(`
     CREATE TABLE IF NOT EXISTS mentor_materias (
