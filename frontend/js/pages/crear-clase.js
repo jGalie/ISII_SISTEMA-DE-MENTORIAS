@@ -88,8 +88,8 @@
     };
 
     validar(selectorMateria, 'materia-error', Boolean(selectorMateria.value), 'Selecciona una materia.');
-    validar(inputTitulo, 'titulo-error', titulo.length >= 5 && titulo.length <= 120, titulo
-      ? 'El titulo debe tener entre 5 y 120 caracteres.'
+    validar(inputTitulo, 'titulo-error', titulo.length >= 5 && titulo.length <= 100, titulo
+      ? 'El titulo debe tener entre 5 y 100 caracteres.'
       : 'Ingresa un titulo para la clase.');
     validar(
       inputDescripcion,
