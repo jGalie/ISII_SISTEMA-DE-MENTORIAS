@@ -82,8 +82,8 @@ function validarDatosClase(datosClase) {
   const origenCupo = datosClase?.cupo_maximo ?? datosClase?.cupoMaximo ?? 1;
   const cupo_maximo = normalizarNumero(origenCupo, 'Debes indicar un cupo maximo valido.');
 
-  if (titulo.length < 5 || titulo.length > 120) {
-    throw crearErrorApp('El titulo debe tener entre 5 y 120 caracteres.', 'VALIDATION_ERROR');
+  if (titulo.length < 5 || titulo.length > 100) {
+    throw crearErrorApp('El titulo debe tener entre 5 y 100 caracteres.', 'VALIDATION_ERROR');
   }
   if (descripcion.length < 10 || descripcion.length > 1000) {
     throw crearErrorApp('La descripcion debe tener entre 10 y 1000 caracteres.', 'VALIDATION_ERROR');
