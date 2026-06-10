@@ -420,6 +420,7 @@
     if (!mensajesAlert) return;
     mensajesAlert.textContent = message;
     mensajesAlert.classList.remove('d-none');
+    mensajesAlert.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
 
   function renderizarInfoInscripcion(item) {
@@ -895,7 +896,7 @@
         <div id="student-inline-messages-list" class="mensajes-list d-grid gap-2 mb-3"></div>
         <form id="student-inline-message-form" class="d-grid gap-2">
           <label class="form-label fw-semibold mb-0" for="student-inline-message-content">Nuevo mensaje</label>
-          <textarea id="student-inline-message-content" class="form-control" name="contenido" rows="3" maxlength="1000" placeholder="Escribi tu mensaje"></textarea>
+          <textarea id="student-inline-message-content" class="form-control" name="contenido" rows="3" placeholder="Escribi tu mensaje"></textarea>
           <div class="student-inline-message-feedback text-danger small d-none" role="alert"></div>
           <div class="d-flex justify-content-end">
             <button class="btn btn-dark rounded-pill px-4" type="submit">
@@ -922,6 +923,14 @@
         if (!contenido) {
           if (feedback) {
             feedback.textContent = 'Escribi un mensaje antes de enviarlo.';
+            feedback.classList.remove('d-none');
+          }
+          return;
+        }
+
+        if (contenido.length > 1000) {
+          if (feedback) {
+            feedback.textContent = 'No se aceptan mensajes de mas de 1000 caracteres.';
             feedback.classList.remove('d-none');
           }
           return;
@@ -1523,6 +1532,11 @@
       const contenido = String(mensajesContenido?.value || '').trim();
       if (!contenido) {
         mostrarErrorMensajes('Escribi un mensaje antes de enviarlo.');
+        return;
+      }
+
+      if (contenido.length > 1000) {
+        mostrarErrorMensajes('No se aceptan mensajes de mas de 1000 caracteres.');
         return;
       }
 
