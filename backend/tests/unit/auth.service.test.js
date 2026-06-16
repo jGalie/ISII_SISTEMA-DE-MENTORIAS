@@ -4,7 +4,15 @@ jest.mock('bcryptjs', () => ({
 }));
 
 jest.mock('../../src/config/db', () => ({
-  pool: {},
+}));
+
+jest.mock('../../src/repositories/materia.repository', () => ({
+  buscarOCrearPorNombre: jest.fn(),
+}));
+
+jest.mock('../../src/repositories/mentor-materia.repository', () => ({
+  buscarPorMentor: jest.fn(),
+  crear: jest.fn(),
 }));
 
 const bcrypt = require('bcryptjs');

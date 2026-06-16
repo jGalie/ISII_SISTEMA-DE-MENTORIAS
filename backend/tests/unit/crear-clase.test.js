@@ -1,5 +1,9 @@
 const { crearServicioClase } = require('../../src/services/clase.service');
 
+const fechaFutura = new Date(Date.UTC(new Date().getUTCFullYear() + 1, 5, 10, 15, 30, 0));
+const fechaFuturaIso = fechaFutura.toISOString();
+const fechaFuturaSql = fechaFuturaIso.slice(0, 19).replace('T', ' ');
+
 function crearDependencias(overrides = {}) {
   return {
     claseRepository: {
@@ -29,7 +33,7 @@ function datosClase(overrides = {}) {
   return {
     titulo: ' Clase de funciones ',
     descripcion: 'Introducción a funciones',
-    fecha: '2026-06-10T15:30:00Z',
+    fecha: fechaFuturaIso,
     modalidad: 'virtual',
     id_materia: 3,
     precio: 5000,
@@ -46,7 +50,7 @@ describe('Crear clase', () => {
       id: 45,
       titulo: 'Clase de funciones',
       descripcion: 'Introducción a funciones',
-      fecha: '2026-06-10 15:30:00',
+      fecha: fechaFuturaSql,
       modalidad: 'virtual',
       id_mentor: 7,
       id_materia: 3,
@@ -72,7 +76,7 @@ describe('Crear clase', () => {
     expect(dependencias.claseRepository.crearClase).toHaveBeenCalledWith({
       titulo: 'Clase de funciones',
       descripcion: 'Introducción a funciones',
-      fecha: '2026-06-10 15:30:00',
+      fecha: fechaFuturaSql,
       modalidad: 'virtual',
       id_materia: 3,
       precio: 5000,
