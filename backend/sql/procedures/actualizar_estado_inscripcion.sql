@@ -1,5 +1,7 @@
 USE mentorias_bd;
 
+DROP PROCEDURE IF EXISTS actualizar_estado_inscripcion;
+
 DELIMITER //
 
 CREATE PROCEDURE actualizar_estado_inscripcion(
